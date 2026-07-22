@@ -29,7 +29,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <nav style={{ padding: "12px", flex: 1, overflowY: "auto" }}>
           <div className="section-label">Konsol Utama</div>
 
-          <Link href="/" className="nav-pill" style={{ marginBottom: 2 }}>
+          <Link href="/dashboard" className="nav-pill" style={{ marginBottom: 2 }}>
             <Clock style={{ width: 16, height: 16, color: "#F87171", flexShrink: 0 }} />
             <span>Dasbor Utama</span>
           </Link>

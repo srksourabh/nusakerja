@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Restored the payroll calculator's strict TypeScript compatibility with the statutory engine. Its BPJS deductions, employer cost, PPh 21 TER amount, PTKP category, and NPWP surcharge now use the engine's current result contract.
+- Restored Vercel production deployment by separating the public `/` landing page from the authenticated `/dashboard` route and configuring the Vercel project root as `apps/web`.
 
 ## [1.0.0] - 2026-07-23
 

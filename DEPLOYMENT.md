@@ -14,9 +14,20 @@
 3. **Automated Testing**: Vitest test runner execution.
 4. **Build Verification**: Turbo production build verification.
 
+## 3. Vercel Project Settings
+
+- Git repository: `srksourabh/nusakerja`
+- Production branch: `main`
+- Framework preset: `Next.js`
+- Root directory: `apps/web`
+- Include source files outside the root directory: enabled for workspace packages
+- Production URL: `https://nusakerja.vercel.app`
+
+Before a production deployment, apply committed Drizzle migrations with `pnpm db:migrate`. The command is idempotent and records applied migrations in PostgreSQL's `drizzle.__drizzle_migrations` table.
+
 ---
 
-## 3. Rollback Procedure
+## 4. Rollback Procedure
 
 In case of deployment failure:
 1. Trigger Vercel instant deployment rollback to previous deployment hash.
