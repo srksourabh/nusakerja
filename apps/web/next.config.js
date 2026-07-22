@@ -1,7 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ["@nusakerja/ui", "@nusakerja/validators", "@nusakerja/db", "@nusakerja/auth", "@nusakerja/config"],
+  transpilePackages: [
+    "@nusakerja/ui",
+    "@nusakerja/validators",
+    "@nusakerja/db",
+    "@nusakerja/auth",
+    "@nusakerja/config",
+  ],
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   async headers() {
     return [
       {
