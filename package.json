@@ -1,0 +1,24 @@
+{
+  "name": "nusakerja",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "db:push": "pnpm --filter @nusakerja/db db:push",
+    "db:generate": "pnpm --filter @nusakerja/db db:generate",
+    "db:migrate": "pnpm --filter @nusakerja/db db:migrate",
+    "db:studio": "pnpm --filter @nusakerja/db db:studio",
+    "db:seed": "pnpm --filter @nusakerja/db db:seed"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "turbo": "^2.1.0",
+    "typescript": "^5.5.4"
+  },
+  "packageManager": "pnpm@9.7.0",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
