@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Users, Calendar, Clock, DollarSign, FileText, ExternalLink, Calculator, LogOut, ShieldAlert, Network, UserCheck, Building2, Sparkles } from "lucide-react";
 
