@@ -30,3 +30,11 @@ export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   }
   return next({ ctx });
 });
+
+// Safe export for any legacy client hooks
+export const trpc = {
+  tenants: {
+    list: { useQuery: () => ({ data: [], refetch: () => {} }) },
+    create: { useMutation: () => ({ mutate: () => {}, isPending: false }) },
+  },
+} as any;

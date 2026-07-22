@@ -1,109 +1,323 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { Sparkles, ShieldCheck, ArrowRight, Building2, Network, UserCheck, DollarSign } from "lucide-react";
+import { Sparkles, ShieldCheck, ArrowRight, Building2, Network, UserCheck, DollarSign, Globe, CheckCircle2, FileText, ChevronRight } from "lucide-react";
 
 export default function Home() {
+  // Dual Language State: 'ID' (Bahasa Indonesia) or 'EN' (English)
+  const [lang, setLang] = useState<"ID" | "EN">("ID");
+
+  const content = {
+    ID: {
+      badge: "Platform HRMS & Statutory Payroll SaaS Terdepan Indonesia",
+      heroTitle: "Kelola HR & Statutory Payroll Indonesia Dalam Satu Platform",
+      heroSubtitle: "Engine Penggajian PPh 21 TER (PMK 168/2023), BPJS Ketenagakerjaan & Kesehatan (Maret 2026), THR, Overtime PP 35/2021, serta Organogram Interaktif.",
+      ctaSuperAdmin: "Masuk Konsol Super Admin",
+      ctaPayroll: "Kalkulator Payroll PPh 21",
+      directAccessTitle: "Akses Cepat 4 Konsol Utama NusaKerja",
+      directAccessSub: "Klik salah satu modul di bawah ini untuk langsung mencoba simulasi end-to-end:",
+      superAdminCard: {
+        title: "Super Admin Platform",
+        badge: "Multi-Tenant SaaS",
+        desc: "Onboarding PT/CV baru, alokasi schema database terisolasi, & pengaturan lisensi.",
+        btn: "Buka Super Admin",
+      },
+      clientAdminCard: {
+        title: "Client Admin PT",
+        badge: "Company Master",
+        desc: "Pengaturan NPWP, NPP BPJS, UMK wilayah (Jakarta/Surabaya), & cabang operasional.",
+        btn: "Buka Client Admin",
+      },
+      payrollCard: {
+        title: "Kalkulator Payroll & PPh 21",
+        badge: "PMK 168/2023 TER",
+        desc: "Hitung Gaji Pokok, PPh 21 TER (Kat A/B/C), BPJS TK & Kesehatan, serta THP Netto.",
+        btn: "Buka Payroll Engine",
+      },
+      organogramCard: {
+        title: "Struktur Organogram",
+        badge: "Bagan Visual",
+        desc: "Visualisasi hirarki kepemimpinan dari Direksi, Divisi, Departemen, hingga Staf.",
+        btn: "Lihat Organogram",
+      },
+      portalCard: {
+        title: "Portal Karyawan Mobile",
+        badge: "Self-Service",
+        desc: "Presensi GPS Geofence, sisa hak cuti tahunan, & unduh slip gaji digital PDF.",
+        btn: "Buka Portal Karyawan",
+      },
+      featuresTitle: "Keunggulan Regulasi Statutory Indonesia 100% Valid",
+      footer: "NusaKerja SaaS. Seluruh Hak Cipta Dilindungi Undang-Undang.",
+    },
+    EN: {
+      badge: "Indonesia's Leading Enterprise HRMS & Statutory Payroll SaaS Platform",
+      heroTitle: "Manage Indonesian HR & Statutory Payroll On a Single Platform",
+      heroSubtitle: "Automated PPh 21 TER tax engine (PMK 168/2023), BPJS Healthcare & Social Security (March 2026 caps), Severance PP 35/2021, & Visual Organogram.",
+      ctaSuperAdmin: "Open Super Admin Console",
+      ctaPayroll: "Payroll & Tax Calculator",
+      directAccessTitle: "Quick Access to 4 Core NusaKerja Consoles",
+      directAccessSub: "Click any of the console shortcuts below to experience full end-to-end interactive workflows:",
+      superAdminCard: {
+        title: "Super Admin Platform",
+        badge: "Multi-Tenant SaaS",
+        desc: "Onboard new enterprise PT/CV clients, allocate isolated database schemas & licenses.",
+        btn: "Open Super Admin",
+      },
+      clientAdminCard: {
+        title: "Client Admin Console",
+        badge: "Company Master",
+        desc: "Configure NPWP, BPJS NPP codes, regional UMK minimum wages, & branch offices.",
+        btn: "Open Client Admin",
+      },
+      payrollCard: {
+        title: "Payroll & PPh 21 Calculator",
+        badge: "PMK 168/2023 TER",
+        desc: "Calculate Basic Salary, PPh 21 TER withholding, BPJS deductions, & Net Take Home Pay.",
+        btn: "Open Payroll Engine",
+      },
+      organogramCard: {
+        title: "Visual Department Organogram",
+        badge: "Interactive Map",
+        desc: "Visualize corporate hierarchy from Board of Directors to Division Managers and Staff.",
+        btn: "View Organogram",
+      },
+      portalCard: {
+        title: "Employee Mobile Self-Service",
+        badge: "Field Portal",
+        desc: "GPS Geofenced Attendance Punch, Annual Leave balance tracking, & PDF Payslips.",
+        btn: "Open Employee Portal",
+      },
+      featuresTitle: "100% Compliant with Indonesian Labor & Tax Laws",
+      footer: "NusaKerja SaaS. All rights reserved.",
+    },
+  };
+
+  const t = content[lang];
+
   return (
-    <div className="flex flex-col min-h-screen bg-[#FBF8FD] text-[#1C1B1F] relative overflow-hidden">
-      {/* Background Organic Ambient Blur Shapes (Material You Signature Element) */}
-      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#6750A4]/15 rounded-full blur-3xl -translate-y-1/2 pointer-events-none" />
-      <div className="absolute top-1/3 right-10 w-[500px] h-[500px] bg-[#7D5260]/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 left-10 w-[400px] h-[400px] bg-[#625B71]/15 rounded-full blur-3xl pointer-events-none" />
+    <div className="flex flex-col min-h-screen bg-[#F8FAFC] text-[#0B192C] relative overflow-hidden font-sans">
+      {/* Background Organic Ambient Shapes (Derived from Logo Palette) */}
+      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#0B192C]/10 rounded-full blur-3xl -translate-y-1/2 pointer-events-none" />
+      <div className="absolute top-1/3 right-10 w-[500px] h-[500px] bg-[#DC2626]/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 left-10 w-[400px] h-[400px] bg-[#D97706]/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header App Bar */}
-      <header className="px-8 py-4 bg-[#F3EDF7]/90 backdrop-blur-md border-b border-[#E7E0EC] flex justify-between items-center sticky top-0 z-50">
-        <div className="flex items-center space-x-3.5">
-          <div className="w-11 h-11 rounded-2xl overflow-hidden bg-white p-1 shadow-md flex-shrink-0 border border-slate-200 flex items-center justify-center">
-            <img src="/logo.png" alt="NusaKerja Logo" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
+      <header className="px-6 py-4 bg-[#0B192C] text-white flex justify-between items-center sticky top-0 z-50 shadow-xl border-b border-slate-800">
+        <div className="flex items-center space-x-4">
+          <div className="w-12 h-12 rounded-2xl overflow-hidden bg-white p-1 shadow-lg flex-shrink-0 border-2 border-amber-400 flex items-center justify-center">
+            <img src="/logo.png" alt="NusaKerja Logo" className="w-full h-full object-contain" />
           </div>
           <div>
-            <span className="text-xl font-extrabold text-[#1C1B1F] tracking-tight flex items-center">
-              NusaKerja
-              <span className="ml-2 px-2 py-0.5 text-[9px] font-black bg-red-600 text-white rounded-full uppercase tracking-wider shadow-xs">
+            <div className="flex items-center space-x-2">
+              <span className="text-2xl font-black tracking-tight text-white">NusaKerja</span>
+              <span className="px-2 py-0.5 text-[9px] font-black bg-red-600 text-white rounded-full uppercase tracking-wider shadow-sm">
                 SaaS
               </span>
-            </span>
-            <p className="text-[10px] text-red-600 font-bold uppercase tracking-wider">HRMS & Statutory IDR</p>
+            </div>
+            <p className="text-[10px] text-amber-400 font-bold uppercase tracking-wider">HRMS & Statutory IDR</p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        {/* Navigation & Language Toggle */}
+        <div className="flex items-center space-x-4">
+          {/* Dual Language Selector Button */}
+          <div className="bg-slate-800 p-1 rounded-full border border-slate-700 flex items-center space-x-1">
+            <button
+              onClick={() => setLang("ID")}
+              className={`px-3 py-1 text-xs font-bold rounded-full transition-all flex items-center space-x-1 ${
+                lang === "ID" ? "bg-red-600 text-white shadow-md" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <span>🇮🇩 ID</span>
+            </button>
+            <button
+              onClick={() => setLang("EN")}
+              className={`px-3 py-1 text-xs font-bold rounded-full transition-all flex items-center space-x-1 ${
+                lang === "EN" ? "bg-blue-600 text-white shadow-md" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <span>🇺🇸 EN</span>
+            </button>
+          </div>
+
           <Link href="/portal">
-            <button className="btn-md-secondary px-5 py-2.5 text-xs font-bold">Portal Karyawan</button>
+            <button className="px-4 py-2 rounded-full text-xs font-bold bg-slate-800 text-white border border-slate-700 hover:bg-slate-700 transition-all">
+              {t.portalCard.btn}
+            </button>
           </Link>
           <Link href="/super-admin">
-            <button className="btn-md-primary px-6 py-2.5 text-xs font-bold shadow-md">Konsol Super Admin</button>
+            <button className="px-5 py-2.5 rounded-full text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-all shadow-md">
+              {t.superAdminCard.btn}
+            </button>
           </Link>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-16 text-center flex flex-col items-center justify-center relative z-10">
-        <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#E8DEF8] text-[#1D192B] text-xs font-bold mb-6 border border-[#CAC4D0]/50 shadow-xs">
-          <Sparkles className="w-4 h-4 text-[#6750A4]" />
-          <span>Material You (MD3) Design System • Indonesia HRMS Platform</span>
+      {/* Main Hero Section */}
+      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-12 text-center flex flex-col items-center justify-center relative z-10">
+        {/* Prominent Heroic Logo Badge */}
+        <div className="mb-6 p-4 rounded-3xl bg-white shadow-2xl border-2 border-slate-200 inline-block transform hover:scale-105 transition-all">
+          <div className="w-36 h-36 mx-auto overflow-hidden flex items-center justify-center">
+            <img src="/logo.png" alt="NusaKerja Hero Logo" className="w-full h-full object-contain" />
+          </div>
         </div>
 
-        <h1 className="text-4xl sm:text-6xl font-extrabold text-[#1C1B1F] tracking-tight max-w-4xl leading-tight">
-          Otomatisasi HRMS & Statutory Payroll Indonesia Terdepan
+        <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-red-100 text-red-800 text-xs font-extrabold mb-4 border border-red-200 shadow-xs">
+          <Sparkles className="w-4 h-4 text-red-600" />
+          <span>{t.badge}</span>
+        </div>
+
+        <h1 className="text-4xl sm:text-6xl font-black text-[#0B192C] tracking-tight max-w-4xl leading-tight">
+          {t.heroTitle}
         </h1>
 
-        <p className="mt-5 text-lg text-[#49454F] max-w-2xl leading-relaxed font-normal">
-          Engine penggajian PPh 21 TER (PMK 168/2023), BPJS Ketenagakerjaan & Kesehatan (plafon Maret 2026), THR, overtime PP 35/2021, serta modul GPS tracking presisi.
+        <p className="mt-4 text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed font-normal">
+          {t.heroSubtitle}
         </p>
 
-        {/* Feature Console Cards Grid */}
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl w-full text-left">
-          <Link href="/super-admin" className="card-md p-6 bg-[#F3EDF7] border border-[#E7E0EC] group hover:border-[#6750A4] transition-all">
-            <div className="w-10 h-10 rounded-2xl bg-[#6750A4] text-white flex items-center justify-center mb-3 shadow-md">
-              <Building2 className="w-5 h-5" />
+        {/* DIRECT ACCESS SHORTCUTS GRID (Single Landing Page Link Grid) */}
+        <div className="mt-12 w-full max-w-5xl text-left">
+          <div className="flex items-center justify-between mb-6 border-b border-slate-200 pb-3">
+            <div>
+              <h2 className="text-xl font-black text-[#0B192C]">{t.directAccessTitle}</h2>
+              <p className="text-xs text-slate-500 mt-0.5">{t.directAccessSub}</p>
             </div>
-            <h3 className="text-base font-bold text-[#1C1B1F] group-hover:text-[#6750A4]">Super Admin</h3>
-            <p className="text-xs text-[#625B71] mt-1">Onboarding perusahaan klien baru & skema multi-tenant.</p>
-          </Link>
+            <span className="px-3 py-1 text-xs font-bold bg-amber-100 text-amber-900 rounded-full border border-amber-300">
+              ⚡ Live Navigation
+            </span>
+          </div>
 
-          <Link href="/admin" className="card-md p-6 bg-[#F3EDF7] border border-[#E7E0EC] group hover:border-emerald-600 transition-all">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mb-3 shadow-md">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-[#1C1B1F] group-hover:text-emerald-700">Client Admin</h3>
-            <p className="text-xs text-[#625B71] mt-1">Pengaturan master PT, UMK wilayah, & parameter BPJS.</p>
-          </Link>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* 1. Super Admin Card */}
+            <Link
+              href="/super-admin"
+              className="bg-white p-6 rounded-3xl border-2 border-slate-200 hover:border-red-600 shadow-md hover:shadow-xl transition-all group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-12 h-12 rounded-2xl bg-red-600 text-white flex items-center justify-center shadow-md">
+                    <Building2 className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-0.5 text-[10px] font-extrabold bg-red-100 text-red-800 rounded-full">
+                    {t.superAdminCard.badge}
+                  </span>
+                </div>
+                <h3 className="text-lg font-extrabold text-[#0B192C] group-hover:text-red-600 transition-colors">
+                  {t.superAdminCard.title}
+                </h3>
+                <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                  {t.superAdminCard.desc}
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center text-xs font-extrabold text-red-600 group-hover:translate-x-1 transition-transform">
+                <span>{t.superAdminCard.btn}</span>
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </div>
+            </Link>
 
-          <Link href="/organogram" className="card-md p-6 bg-[#F3EDF7] border border-[#E7E0EC] group hover:border-purple-600 transition-all">
-            <div className="w-10 h-10 rounded-2xl bg-[#7D5260] text-white flex items-center justify-center mb-3 shadow-md">
-              <Network className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-[#1C1B1F] group-hover:text-purple-700">Organogram</h3>
-            <p className="text-xs text-[#625B71] mt-1">Bagan hirarki struktur organisasi & divisi perusahaan.</p>
-          </Link>
+            {/* 2. Client Admin Card */}
+            <Link
+              href="/admin"
+              className="bg-white p-6 rounded-3xl border-2 border-slate-200 hover:border-emerald-600 shadow-md hover:shadow-xl transition-all group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md">
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-0.5 text-[10px] font-extrabold bg-emerald-100 text-emerald-800 rounded-full">
+                    {t.clientAdminCard.badge}
+                  </span>
+                </div>
+                <h3 className="text-lg font-extrabold text-[#0B192C] group-hover:text-emerald-700 transition-colors">
+                  {t.clientAdminCard.title}
+                </h3>
+                <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                  {t.clientAdminCard.desc}
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center text-xs font-extrabold text-emerald-700 group-hover:translate-x-1 transition-transform">
+                <span>{t.clientAdminCard.btn}</span>
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </div>
+            </Link>
 
-          <Link href="/portal" className="card-md p-6 bg-[#F3EDF7] border border-[#E7E0EC] group hover:border-sky-600 transition-all">
-            <div className="w-10 h-10 rounded-2xl bg-sky-600 text-white flex items-center justify-center mb-3 shadow-md">
-              <UserCheck className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-[#1C1B1F] group-hover:text-sky-700">Portal Karyawan</h3>
-            <p className="text-xs text-[#625B71] mt-1">Absensi GPS punch, sisa cuti, & unduh slip gaji PDF.</p>
-          </Link>
+            {/* 3. Payroll Portal Card */}
+            <Link
+              href="/payroll"
+              className="bg-white p-6 rounded-3xl border-2 border-slate-200 hover:border-amber-600 shadow-md hover:shadow-xl transition-all group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-600 text-white flex items-center justify-center shadow-md">
+                    <DollarSign className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-0.5 text-[10px] font-extrabold bg-amber-100 text-amber-800 rounded-full">
+                    {t.payrollCard.badge}
+                  </span>
+                </div>
+                <h3 className="text-lg font-extrabold text-[#0B192C] group-hover:text-amber-700 transition-colors">
+                  {t.payrollCard.title}
+                </h3>
+                <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                  {t.payrollCard.desc}
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center text-xs font-extrabold text-amber-700 group-hover:translate-x-1 transition-transform">
+                <span>{t.payrollCard.btn}</span>
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </div>
+            </Link>
+
+            {/* 4. Organogram Card */}
+            <Link
+              href="/organogram"
+              className="bg-white p-6 rounded-3xl border-2 border-slate-200 hover:border-purple-600 shadow-md hover:shadow-xl transition-all group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-700 text-white flex items-center justify-center shadow-md">
+                    <Network className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-0.5 text-[10px] font-extrabold bg-purple-100 text-purple-800 rounded-full">
+                    {t.organogramCard.badge}
+                  </span>
+                </div>
+                <h3 className="text-lg font-extrabold text-[#0B192C] group-hover:text-purple-700 transition-colors">
+                  {t.organogramCard.title}
+                </h3>
+                <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                  {t.organogramCard.desc}
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center text-xs font-extrabold text-purple-700 group-hover:translate-x-1 transition-transform">
+                <span>{t.organogramCard.btn}</span>
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </div>
+            </Link>
+          </div>
         </div>
 
-        <div className="mt-10 flex items-center space-x-4">
+        {/* Action Buttons Row */}
+        <div className="mt-10 flex flex-wrap justify-center gap-4">
           <Link href="/super-admin">
-            <button className="btn-md-primary px-8 py-3.5 text-sm font-bold shadow-lg space-x-2">
-              <span>Buka Konsol Utama</span>
+            <button className="px-8 py-4 rounded-full bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm shadow-xl hover:shadow-2xl transition-all flex items-center space-x-2">
+              <span>{t.ctaSuperAdmin}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </Link>
           <Link href="/payroll">
-            <button className="btn-md-secondary px-8 py-3.5 text-sm font-bold border border-[#CAC4D0]">
-              Kalkulasi Payroll IDR
+            <button className="px-8 py-4 rounded-full bg-[#0B192C] hover:bg-slate-800 text-white font-extrabold text-sm shadow-lg hover:shadow-xl transition-all">
+              {t.ctaPayroll}
             </button>
           </Link>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="py-6 border-t border-[#E7E0EC] bg-[#F3EDF7] text-center text-xs text-[#625B71]">
-        &copy; {new Date().getFullYear()} NusaKerja (PT Nusantara Utama). Hak Cipta Dilindungi Undang-Undang.
+      <footer className="py-6 border-t border-slate-200 bg-white text-center text-xs text-slate-500">
+        &copy; {new Date().getFullYear()} {t.footer}
       </footer>
     </div>
   );
