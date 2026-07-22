@@ -10,10 +10,10 @@ export default function Home() {
       <div className="absolute bottom-10 left-10 w-[400px] h-[400px] bg-[#625B71]/15 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header App Bar */}
-      <header className="px-8 py-5 bg-[#F3EDF7]/80 backdrop-blur-md border-b border-[#E7E0EC] flex justify-between items-center sticky top-0 z-50">
+      <header className="px-8 py-4 bg-[#F3EDF7]/90 backdrop-blur-md border-b border-[#E7E0EC] flex justify-between items-center sticky top-0 z-50">
         <div className="flex items-center space-x-3.5">
           <div className="w-11 h-11 rounded-2xl overflow-hidden bg-white p-1 shadow-md flex-shrink-0 border border-slate-200 flex items-center justify-center">
-            <img src="/logo.png" alt="NusaKerja Logo" className="w-full h-full object-contain" />
+            <img src="/logo.png" alt="NusaKerja Logo" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
           </div>
           <div>
             <span className="text-xl font-extrabold text-[#1C1B1F] tracking-tight flex items-center">
