@@ -4,9 +4,11 @@ node_modules
 
 # build outputs
 .next
+.turbo
 dist
 build
 out
+*.tsbuildinfo
 
 # env files
 .env
