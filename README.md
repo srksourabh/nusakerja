@@ -58,6 +58,8 @@ pnpm dev
 
 ## Documentation Map
 
+- [`CONTRIBUTING.md`](./CONTRIBUTING.md) — Branch, page, validation, and merge workflow
+- [`saas-foundation/`](./saas-foundation/) — Restored SaaS foundation templates and engineering references
 - [`AGENTS.md`](./AGENTS.md) — Non-negotiable AI agent and contributor guidelines
 - [`PRODUCT.md`](./PRODUCT.md) — Product vision, user profiles, and success metrics
 - [`REQUIREMENTS.md`](./REQUIREMENTS.md) — Prioritized functional and statutory requirements

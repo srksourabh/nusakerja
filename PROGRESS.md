@@ -34,7 +34,14 @@
 
 ---
 
-## 2. Pending Production Enhancement Tasks (Roadmap to Launch)
+## 2. Repository Collaboration Foundation
+
+- [x] Restored `saas-foundation/` templates and engineering references inside the primary repository.
+- [x] Added a single canonical contribution and page-merge workflow.
+- [x] Added non-interactive ESLint and duplicate App Router validation to unblock GitHub Actions.
+- [x] Verified all 13 prepared application pages are present as unique routes on `main`.
+
+## 3. Pending Production Enhancement Tasks (Roadmap to Launch)
 
 - [ ] **TASK-201: Database Seeding Script (`packages/db/src/seed.ts`)**
   - Write automated database seeder for initial tenant (`PT Nusantara Utama`), default statutory parameters (BPJS caps, TER tables), and sample employees for instant testing via `pnpm db:seed`.

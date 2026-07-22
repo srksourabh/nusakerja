@@ -10,9 +10,10 @@
 
 ## 2. Execution Commands
 
-- Run unit & integration tests: `pnpm test`
-- Run E2E tests: `pnpm --filter @nusakerja/web test:e2e`
-- Check test coverage: `pnpm test -- --coverage`
+- Run the complete merge gate: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`
+- Validate unique Next.js page routes: `pnpm check:routes`
+- Run the currently automated repository tests: `pnpm test`
+- Unit, integration, and Playwright E2E suites remain launch-readiness gaps and must be added before claiming those gates pass.
 
 ---
 
@@ -22,3 +23,4 @@
 - **G2**: Zero TypeScript type errors (`pnpm typecheck`).
 - **G3**: 0 linting violations (`pnpm lint`).
 - **G4**: Playwright E2E test suite passing green.
+- **G5**: Every App Router URL is unique, including the required `/` and `/dashboard` routes.
