@@ -1,240 +1,228 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardHeader, CardTitle, Button, Badge } from "@nusakerja/ui";
-import { DollarSign, FileText, Download, CheckCircle2, Info, ShieldCheck } from "lucide-react";
+import { trpc } from "../../../trpc/trpc";
 import { calculateBpjsContribution, calculatePph21Ter } from "@nusakerja/config";
+import { DollarSign, Play, Download, CheckCircle2, Calculator, AlertTriangle, FileSpreadsheet, RefreshCw } from "lucide-react";
 
 export default function PayrollPage() {
-  const [calculated, setCalculated] = useState(false);
-  const [selectedPayslip, setSelectedPayslip] = useState<any | null>(null);
+  const [basicSalary, setBasicSalary] = useState<number>(10000000);
+  const [fixedAllowance, setFixedAllowance] = useState<number>(2000000);
+  const [ptkpStatus, setPtkpStatus] = useState<string>("TK_0");
+  const [hasNpwp, setHasNpwp] = useState<boolean>(true);
+  const [workerCategory, setWorkerCategory] = useState<"WNI" | "TKA">("WNI");
 
-  // Run calculation simulation for sample employees
-  const sampleEmployees = [
-    { name: "Budi Santoso", code: "NK-001", basicSalary: 12000000, ptkp: "K/1", npwp: true, category: "PKWTT" },
-    { name: "Siti Rahma", code: "NK-002", basicSalary: 8500000, ptkp: "TK/0", npwp: true, category: "PKWTT" },
-    { name: "Agus Harimurti", code: "NK-003", basicSalary: 6500000, ptkp: "TK/1", npwp: false, category: "PKWT" },
-    { name: "Michael Vance", code: "NK-004", basicSalary: 45000000, ptkp: "K/2", npwp: true, category: "TKA" },
-  ];
+  const bpjs = calculateBpjsContribution(basicSalary, fixedAllowance, workerCategory);
+  const grossSalary = basicSalary + fixedAllowance;
+  const tax = calculatePph21Ter(grossSalary, ptkpStatus, hasNpwp, workerCategory);
 
-  const processedList = sampleEmployees.map((emp) => {
-    const bpjs = calculateBpjsContribution(emp.basicSalary, 0, emp.category as any);
-    const tax = calculatePph21Ter(emp.basicSalary, emp.ptkp, emp.npwp);
-    const netSalary = emp.basicSalary - bpjs.totalEmployeeDeduction - tax.pph21Tax;
-
-    return {
-      ...emp,
-      bpjs,
-      tax,
-      netSalary,
-    };
-  });
-
-  const totalGross = processedList.reduce((sum, item) => sum + item.basicSalary, 0);
-  const totalTax = processedList.reduce((sum, item) => sum + item.tax.pph21Tax, 0);
-  const totalBpjsEmployer = processedList.reduce((sum, item) => sum + item.bpjs.totalEmployerCost, 0);
-  const totalNet = processedList.reduce((sum, item) => sum + item.netSalary, 0);
+  const netSalary = grossSalary - bpjs.totalEmployeeDeductions - tax.pph21TaxIdr;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Kalkulator Penggajian & Pajak PPh 21 TER (IDR)</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Engine penggajian otomatis: PPh 21 TER (PMK 168/2023), BPJS TK (JP Cap Rp11.086.300), BPJS Kesehatan, & Ekspor Coretax.
-          </p>
-        </div>
-        <div className="space-x-3">
-          <Button variant="primary" onClick={() => setCalculated(true)}>
-            <DollarSign className="w-4 h-4 mr-2" />
-            Hitung Payroll Periode Juli 2026
-          </Button>
+    <div className="space-y-8 max-w-7xl mx-auto">
+      {/* Header Banner */}
+      <div className="card-md p-8 bg-gradient-to-r from-[#6750A4] via-[#625B71] to-[#7D5260] text-white relative overflow-hidden shadow-xl">
+        <div className="relative z-10 flex items-center justify-between">
+          <div>
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold mb-3 backdrop-blur-md">
+              <DollarSign className="w-3.5 h-3.5 text-amber-300" />
+              <span>Statutory Indonesian Payroll & Tax Calculation Engine</span>
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight">Kalkulator Payroll & PPh 21 TER 2026</h1>
+            <p className="text-sm text-purple-100 mt-2 max-w-2xl">
+              Engine penggajian akurat sesuai kalkulasi PPh 21 TER PMK 168/2023 (Kategori A/B/C), BPJS Ketenagakerjaan & Kesehatan (plafon Maret 2026), dan penalty Non-NPWP 1.2x.
+            </p>
+          </div>
+          <div className="hidden lg:block text-right">
+            <span className="text-xs text-purple-200 block">Take Home Pay (THP Netto)</span>
+            <span className="text-3xl font-black text-amber-300 font-mono">
+              Rp {netSalary.toLocaleString("id-ID")}
+            </span>
+          </div>
         </div>
       </div>
 
-      {calculated && (
-        <>
-          {/* Summary Row */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="border-slate-200 p-4">
-              <span className="text-xs text-slate-500 font-semibold uppercase">Total Gaji Bruto</span>
-              <p className="text-2xl font-extrabold text-slate-900 mt-1 font-mono">
-                Rp{totalGross.toLocaleString("id-ID")}
-              </p>
-            </Card>
-
-            <Card className="border-slate-200 p-4">
-              <span className="text-xs text-slate-500 font-semibold uppercase">Total PPh 21 TER Dipotong</span>
-              <p className="text-2xl font-extrabold text-red-600 mt-1 font-mono">
-                Rp{totalTax.toLocaleString("id-ID")}
-              </p>
-            </Card>
-
-            <Card className="border-slate-200 p-4">
-              <span className="text-xs text-slate-500 font-semibold uppercase">Beban BPJS Perusahaan</span>
-              <p className="text-2xl font-extrabold text-slate-900 mt-1 font-mono">
-                Rp{totalBpjsEmployer.toLocaleString("id-ID")}
-              </p>
-            </Card>
-
-            <Card className="border-slate-200 p-4">
-              <span className="text-xs text-slate-500 font-semibold uppercase">Total Gaji Bersih (Take-Home)</span>
-              <p className="text-2xl font-extrabold text-emerald-600 mt-1 font-mono">
-                Rp{totalNet.toLocaleString("id-ID")}
-              </p>
-            </Card>
+      {/* Main Form & Calculation Cards Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Input Parameters Card */}
+        <div className="lg:col-span-1 card-md p-6 bg-[#F3EDF7] border border-[#E7E0EC] space-y-5">
+          <div className="flex items-center space-x-3 border-b border-[#E7E0EC] pb-4">
+            <div className="w-10 h-10 rounded-2xl bg-[#6750A4] text-white flex items-center justify-center shadow-md">
+              <Calculator className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-[#1C1B1F]">Parameter Gaji & Status Tax</h2>
+              <p className="text-xs text-[#625B71]">Simulasi perhitungan real-time</p>
+            </div>
           </div>
 
-          {/* Export Action Banner */}
-          <Card className="border-slate-200 bg-slate-900 text-white p-5 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="space-y-4">
             <div>
-              <h3 className="text-base font-bold text-white flex items-center">
-                <ShieldCheck className="w-5 h-5 text-emerald-400 mr-2" />
-                File Pelaporan Statutory Siap Diekspor
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Generate file impor DJP Coretax (XML), BPJS SIPP (CSV), dan BPJS e-Dabu (CSV) secara langsung.
-              </p>
+              <label className="block text-xs font-bold text-[#49454F] uppercase tracking-wider mb-1.5">
+                Gaji Pokok (IDR)
+              </label>
+              <input
+                type="number"
+                value={basicSalary}
+                onChange={(e) => setBasicSalary(Number(e.target.value))}
+                className="input-md font-mono text-base font-bold"
+              />
             </div>
-            <div className="flex space-x-2">
-              <Button variant="secondary" size="sm" onClick={() => alert("Mengunduh File XML Coretax...")}>
-                <Download className="w-3.5 h-3.5 mr-1.5" />
-                Ekspor Coretax XML
-              </Button>
-              <Button variant="secondary" size="sm" onClick={() => alert("Mengunduh File SIPP CSV...")}>
-                <Download className="w-3.5 h-3.5 mr-1.5" />
-                Ekspor SIPP CSV
-              </Button>
-              <Button variant="secondary" size="sm" onClick={() => alert("Mengunduh File e-Dabu CSV...")}>
-                <Download className="w-3.5 h-3.5 mr-1.5" />
-                Ekspor e-Dabu CSV
-              </Button>
+
+            <div>
+              <label className="block text-xs font-bold text-[#49454F] uppercase tracking-wider mb-1.5">
+                Tunjangan Tetap (IDR)
+              </label>
+              <input
+                type="number"
+                value={fixedAllowance}
+                onChange={(e) => setFixedAllowance(Number(e.target.value))}
+                className="input-md font-mono text-base font-bold"
+              />
             </div>
-          </Card>
 
-          {/* Payroll Items Table */}
-          <Card className="border-slate-200">
-            <CardHeader>
-              <CardTitle className="text-base font-bold text-slate-900">Rincian Slip Gaji Karyawan</CardTitle>
-            </CardHeader>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-slate-100 text-slate-700 text-xs uppercase font-semibold">
-                  <tr>
-                    <th className="p-4">Karyawan</th>
-                    <th className="p-4">Gaji Pokok</th>
-                    <th className="p-4">BPJS Karyawan</th>
-                    <th className="p-4">Kat TER</th>
-                    <th className="p-4">Tarif TER</th>
-                    <th className="p-4">Potongan PPh 21</th>
-                    <th className="p-4 text-right">Gaji Bersih (IDR)</th>
-                    <th className="p-4 text-center">Drilldown</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {processedList.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50">
-                      <td className="p-4 font-medium text-slate-900">
-                        <div>{item.name}</div>
-                        <div className="text-xs text-slate-500 font-mono">{item.code} ({item.ptkp})</div>
-                      </td>
-                      <td className="p-4 font-mono font-medium">
-                        Rp{item.basicSalary.toLocaleString("id-ID")}
-                      </td>
-                      <td className="p-4 font-mono text-slate-700">
-                        Rp{item.bpjs.totalEmployeeDeduction.toLocaleString("id-ID")}
-                      </td>
-                      <td className="p-4">
-                        <Badge variant="info">Kat {item.tax.terCategory}</Badge>
-                      </td>
-                      <td className="p-4 font-mono font-bold text-red-600">
-                        {item.tax.terRatePercent}%
-                      </td>
-                      <td className="p-4 font-mono text-red-600 font-bold">
-                        Rp{item.tax.pph21Tax.toLocaleString("id-ID")}
-                        {item.tax.hasNpwpSurcharge && (
-                          <span className="block text-[10px] text-rose-500 font-normal">+20% Non-NPWP</span>
-                        )}
-                      </td>
-                      <td className="p-4 text-right font-mono font-extrabold text-emerald-600">
-                        Rp{item.netSalary.toLocaleString("id-ID")}
-                      </td>
-                      <td className="p-4 text-center">
-                        <Button variant="outline" size="sm" onClick={() => setSelectedPayslip(item)}>
-                          Detail Drilldown
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </>
-      )}
-
-      {/* Payslip Calculation Explanation Modal */}
-      {selectedPayslip && (
-        <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200">
-            <div className="flex justify-between items-center border-b border-slate-200 pb-3">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Penjelasan Kalkulasi Slip Gaji</h3>
-                <p className="text-xs text-slate-500 font-mono">{selectedPayslip.name} ({selectedPayslip.code})</p>
-              </div>
-              <button
-                onClick={() => setSelectedPayslip(null)}
-                className="text-slate-400 hover:text-slate-600 font-bold text-lg"
+            <div>
+              <label className="block text-xs font-bold text-[#49454F] uppercase tracking-wider mb-1.5">
+                Status PTKP Karyawan
+              </label>
+              <select
+                value={ptkpStatus}
+                onChange={(e) => setPtkpStatus(e.target.value)}
+                className="input-md font-semibold"
               >
-                ✕
-              </button>
+                <option value="TK_0">TK/0 - Tidak Kawin (Kategori A)</option>
+                <option value="K_0">K/0 - Kawin Tanggungan 0 (Kategori A)</option>
+                <option value="TK_2">TK/2 - Tidak Kawin Tanggungan 2 (Kategori B)</option>
+                <option value="K_1">K/1 - Kawin Tanggungan 1 (Kategori B)</option>
+                <option value="K_3">K/3 - Kawin Tanggungan 3 (Kategori C)</option>
+              </select>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="p-3 bg-slate-50 rounded border border-slate-200 space-y-1">
-                <span className="font-bold text-slate-800">1. Pendapatan Bruto</span>
-                <p className="font-mono text-sm font-bold text-slate-900">
-                  Rp{selectedPayslip.basicSalary.toLocaleString("id-ID")}
-                </p>
-              </div>
-
-              <div className="p-3 bg-slate-50 rounded border border-slate-200 space-y-1">
-                <span className="font-bold text-slate-800">2. Potongan BPJS Karyawan (JHT 2% + JP 1% + KS 1%)</span>
-                <p className="font-mono text-sm font-bold text-slate-900">
-                  - Rp{selectedPayslip.bpjs.totalEmployeeDeduction.toLocaleString("id-ID")}
-                </p>
-                <p className="text-[11px] text-slate-500">
-                  Base BPJS: Rp{selectedPayslip.bpjs.bpjsBaseWage.toLocaleString("id-ID")} (JP Capped at Rp11.086.300)
-                </p>
-              </div>
-
-              <div className="p-3 bg-red-50 rounded border border-red-200 space-y-1 text-red-900">
-                <span className="font-bold">3. Potongan PPh 21 TER (PMK 168/2023)</span>
-                <p className="font-mono text-sm font-bold text-red-600">
-                  - Rp{selectedPayslip.tax.pph21Tax.toLocaleString("id-ID")}
-                </p>
-                <p className="text-[11px] text-red-700">
-                  Status PTKP: <strong>{selectedPayslip.ptkp}</strong> → TER Category <strong>{selectedPayslip.tax.terCategory}</strong> ({selectedPayslip.tax.terRatePercent}%)
-                </p>
-              </div>
-
-              <div className="p-3 bg-emerald-50 rounded border border-emerald-200 space-y-1 text-emerald-900">
-                <span className="font-bold">4. Gaji Bersih Diterima (Take-Home Pay)</span>
-                <p className="font-mono text-lg font-extrabold text-emerald-600">
-                  Rp{selectedPayslip.netSalary.toLocaleString("id-ID")}
-                </p>
-              </div>
+            <div>
+              <label className="block text-xs font-bold text-[#49454F] uppercase tracking-wider mb-1.5">
+                Kategori Pekerja
+              </label>
+              <select
+                value={workerCategory}
+                onChange={(e) => setWorkerCategory(e.target.value as "WNI" | "TKA")}
+                className="input-md font-semibold"
+              >
+                <option value="WNI">WNI (Warga Negara Indonesia)</option>
+                <option value="TKA">TKA (Tenaga Kerja Asing / Expat)</option>
+              </select>
             </div>
 
-            <div className="pt-2 flex justify-end">
-              <Button variant="primary" size="sm" onClick={() => setSelectedPayslip(null)}>
-                Tutup Drilldown
-              </Button>
+            <div className="flex items-center space-x-3 pt-2">
+              <input
+                type="checkbox"
+                id="npwpCheck"
+                checked={hasNpwp}
+                onChange={(e) => setHasNpwp(e.target.checked)}
+                className="w-5 h-5 text-[#6750A4] rounded border-slate-300 focus:ring-[#6750A4]"
+              />
+              <label htmlFor="npwpCheck" className="text-xs font-bold text-[#1C1B1F] cursor-pointer">
+                Memiliki NPWP Valid (Diskon Penalty Non-NPWP)
+              </label>
             </div>
           </div>
         </div>
-      )}
+
+        {/* Calculation Result Drilldown Card */}
+        <div className="lg:col-span-2 card-md p-6 bg-white border border-[#E7E0EC] space-y-6">
+          <div className="flex items-center justify-between border-b border-[#E7E0EC] pb-4">
+            <div>
+              <h2 className="text-lg font-bold text-[#1C1B1F]">Rincian Pemotongan PPh 21 TER & BPJS</h2>
+              <p className="text-xs text-[#625B71]">Rincian statutory porsi Perusahaan & Karyawan</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="px-3 py-1 text-xs font-bold bg-[#E8DEF8] text-[#1D192B] rounded-full">
+                TER Kategori {tax.terCategory} ({tax.terRatePercent}%)
+              </span>
+            </div>
+          </div>
+
+          {/* Breakdown Table */}
+          <div className="table-md-container">
+            <table className="w-full text-left text-xs">
+              <thead className="table-md-header">
+                <tr>
+                  <th className="py-3 px-4">Komponen Gaji / Potongan</th>
+                  <th className="py-3 px-4 text-right">Potongan Karyawan</th>
+                  <th className="py-3 px-4 text-right">Beban Perusahaan</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E7E0EC]">
+                <tr className="table-md-row bg-[#F7F2FA]">
+                  <td className="py-3.5 px-4 font-bold text-[#1C1B1F]">Gaji Bruto (Gross Salary)</td>
+                  <td className="py-3.5 px-4 text-right font-mono font-bold text-[#1C1B1F]">
+                    Rp {grossSalary.toLocaleString("id-ID")}
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-mono text-[#625B71]">-</td>
+                </tr>
+
+                <tr className="table-md-row">
+                  <td className="py-3.5 px-4 font-medium text-[#1C1B1F]">BPJS JHT (Jaminan Hari Tua 2% / 3.7%)</td>
+                  <td className="py-3.5 px-4 text-right font-mono text-rose-600 font-semibold">
+                    Rp {bpjs.jhtEmployee.toLocaleString("id-ID")}
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-mono text-[#625B71]">
+                    Rp {bpjs.jhtEmployer.toLocaleString("id-ID")}
+                  </td>
+                </tr>
+
+                <tr className="table-md-row">
+                  <td className="py-3.5 px-4 font-medium text-[#1C1B1F]">
+                    BPJS JP (Jaminan Pensiun 1% / 2% - Cap Rp11,08M)
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-mono text-rose-600 font-semibold">
+                    Rp {bpjs.jpEmployee.toLocaleString("id-ID")}
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-mono text-[#625B71]">
+                    Rp {bpjs.jpEmployer.toLocaleString("id-ID")}
+                  </td>
+                </tr>
+
+                <tr className="table-md-row">
+                  <td className="py-3.5 px-4 font-medium text-[#1C1B1F]">
+                    BPJS Kesehatan (1% / 4% - Cap Rp12,00M)
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-mono text-rose-600 font-semibold">
+                    Rp {bpjs.ksEmployee.toLocaleString("id-ID")}
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-mono text-[#625B71]">
+                    Rp {bpjs.ksEmployer.toLocaleString("id-ID")}
+                  </td>
+                </tr>
+
+                <tr className="table-md-row bg-[#FFF8F8]">
+                  <td className="py-3.5 px-4 font-bold text-[#1C1B1F] flex items-center">
+                    <span>PPh 21 TER Monthly Withholding</span>
+                    {!hasNpwp && (
+                      <span className="ml-2 px-2 py-0.5 text-[9px] font-black bg-rose-600 text-white rounded-full uppercase">
+                        +20% Non-NPWP Surcharge
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-mono font-bold text-rose-700">
+                    Rp {tax.pph21TaxIdr.toLocaleString("id-ID")}
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-mono text-[#625B71]">-</td>
+                </tr>
+
+                <tr className="table-md-row bg-[#F3EDF7]">
+                  <td className="py-4 px-4 font-black text-sm text-[#1C1B1F]">Gaji Bersih (Take Home Pay / THP)</td>
+                  <td className="py-4 px-4 text-right font-mono text-base font-black text-[#6750A4]">
+                    Rp {netSalary.toLocaleString("id-ID")}
+                  </td>
+                  <td className="py-4 px-4 text-right font-mono font-bold text-emerald-700">
+                    Rp {bpjs.totalEmployerCost.toLocaleString("id-ID")}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,111 +1,145 @@
 "use client";
 
-import { Card, CardHeader, CardTitle, Badge } from "@nusakerja/ui";
-import { Network, Users, ChevronDown, Award, DollarSign } from "lucide-react";
+import { Network, Users, User, Shield, ChevronDown, Sparkles } from "lucide-react";
 
 export default function OrganogramPage() {
+  const organogramData = {
+    title: "Dewan Direksi & Executive Board",
+    name: "Dr. Budi Santoso, M.B.A.",
+    role: "Direktur Utama (Chief Executive Officer)",
+    department: "Direksi PT Nusantara Utama",
+    color: "bg-[#6750A4] text-white",
+    children: [
+      {
+        title: "Direktorat Keuangan & HR",
+        name: "Siti Rahmawati, S.E., Ak.",
+        role: "Direktur Keuangan & Sumber Daya Manusia",
+        department: "Divisi Finance, Accounting & HR",
+        color: "bg-[#7D5260] text-white",
+        children: [
+          {
+            name: "CA Loganathan Anandan",
+            role: "Head of HR & Statutory Payroll",
+            department: "Departemen HR & Hubungan Industrial",
+            color: "bg-[#E8DEF8] text-[#1D192B]",
+            staffCount: 12,
+          },
+          {
+            name: "Rudi Hermawan, S.E.",
+            role: "Manager Tax & Accounting GL",
+            department: "Departemen Perpajakan & Akuntansi",
+            color: "bg-[#E8DEF8] text-[#1D192B]",
+            staffCount: 8,
+          },
+        ],
+      },
+      {
+        title: "Direktorat Operasional & Teknologi",
+        name: "Ir. Ahmad Hidayat, M.T.",
+        role: "Direktur Operasional & IT",
+        department: "Divisi Operations & Systems",
+        color: "bg-[#625B71] text-white",
+        children: [
+          {
+            name: "Dewi Lestari, S.Kom.",
+            role: "VP of Software Engineering",
+            department: "Departemen Pengembangan Sistem",
+            color: "bg-[#E8DEF8] text-[#1D192B]",
+            staffCount: 24,
+          },
+          {
+            name: "Hendra Wijaya",
+            role: "Manager Operational Field Ops",
+            department: "Departemen Operasional Lapangan",
+            color: "bg-[#E8DEF8] text-[#1D192B]",
+            staffCount: 45,
+          },
+        ],
+      },
+    ],
+  };
+
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Struktur Organisasi & Organogram Perusahaan</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Bagan hirarki struktur organisasi PT Nusantara Utama: Direksi, Divisi, Departemen, dan Alokasi Gaji.
-          </p>
+    <div className="space-y-8 max-w-7xl mx-auto">
+      {/* Banner */}
+      <div className="card-md p-8 bg-gradient-to-r from-[#6750A4] via-[#625B71] to-[#7D5260] text-white relative overflow-hidden shadow-xl">
+        <div className="relative z-10 flex items-center justify-between">
+          <div>
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold mb-3 backdrop-blur-md">
+              <Network className="w-3.5 h-3.5 text-amber-300" />
+              <span>Hirarki Struktur Organisasi Perusahaan</span>
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight">Bagan Organogram Interaktif PT</h1>
+            <p className="text-sm text-purple-100 mt-2 max-w-2xl">
+              Pemetaan visual struktur kepemimpinan, divisi, departemen, dan jumlah staf dari level Direksi hingga Tim Operasional Lapangan.
+            </p>
+          </div>
+          <div className="hidden md:flex items-center space-x-3">
+            <span className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-xs font-bold">
+              Total 89 Anggota Tim
+            </span>
+          </div>
         </div>
-        <Badge variant="info" className="px-3 py-1 text-xs">
-          Total 4 Divisi • 48 Karyawan
-        </Badge>
       </div>
 
-      {/* Visual Organogram Tree Chart Container */}
-      <Card className="border-slate-200 p-8 overflow-x-auto bg-gradient-to-b from-slate-50 to-white">
-        <div className="min-w-[800px] flex flex-col items-center space-y-8">
-          {/* Level 1: Direktur Utama / Board of Directors */}
-          <div className="flex flex-col items-center">
-            <div className="bg-slate-900 text-white rounded-xl p-4 w-72 shadow-xl text-center border-2 border-red-600 space-y-1">
-              <span className="text-[10px] font-extrabold bg-red-600 px-2 py-0.5 rounded uppercase tracking-wider text-white">
-                Direksi Utama
-              </span>
-              <h3 className="text-base font-bold text-white">Dr. Ir. Hendra Wijaya</h3>
-              <p className="text-xs text-slate-300">President Director / Direktur Utama</p>
-              <div className="pt-2 border-t border-slate-800 flex justify-between text-[11px] text-slate-400">
-                <span>PKWTT • WNI</span>
-                <span className="font-mono text-emerald-400">Kat TER C</span>
-              </div>
-            </div>
-            <div className="w-0.5 h-8 bg-slate-300"></div>
-          </div>
-
-          {/* Level 2: Division Directors */}
-          <div className="w-full flex justify-around relative">
-            <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-slate-300"></div>
-
-            {/* Division 1: Direktur Keuangan & Payroll */}
-            <div className="flex flex-col items-center">
-              <div className="w-0.5 h-6 bg-slate-300"></div>
-              <div className="bg-white border-2 border-emerald-500 rounded-xl p-4 w-64 shadow-md text-center space-y-1">
-                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded uppercase">
-                  Divisi Keuangan
-                </span>
-                <h4 className="text-sm font-bold text-slate-900">CA Loganathan Anandan</h4>
-                <p className="text-xs text-slate-500">Finance & Payroll Director</p>
-                <div className="text-[11px] text-slate-400 pt-1 font-mono">12 Karyawan</div>
-              </div>
-
-              {/* Sub-department: Payroll & Accounting */}
-              <div className="w-0.5 h-6 bg-slate-300"></div>
-              <div className="bg-slate-50 border border-slate-300 rounded-lg p-3 w-56 shadow-sm text-center">
-                <p className="text-xs font-bold text-slate-800">Dept. Payroll & Akuntansi</p>
-                <p className="text-[11px] text-slate-500">Manager: Budi Santoso</p>
-                <span className="inline-block mt-1 text-[10px] bg-slate-200 px-2 py-0.5 rounded font-mono">8 Staff</span>
-              </div>
-            </div>
-
-            {/* Division 2: Direktur Operasional & SDM */}
-            <div className="flex flex-col items-center">
-              <div className="w-0.5 h-6 bg-slate-300"></div>
-              <div className="bg-white border-2 border-sky-500 rounded-xl p-4 w-64 shadow-md text-center space-y-1">
-                <span className="text-[10px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded uppercase">
-                  Divisi Operasional & SDM
-                </span>
-                <h4 className="text-sm font-bold text-slate-900">Siti Rahma, M.M.</h4>
-                <p className="text-xs text-slate-500">Operations & HR Director</p>
-                <div className="text-[11px] text-slate-400 pt-1 font-mono">24 Karyawan</div>
-              </div>
-
-              {/* Sub-department: Field Operations & GPS Tracking */}
-              <div className="w-0.5 h-6 bg-slate-300"></div>
-              <div className="bg-slate-50 border border-slate-300 rounded-lg p-3 w-56 shadow-sm text-center">
-                <p className="text-xs font-bold text-slate-800">Dept. Operasional Lapangan</p>
-                <p className="text-[11px] text-slate-500">Manager: Agus Harimurti</p>
-                <span className="inline-block mt-1 text-[10px] bg-slate-200 px-2 py-0.5 rounded font-mono">18 Staff Field GPS</span>
-              </div>
-            </div>
-
-            {/* Division 3: Direktur Teknologi & Expat TKA */}
-            <div className="flex flex-col items-center">
-              <div className="w-0.5 h-6 bg-slate-300"></div>
-              <div className="bg-white border-2 border-purple-500 rounded-xl p-4 w-64 shadow-md text-center space-y-1">
-                <span className="text-[10px] font-bold bg-purple-100 text-purple-800 px-2 py-0.5 rounded uppercase">
-                  Divisi Teknologi & TKA
-                </span>
-                <h4 className="text-sm font-bold text-slate-900">Michael Vance</h4>
-                <p className="text-xs text-slate-500">Chief Technology Officer (TKA)</p>
-                <div className="text-[11px] text-slate-400 pt-1 font-mono">12 Karyawan (3 Expat)</div>
-              </div>
-
-              {/* Sub-department: Software Engineering */}
-              <div className="w-0.5 h-6 bg-slate-300"></div>
-              <div className="bg-slate-50 border border-slate-300 rounded-lg p-3 w-56 shadow-sm text-center">
-                <p className="text-xs font-bold text-slate-800">Dept. IT & Systems</p>
-                <p className="text-[11px] text-slate-500">Lead: Alex Sastrowardoyo</p>
-                <span className="inline-block mt-1 text-[10px] bg-slate-200 px-2 py-0.5 rounded font-mono">10 Developers</span>
-              </div>
+      {/* Visual Hierarchy Tree */}
+      <div className="card-md p-8 bg-white border border-[#E7E0EC] space-y-12">
+        {/* CEO Level */}
+        <div className="flex flex-col items-center">
+          <div className="card-md p-6 bg-[#6750A4] text-white text-center max-w-md w-full shadow-lg border border-purple-400/30 transform transition-all hover:scale-105">
+            <span className="px-3 py-1 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-widest text-amber-300 mb-2 inline-block">
+              {organogramData.title}
+            </span>
+            <h3 className="text-xl font-black">{organogramData.name}</h3>
+            <p className="text-xs text-purple-200 mt-1 font-medium">{organogramData.role}</p>
+            <div className="mt-3 pt-3 border-t border-white/20 flex justify-center items-center space-x-2 text-xs text-purple-100">
+              <Shield className="w-3.5 h-3.5 text-amber-300" />
+              <span>{organogramData.department}</span>
             </div>
           </div>
+
+          <div className="w-0.5 h-10 bg-[#6750A4]" />
         </div>
-      </Card>
+
+        {/* Directors Level */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
+          {organogramData.children.map((director, idx) => (
+            <div key={idx} className="flex flex-col items-center">
+              <div className="card-md p-6 bg-[#7D5260] text-white text-center max-w-sm w-full shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
+                <span className="px-2.5 py-0.5 bg-white/20 rounded-full text-[10px] font-bold uppercase tracking-wider text-rose-200 mb-2 inline-block">
+                  {director.title}
+                </span>
+                <h4 className="text-lg font-bold">{director.name}</h4>
+                <p className="text-xs text-rose-100 mt-0.5">{director.role}</p>
+              </div>
+
+              <div className="w-0.5 h-8 bg-[#7D5260]" />
+
+              {/* Department Managers Level */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                {director.children.map((mgr, mIdx) => (
+                  <div key={mIdx} className="card-md p-5 bg-[#F3EDF7] border border-[#E7E0EC] text-left hover:border-[#6750A4] transition-all">
+                    <span className="text-[10px] font-bold text-[#6750A4] uppercase tracking-wider block mb-1">
+                      {mgr.department}
+                    </span>
+                    <h5 className="text-sm font-extrabold text-[#1C1B1F]">{mgr.name}</h5>
+                    <p className="text-xs text-[#625B71] mt-0.5">{mgr.role}</p>
+                    <div className="mt-3 flex items-center justify-between text-[11px] font-semibold text-[#49454F] pt-2 border-t border-[#E7E0EC]">
+                      <span className="flex items-center">
+                        <Users className="w-3.5 h-3.5 mr-1 text-[#6750A4]" />
+                        {mgr.staffCount} Karyawan
+                      </span>
+                      <span className="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full font-bold">
+                        Aktif
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
