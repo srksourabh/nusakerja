@@ -8,14 +8,14 @@ export function middleware(request: NextRequest) {
   const cspHeader = `
     default-src 'self';
     script-src 'self' 'unsafe-eval' 'unsafe-inline';
-    style-src 'self' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src 'self' data: https://fonts.gstatic.com;
     img-src 'self' blob: data: https:;
-    font-src 'self';
+    connect-src 'self' https:;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
-    upgrade-insecure-requests;
   `.replace(/\s{2,}/g, " ").trim();
 
   response.headers.set("Content-Security-Policy", cspHeader);
