@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, Plus, Server, CheckCircle2, ShieldCheck, FileSpreadsheet, Sparkles, RefreshCw } from "lucide-react";
+import { Building2, Plus, Server, CheckCircle2, ShieldCheck, Sparkles, RefreshCw, Database } from "lucide-react";
 
 interface TenantItem {
   id: string;
@@ -11,232 +11,196 @@ interface TenantItem {
   jkkRiskTier: number;
 }
 
+const s = {
+  // page wrapper
+  page: { display: "flex", flexDirection: "column" as const, gap: 28 },
+  // header banner
+  banner: { borderRadius: 24, padding: "32px 36px", background: "linear-gradient(135deg,#6750A4 0%,#7D5260 100%)", color: "#fff", boxShadow: "0 6px 24px rgba(103,80,164,0.35)", position: "relative" as const, overflow: "hidden" },
+  bannerBg: { position: "absolute" as const, right: -60, top: -80, width: 320, height: 320, borderRadius: "50%", background: "rgba(255,255,255,0.08)", pointerEvents: "none" as const },
+  bannerBg2: { position: "absolute" as const, right: 80, bottom: -60, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" as const },
+  bannerInner: { position: "relative" as const, zIndex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" as const, gap: 16 },
+  bannerBadge: { display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 9999, background: "rgba(255,255,255,0.15)", fontSize: 11, fontWeight: 700, marginBottom: 8, backdropFilter: "blur(8px)" },
+  bannerTitle: { fontSize: 26, fontWeight: 900, margin: 0, letterSpacing: "-0.02em" },
+  bannerSub: { fontSize: 13, margin: "6px 0 0", opacity: 0.85 },
+  statBox: { background: "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 16, padding: "14px 20px", textAlign: "center" as const },
+  statLabel: { fontSize: 11, margin: 0, opacity: 0.8 },
+  statValue: { fontSize: 22, fontWeight: 900, margin: 0 },
+  // grid
+  grid: { display: "grid", gridTemplateColumns: "1fr 2fr", gap: 24, alignItems: "start" },
+  // form card
+  formCard: { background: "#F3EDF7", borderRadius: 24, padding: 24, border: "1px solid #E7E0EC" },
+  formHeader: { display: "flex", alignItems: "center", gap: 12, paddingBottom: 16, marginBottom: 16, borderBottom: "1px solid #E7E0EC" },
+  formIcon: { width: 40, height: 40, borderRadius: 14, background: "#6750A4", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(103,80,164,0.35)", flexShrink: 0 },
+  formTitle: { fontSize: 16, fontWeight: 800, margin: 0, color: "#1C1B1F" },
+  formSub: { fontSize: 12, margin: 0, color: "#625B71" },
+  formGroup: { marginBottom: 16 },
+  label: { display: "block", fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.06em", color: "#49454F", marginBottom: 6 },
+  // table card
+  tableCard: { background: "#fff", borderRadius: 24, padding: 24, border: "1px solid #E7E0EC" },
+};
+
+const UMK_OPTIONS = [
+  { value: "DKI_JAKARTA", label: "DKI Jakarta (Rp5.067.381)" },
+  { value: "SURABAYA", label: "Surabaya (Rp4.725.479)" },
+  { value: "BANDUNG", label: "Bandung (Rp4.209.309)" },
+  { value: "BADUNG_BALI", label: "Badung Bali (Rp3.318.628)" },
+];
+const JKK_OPTIONS = [
+  { value: "1", label: "Kelompok I — Sangat Rendah (0.24%)" },
+  { value: "2", label: "Kelompok II — Rendah (0.54%)" },
+  { value: "3", label: "Kelompok III — Sedang (0.89%)" },
+  { value: "4", label: "Kelompok IV — Tinggi (1.27%)" },
+  { value: "5", label: "Kelompok V — Sangat Tinggi (1.74%)" },
+];
+
 export default function SuperAdminPage() {
   const [companyName, setCompanyName] = useState("");
-  const [schemaSlug, setSchemaSlug] = useState("");
-  const [npwp, setNpwp] = useState("");
-  const [umkRegion, setUmkRegion] = useState("DKI_JAKARTA");
-  const [jkkTier, setJkkTier] = useState("1");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const [tenants, setTenants] = useState<TenantItem[]>([
-    {
-      id: "1",
-      name: "PT Nusantara Utama",
-      slug: "tenant_pt_nusantara",
-      umkRegion: "DKI Jakarta (Rp5.067.381)",
-      jkkRiskTier: 1,
-    },
-    {
-      id: "2",
-      name: "CV Maju Bersama",
-      slug: "tenant_cv_majubersama",
-      umkRegion: "Surabaya (Rp4.725.479)",
-      jkkRiskTier: 2,
-    },
+  const [schemaSlug, setSchemaSlug]   = useState("");
+  const [npwp, setNpwp]               = useState("");
+  const [umkRegion, setUmkRegion]     = useState("DKI_JAKARTA");
+  const [jkkTier, setJkkTier]         = useState("1");
+  const [isLoading, setIsLoading]     = useState(false);
+  const [tenants, setTenants]         = useState<TenantItem[]>([
+    { id: "1", name: "PT Nusantara Utama",  slug: "tenant_pt_nusantara",   umkRegion: "DKI Jakarta (Rp5.067.381)", jkkRiskTier: 1 },
+    { id: "2", name: "CV Maju Bersama",     slug: "tenant_cv_majubersama", umkRegion: "Surabaya (Rp4.725.479)",   jkkRiskTier: 2 },
+    { id: "3", name: "PT Sinar Nusantara",  slug: "tenant_pt_sinar",       umkRegion: "Bandung (Rp4.209.309)",    jkkRiskTier: 1 },
   ]);
 
   const handleOnboard = (e: React.FormEvent) => {
     e.preventDefault();
     if (!companyName || !schemaSlug) return;
-
     setIsLoading(true);
     setTimeout(() => {
-      const newTenant: TenantItem = {
-        id: String(Date.now()),
-        name: companyName,
+      setTenants(prev => [{
+        id: String(Date.now()), name: companyName,
         slug: schemaSlug.toLowerCase().replace(/[^a-z0-9_]/g, "_"),
-        umkRegion: umkRegion.replace("_", " "),
+        umkRegion: UMK_OPTIONS.find(o => o.value === umkRegion)?.label ?? umkRegion,
         jkkRiskTier: parseInt(jkkTier),
-      };
-      setTenants([newTenant, ...tenants]);
-      setCompanyName("");
-      setSchemaSlug("");
-      setNpwp("");
+      }, ...prev]);
+      setCompanyName(""); setSchemaSlug(""); setNpwp("");
       setIsLoading(false);
     }, 600);
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      {/* Header Banner */}
-      <div className="card-md p-8 bg-gradient-to-r from-[#6750A4] to-[#7D5260] text-white relative overflow-hidden shadow-lg">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-        <div className="relative z-10 flex items-center justify-between">
+    <div style={s.page}>
+
+      {/* ── Banner ── */}
+      <div style={s.banner}>
+        <div style={s.bannerBg} />
+        <div style={s.bannerBg2} />
+        <div style={s.bannerInner}>
           <div>
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold mb-3 backdrop-blur-md">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <div style={s.bannerBadge}>
+              <Sparkles style={{ width: 13, height: 13, color: "#FCD34D" }} />
               <span>Multi-Tenant Enterprise SaaS Console</span>
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight">Super Admin Platform Console</h1>
-            <p className="text-sm text-purple-100 mt-2 max-w-2xl">
-              Onboard new Indonesian client companies (PT/CV), provision isolated PostgreSQL database schemas, and manage legal statutory parameters.
-            </p>
+            <h1 style={s.bannerTitle}>Super Admin Platform Console</h1>
+            <p style={s.bannerSub}>Onboard new Indonesian client companies (PT/CV), provision isolated PostgreSQL schemas, and manage statutory parameters.</p>
           </div>
-          <div className="hidden lg:flex items-center space-x-3">
-            <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-center">
-              <p className="text-xs text-purple-200">Total Klien PT</p>
-              <p className="text-2xl font-black text-white">{tenants.length}</p>
+          <div style={{ display: "flex", gap: 12 }}>
+            <div style={s.statBox}>
+              <p style={s.statLabel}>Total Klien PT</p>
+              <p style={{ ...s.statValue, color: "#fff" }}>{tenants.length}</p>
             </div>
-            <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-center">
-              <p className="text-xs text-purple-200">Database Engine</p>
-              <p className="text-2xl font-black text-emerald-300">PostgreSQL 16</p>
+            <div style={s.statBox}>
+              <p style={s.statLabel}>Database Engine</p>
+              <p style={{ ...s.statValue, color: "#86EFAC", fontSize: 15, paddingTop: 4 }}>PostgreSQL 16</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Grid: Onboarding Form & Existing Clients */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Onboarding Form Card */}
-        <div className="lg:col-span-1 card-md p-6 bg-[#F3EDF7] space-y-6 border border-[#E7E0EC]">
-          <div className="flex items-center space-x-3 border-b border-[#E7E0EC] pb-4">
-            <div className="w-10 h-10 rounded-2xl bg-[#6750A4] text-white flex items-center justify-center shadow-md">
-              <Plus className="w-5 h-5" />
-            </div>
+      {/* ── Grid ── */}
+      <div style={s.grid}>
+
+        {/* Form */}
+        <div style={s.formCard}>
+          <div style={s.formHeader}>
+            <div style={s.formIcon}><Plus style={{ width: 20, height: 20 }} /></div>
             <div>
-              <h2 className="text-lg font-bold text-[#1C1B1F]">Onboard Perusahaan Klien Baru</h2>
-              <p className="text-xs text-[#625B71]">Alokasikan skema database & NPWP</p>
+              <p style={s.formTitle}>Onboard Perusahaan Baru</p>
+              <p style={s.formSub}>Alokasikan skema database & NPWP</p>
             </div>
           </div>
 
-          <form onSubmit={handleOnboard} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-[#49454F] uppercase tracking-wider mb-1.5">
-                Nama Perusahaan (PT/CV)
-              </label>
-              <input
-                type="text"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="Contoh: PT Nusantara Utama"
-                className="input-md"
-                required
-              />
+          <form onSubmit={handleOnboard} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={s.formGroup}>
+              <label style={s.label}>Nama Perusahaan (PT/CV)</label>
+              <input className="input" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Contoh: PT Nusantara Utama" required />
             </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#49454F] uppercase tracking-wider mb-1.5">
-                Schema Database Slug
-              </label>
-              <input
-                type="text"
-                value={schemaSlug}
-                onChange={(e) => setSchemaSlug(e.target.value)}
-                placeholder="tenant_pt_nusantara"
-                className="input-md font-mono"
-                required
-              />
+            <div style={s.formGroup}>
+              <label style={s.label}>Schema Database Slug</label>
+              <input className="input font-mono" value={schemaSlug} onChange={e => setSchemaSlug(e.target.value)} placeholder="tenant_pt_nusantara" required />
             </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#49454F] uppercase tracking-wider mb-1.5">
-                Nomor NPWP Perusahaan
-              </label>
-              <input
-                type="text"
-                value={npwp}
-                onChange={(e) => setNpwp(e.target.value)}
-                placeholder="01.234.567.8-012.000"
-                className="input-md font-mono"
-              />
+            <div style={s.formGroup}>
+              <label style={s.label}>Nomor NPWP Perusahaan</label>
+              <input className="input font-mono" value={npwp} onChange={e => setNpwp(e.target.value)} placeholder="01.234.567.8-012.000" />
             </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#49454F] uppercase tracking-wider mb-1.5">
-                Wilayah UMK Minimum Wage
-              </label>
-              <select
-                value={umkRegion}
-                onChange={(e) => setUmkRegion(e.target.value)}
-                className="input-md font-medium"
-              >
-                <option value="DKI_JAKARTA">DKI Jakarta (Rp5.067.381)</option>
-                <option value="SURABAYA">Surabaya (Rp4.725.479)</option>
-                <option value="BANDUNG">Bandung (Rp4.209.309)</option>
-                <option value="BADUNG_BALI">Badung Bali (Rp3.318.628)</option>
+            <div style={s.formGroup}>
+              <label style={s.label}>Wilayah UMK</label>
+              <select className="select" value={umkRegion} onChange={e => setUmkRegion(e.target.value)}>
+                {UMK_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#49454F] uppercase tracking-wider mb-1.5">
-                Tingkat Risiko BPJS JKK
-              </label>
-              <select
-                value={jkkTier}
-                onChange={(e) => setJkkTier(e.target.value)}
-                className="input-md font-medium"
-              >
-                <option value="1">Kelompok I - Sangat Rendah (0.24%)</option>
-                <option value="2">Kelompok II - Rendah (0.54%)</option>
-                <option value="3">Kelompok III - Sedang (0.89%)</option>
-                <option value="4">Kelompok IV - Tinggi (1.27%)</option>
-                <option value="5">Kelompok V - Sangat Tinggi (1.74%)</option>
+            <div style={s.formGroup}>
+              <label style={s.label}>Tingkat Risiko BPJS JKK</label>
+              <select className="select" value={jkkTier} onChange={e => setJkkTier(e.target.value)}>
+                {JKK_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full btn-md-primary h-12 text-sm font-bold shadow-md hover:shadow-lg mt-2"
-            >
-              {isLoading ? (
-                <span className="flex items-center space-x-2">
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Memproses Provisioning...</span>
-                </span>
-              ) : (
-                <span className="flex items-center space-x-2">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>Onboard & Migrasi Database</span>
-                </span>
-              )}
+            <button type="submit" disabled={isLoading} className="btn btn-primary btn-lg" style={{ marginTop: 4, width: "100%" }}>
+              {isLoading
+                ? <><RefreshCw style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} /><span>Memproses...</span></>
+                : <><ShieldCheck style={{ width: 16, height: 16 }} /><span>Onboard & Migrasi Database</span></>
+              }
             </button>
           </form>
         </div>
 
-        {/* Existing Tenants Table Card */}
-        <div className="lg:col-span-2 card-md p-6 bg-white space-y-6 border border-[#E7E0EC]">
-          <div className="flex items-center justify-between border-b border-[#E7E0EC] pb-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#E8DEF8] text-[#1D192B] flex items-center justify-center">
-                <Building2 className="w-5 h-5" />
+        {/* Table */}
+        <div style={s.tableCard}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: 16, marginBottom: 16, borderBottom: "1px solid #E7E0EC" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 14, background: "#E8DEF8", color: "#1D192B", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Building2 style={{ width: 18, height: 18 }} />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-[#1C1B1F]">Daftar Perusahaan Klien Onboarded</h2>
-                <p className="text-xs text-[#625B71]">Semua schema database terisolasi & aktif</p>
+                <p style={{ fontSize: 16, fontWeight: 800, margin: 0, color: "#1C1B1F" }}>Daftar Perusahaan Klien</p>
+                <p style={{ fontSize: 12, margin: 0, color: "#625B71" }}>Semua schema database terisolasi & aktif</p>
               </div>
             </div>
-            <span className="px-3 py-1 text-xs font-bold bg-emerald-100 text-emerald-800 rounded-full">
-              {tenants.length} Tenant Active
-            </span>
+            <span className="badge badge-success">{tenants.length} Tenant Active</span>
           </div>
 
-          {/* Table */}
-          <div className="table-md-container">
-            <table className="w-full text-left text-xs">
-              <thead className="table-md-header">
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
                 <tr>
-                  <th className="py-3 px-4">Nama PT / CV</th>
-                  <th className="py-3 px-4">Schema Slug</th>
-                  <th className="py-3 px-4">Wilayah UMK</th>
-                  <th className="py-3 px-4">BPJS JKK Tier</th>
-                  <th className="py-3 px-4 text-center">Status</th>
+                  <th>Nama PT / CV</th>
+                  <th>Schema Slug</th>
+                  <th>Wilayah UMK</th>
+                  <th>JKK Tier</th>
+                  <th style={{ textAlign: "center" }}>Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E7E0EC]">
-                {tenants.map((tenant) => (
-                  <tr key={tenant.id} className="table-md-row">
-                    <td className="py-3.5 px-4 font-bold text-[#1C1B1F] flex items-center space-x-2">
-                      <Building2 className="w-4 h-4 text-[#6750A4]" />
-                      <span>{tenant.name}</span>
+              <tbody>
+                {tenants.map(t => (
+                  <tr key={t.id}>
+                    <td>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <Building2 style={{ width: 14, height: 14, color: "#6750A4", flexShrink: 0 }} />
+                        <span style={{ fontWeight: 700 }}>{t.name}</span>
+                      </div>
                     </td>
-                    <td className="py-3.5 px-4 font-mono text-[#625B71]">{tenant.slug}</td>
-                    <td className="py-3.5 px-4 font-medium text-[#1C1B1F]">{tenant.umkRegion}</td>
-                    <td className="py-3.5 px-4">Tier {tenant.jkkRiskTier}</td>
-                    <td className="py-3.5 px-4 text-center">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                        <CheckCircle2 className="w-3 h-3 mr-1 text-emerald-600" />
+                    <td style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "#625B71" }}>{t.slug}</td>
+                    <td>{t.umkRegion}</td>
+                    <td>
+                      <span className="badge badge-primary">Tier {t.jkkRiskTier}</span>
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      <span className="badge badge-success">
+                        <CheckCircle2 style={{ width: 11, height: 11 }} />
                         Provisioned
                       </span>
                     </td>
@@ -244,6 +208,29 @@ export default function SuperAdminPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Statutory Parameters Quick-View */}
+          <div style={{ marginTop: 20, padding: 16, borderRadius: 16, background: "#F7F2FA", border: "1px solid #E7E0EC" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+              <Server style={{ width: 14, height: 14, color: "#6750A4" }} />
+              <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#49454F" }}>Statutory Parameters (PMK 168/2023)</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+              {[
+                { label: "BPJS TK JHT", value: "3.70% EE / 2.00% ER" },
+                { label: "BPJS TK JP", value: "1.00% EE / 2.00% ER" },
+                { label: "BPJS Kesehatan", value: "1.00% EE / 4.00% ER" },
+                { label: "THR Formula", value: "1× Gaji (12+ bulan)" },
+                { label: "PPh 21 Method", value: "TER (PMK 168/2023)" },
+                { label: "PTKP Standar", value: "Rp54.000.000/thn" },
+              ].map(p => (
+                <div key={p.label} style={{ padding: "10px 12px", background: "#fff", borderRadius: 12, border: "1px solid #E7E0EC" }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: "#6750A4", margin: 0, textTransform: "uppercase", letterSpacing: "0.04em" }}>{p.label}</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: "#1C1B1F", margin: "3px 0 0", fontFamily: "var(--font-mono)" }}>{p.value}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

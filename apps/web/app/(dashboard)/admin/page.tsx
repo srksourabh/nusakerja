@@ -1,132 +1,141 @@
 "use client";
 
-import { ShieldCheck, Building2, CreditCard, Award, ExternalLink, Sliders, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Building2, CreditCard, Award, ExternalLink, CheckCircle2, AlertTriangle } from "lucide-react";
+
+const params = [
+  { key: "NPWP Perusahaan",      value: "01.234.567.8-012.000",   status: "verified" },
+  { key: "NPP BPJS Ketenagakerjaan", value: "10012345",           status: "verified" },
+  { key: "NPP BPJS Kesehatan",   value: "BPK00123456",            status: "verified" },
+  { key: "UMK Wilayah 2026",     value: "Rp5.067.381 (DKI Jakarta)", status: "verified" },
+  { key: "Jumlah Karyawan",      value: "247 Aktif / 12 Kontrak", status: "active" },
+  { key: "Cabang Operasional",   value: "Jakarta, Surabaya, Bandung", status: "active" },
+];
+
+const bpjsRates = [
+  { type: "JHT",  ee: "3.70%", er: "2.00%", cap: "Tidak ada",     ref: "PP 84/2013" },
+  { type: "JP",   ee: "1.00%", er: "2.00%", cap: "Rp9.559.600",  ref: "PP 45/2015" },
+  { type: "JKK",  ee: "-",     er: "0.54%", cap: "Tidak ada",     ref: "PP 44/2015" },
+  { type: "JKM",  ee: "-",     er: "0.30%", cap: "Tidak ada",     ref: "PP 44/2015" },
+  { type: "Kes.", ee: "1.00%", er: "4.00%", cap: "Rp12.000.000",  ref: "Perdir 3/2023" },
+];
 
 export default function ClientAdminPage() {
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      {/* Header Banner */}
-      <div className="card-md p-8 bg-gradient-to-r from-[#1C1B1F] to-[#2B2930] text-white relative overflow-hidden shadow-lg border border-[#49454F]/40">
-        <div className="relative z-10 flex items-center justify-between">
+    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+
+      {/* Header */}
+      <div style={{ borderRadius: 24, padding: "32px 36px", background: "linear-gradient(135deg,#047857 0%,#065F46 100%)", color: "#fff", boxShadow: "0 6px 24px rgba(4,120,87,0.35)", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", right: -40, top: -60, width: 280, height: 280, borderRadius: "50%", background: "rgba(255,255,255,0.07)", pointerEvents: "none" }} />
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 9999, background: "rgba(255,255,255,0.15)", fontSize: 11, fontWeight: 700, marginBottom: 8 }}>
+            <ShieldCheck style={{ width: 13, height: 13, color: "#6EE7B7" }} />
+            <span>Company Master Configuration Console</span>
+          </div>
+          <h1 style={{ fontSize: 26, fontWeight: 900, margin: 0, letterSpacing: "-0.02em" }}>Konsol Client Admin — PT Nusantara Utama</h1>
+          <p style={{ fontSize: 13, margin: "6px 0 0", opacity: 0.85 }}>Pengaturan NPWP, NPP BPJS, UMK wilayah, tarif statutory, dan cabang operasional.</p>
+        </div>
+      </div>
+
+      {/* Company Params */}
+      <div className="card-white" style={{ padding: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid #E7E0EC" }}>
+          <div style={{ width: 40, height: 40, borderRadius: 14, background: "#DCFCE7", color: "#14532D", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Building2 style={{ width: 18, height: 18 }} />
+          </div>
           <div>
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold mb-3 border border-emerald-500/30">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Konsol Pengaturan Client Admin PT</span>
+            <p style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>Parameter Perusahaan</p>
+            <p style={{ fontSize: 12, margin: 0, color: "#625B71" }}>Master data statutory & identitas legal perusahaan</p>
+          </div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          {params.map(p => (
+            <div key={p.key} style={{ padding: "14px 16px", borderRadius: 16, background: "#F7F2FA", border: "1px solid #E7E0EC", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#625B71", margin: 0 }}>{p.key}</p>
+                <p style={{ fontSize: 14, fontWeight: 700, color: "#1C1B1F", margin: "3px 0 0", fontFamily: "var(--font-mono)" }}>{p.value}</p>
+              </div>
+              <span className={p.status === "verified" ? "badge badge-success" : "badge badge-info"}>
+                <CheckCircle2 style={{ width: 11, height: 11 }} />
+                {p.status === "verified" ? "Terverifikasi" : "Aktif"}
+              </span>
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight">PT Nusantara Utama</h1>
-            <p className="text-sm text-slate-300 mt-2 max-w-2xl">
-              Konfigurasi data identitas perusahaan, cabang operasional, kode NPP BPJS, dan rekening bank disbursement payroll.
-            </p>
-          </div>
-          <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 text-right">
-            <span className="text-xs text-slate-300 block">ID Tenant Schema</span>
-            <span className="text-sm font-mono font-bold text-amber-300">tenant_pt_nusantara</span>
-          </div>
+          ))}
         </div>
       </div>
 
-      {/* Grid Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card-md p-6 bg-white border border-[#E7E0EC] space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#625B71] uppercase tracking-wider">NPWP Perusahaan</span>
-            <Building2 className="w-5 h-5 text-[#6750A4]" />
+      {/* BPJS Rates Table */}
+      <div className="card-white" style={{ padding: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid #E7E0EC" }}>
+          <div style={{ width: 40, height: 40, borderRadius: 14, background: "#DBEAFE", color: "#1E40AF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <CreditCard style={{ width: 18, height: 18 }} />
           </div>
-          <p className="text-xl font-extrabold font-mono text-[#1C1B1F]">01.234.567.8-012.000</p>
-          <p className="text-xs text-emerald-700 font-semibold flex items-center">
-            <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Terverifikasi KBLI 70209 (Konsultan HR)
-          </p>
-        </div>
-
-        <div className="card-md p-6 bg-white border border-[#E7E0EC] space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#625B71] uppercase tracking-wider">Kode NPP BPJS TK</span>
-            <Award className="w-5 h-5 text-emerald-600" />
-          </div>
-          <p className="text-xl font-extrabold font-mono text-[#1C1B1F]">JKT-88992011</p>
-          <p className="text-xs text-[#625B71]">Risiko JKK Tier 1 (0.24% Terdaftar)</p>
-        </div>
-
-        <div className="card-md p-6 bg-white border border-[#E7E0EC] space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#625B71] uppercase tracking-wider">Rekening Disbursement</span>
-            <CreditCard className="w-5 h-5 text-sky-600" />
-          </div>
-          <p className="text-xl font-extrabold text-[#1C1B1F]">Bank Mandiri Corporate</p>
-          <p className="text-xs font-mono text-[#625B71]">122-00-0988771-5 (a.n. PT Nusantara Utama)</p>
-        </div>
-      </div>
-
-      {/* Statutory Parameters Table Card */}
-      <div className="card-md p-6 bg-[#F3EDF7] border border-[#E7E0EC] space-y-6">
-        <div className="flex items-center justify-between border-b border-[#E7E0EC] pb-4">
           <div>
-            <h2 className="text-lg font-bold text-[#1C1B1F]">Parameter Regulasi Resmi Indonesia 2026</h2>
-            <p className="text-xs text-[#625B71]">Plafon BPJS dan batas minimum upah UMK</p>
+            <p style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>Tarif Iuran BPJS — Maret 2026</p>
+            <p style={{ fontSize: 12, margin: 0, color: "#625B71" }}>Konfigurasi tarif employee (EE) & employer (ER) contribution</p>
           </div>
-          <span className="px-3 py-1 text-xs font-bold bg-[#E8DEF8] text-[#1D192B] rounded-full">
-            Berlaku Maret 2026
-          </span>
+          <a href="https://www.bpjsketenagakerjaan.go.id" target="_blank" rel="noreferrer" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#6750A4", textDecoration: "none", fontWeight: 700 }}>
+            Situs Resmi <ExternalLink style={{ width: 12, height: 12 }} />
+          </a>
         </div>
-
-        <div className="table-md-container">
-          <table className="w-full text-left text-xs">
-            <thead className="table-md-header">
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
               <tr>
-                <th className="py-3 px-4">Komponen Statutory</th>
-                <th className="py-3 px-4">Batas / Plafon 2026</th>
-                <th className="py-3 px-4">Porsi Perusahaan</th>
-                <th className="py-3 px-4">Porsi Karyawan</th>
-                <th className="py-3 px-4 text-center">Status Engine</th>
+                <th>Program BPJS</th>
+                <th>Iuran Karyawan (EE)</th>
+                <th>Iuran Perusahaan (ER)</th>
+                <th>Batas Upah (Cap)</th>
+                <th>Referensi Hukum</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E7E0EC]">
-              <tr className="table-md-row">
-                <td className="py-3.5 px-4 font-bold text-[#1C1B1F]">BPJS Jaminan Pensiun (JP)</td>
-                <td className="py-3.5 px-4 font-mono font-semibold text-[#6750A4]">Rp11.086.300 / bulan</td>
-                <td className="py-3.5 px-4 font-medium">2.0%</td>
-                <td className="py-3.5 px-4 font-medium">1.0%</td>
-                <td className="py-3.5 px-4 text-center">
-                  <span className="px-2.5 py-1 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full">
-                    Active Cap
-                  </span>
-                </td>
-              </tr>
-              <tr className="table-md-row">
-                <td className="py-3.5 px-4 font-bold text-[#1C1B1F]">BPJS Kesehatan (KS)</td>
-                <td className="py-3.5 px-4 font-mono font-semibold text-[#6750A4]">Rp12.000.000 / bulan</td>
-                <td className="py-3.5 px-4 font-medium">4.0%</td>
-                <td className="py-3.5 px-4 font-medium">1.0%</td>
-                <td className="py-3.5 px-4 text-center">
-                  <span className="px-2.5 py-1 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full">
-                    Active Cap
-                  </span>
-                </td>
-              </tr>
-              <tr className="table-md-row">
-                <td className="py-3.5 px-4 font-bold text-[#1C1B1F]">PPh 21 TER PMK 168/2023</td>
-                <td className="py-3.5 px-4 font-medium">Kategori A, B, C (44 Bands)</td>
-                <td className="py-3.5 px-4 font-medium">Withholding Agent</td>
-                <td className="py-3.5 px-4 font-medium">Progressive Rate (0%-34%)</td>
-                <td className="py-3.5 px-4 text-center">
-                  <span className="px-2.5 py-1 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full">
-                    Auto Bracket
-                  </span>
-                </td>
-              </tr>
-              <tr className="table-md-row">
-                <td className="py-3.5 px-4 font-bold text-[#1C1B1F]">Non-NPWP Surcharge (TAX-3)</td>
-                <td className="py-3.5 px-4 font-medium">+20% Tarif Efektif</td>
-                <td className="py-3.5 px-4 font-medium">Auto Penalty Withheld</td>
-                <td className="py-3.5 px-4 font-medium">120% TER Multiplier</td>
-                <td className="py-3.5 px-4 text-center">
-                  <span className="px-2.5 py-1 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full">
-                    Auto Enforce
-                  </span>
-                </td>
-              </tr>
+            <tbody>
+              {bpjsRates.map(r => (
+                <tr key={r.type}>
+                  <td><span style={{ fontWeight: 800 }}>BPJS {r.type}</span></td>
+                  <td style={{ fontFamily: "var(--font-mono)", fontWeight: 700 }}>{r.ee}</td>
+                  <td style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: "#047857" }}>{r.er}</td>
+                  <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{r.cap}</td>
+                  <td><span className="badge badge-navy">{r.ref}</span></td>
+                </tr>
+              ))}
             </tbody>
           </table>
+        </div>
+        <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 12, background: "#FFFBEB", border: "1px solid #FDE68A", display: "flex", alignItems: "center", gap: 8 }}>
+          <AlertTriangle style={{ width: 14, height: 14, color: "#D97706", flexShrink: 0 }} />
+          <p style={{ fontSize: 11, margin: 0, color: "#92400E" }}>
+            <strong>Catatan:</strong> Batas upah JP (Jaminan Pensiun) berlaku Rp9.559.600/bulan per Maret 2026. BPJS Kesehatan cap keluarga maks. 5 jiwa, plafon upah Rp12.000.000.
+          </p>
+        </div>
+      </div>
+
+      {/* Licenses */}
+      <div className="card-white" style={{ padding: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 14, background: "#EDE9FE", color: "#4C1D95", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Award style={{ width: 18, height: 18 }} />
+          </div>
+          <p style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>Modul Lisensi NusaKerja</p>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          {[
+            { label: "HRMS Core", tier: "Enterprise", color: "#6750A4" },
+            { label: "Payroll Engine", tier: "PPh21 TER", color: "#DC2626" },
+            { label: "BPJS Integration", tier: "e-Dabu + SIPP", color: "#047857" },
+            { label: "GPS Attendance", tier: "Geofence Pro", color: "#D97706" },
+            { label: "Organogram", tier: "Interactive", color: "#7C3AED" },
+            { label: "Statutory Reports", tier: "Coretax XML", color: "#0369A1" },
+          ].map(m => (
+            <div key={m.label} style={{ padding: "14px 16px", borderRadius: 16, background: "#fff", border: `2px solid ${m.color}20`, position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", right: -10, top: -10, width: 60, height: 60, borderRadius: "50%", background: `${m.color}10` }} />
+              <p style={{ fontSize: 13, fontWeight: 800, color: "#1C1B1F", margin: 0 }}>{m.label}</p>
+              <span style={{ display: "inline-block", marginTop: 6, padding: "2px 8px", borderRadius: 9999, fontSize: 10, fontWeight: 700, background: `${m.color}15`, color: m.color }}>{m.tier}</span>
+              <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 4 }}>
+                <CheckCircle2 style={{ width: 12, height: 12, color: "#22C55E" }} />
+                <span style={{ fontSize: 11, color: "#16A34A", fontWeight: 600 }}>Aktif</span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
