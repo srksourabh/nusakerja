@@ -5,6 +5,11 @@ All notable changes to the NusaKerja project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Restored the payroll calculator's strict TypeScript compatibility with the statutory engine. Its BPJS deductions, employer cost, PPh 21 TER amount, PTKP category, and NPWP surcharge now use the engine's current result contract.
+
 ## [1.0.0] - 2026-07-23
 
 ### Added

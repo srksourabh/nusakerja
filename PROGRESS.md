@@ -43,7 +43,7 @@
   - Connect UI buttons in `/reports` and `/payroll` to trigger actual browser file downloads for DJP Coretax XML, BPJS SIPP CSV, BPJS e-Dabu CSV, and GL Accounting Journal CSV files.
 
 - [ ] **TASK-203: Real-Time tRPC Query Client Integration (`apps/web/src/trpc/client.ts`)**
-  - Connect React components in `/onboarding`, `/attendance`, `/leave`, `/payroll`, `/severance`, and `/super-admin` to live tRPC React Query hooks connected to PostgreSQL.
+  - Replace the compatibility-only tRPC client facade with an authenticated React Query client, then connect `/onboarding`, `/attendance`, `/leave`, `/payroll`, `/severance`, and `/super-admin` to tenant-scoped PostgreSQL procedures.
 
 - [ ] **TASK-204: Multi-Language Switcher (Bahasa Indonesia / English)**
   - Add client-side i18n locale context provider toggling all UI labels and payslip exports between Bahasa Indonesia (`id-ID`) and English (`en-US`).

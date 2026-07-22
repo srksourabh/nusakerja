@@ -29,14 +29,15 @@ export default function PayrollPage() {
   const calculate = () => {
     const gross = parseFloat(gaji.replace(/\D/g, "")) || 0;
     const bpjs  = calculateBpjsContribution(gross);
-    const pph   = calculatePph21Ter(gross, ptkp as "TK0", !hasNpwp);
+    const ptkpStatus = ptkp.replace(/([A-Z]+)(\d)/, "$1_$2");
+    const pph   = calculatePph21Ter(gross, ptkpStatus, hasNpwp);
     setResult({
-      gross, bpjsEE: bpjs.employee.total, pph21: pph.monthly,
-      thp: gross - bpjs.employee.total - pph.monthly,
-      bpjsER: bpjs.employer.total,
-      jhtEE: bpjs.employee.jht, jpEE: bpjs.employee.jp, kesEE: bpjs.employee.health,
-      jhtER: bpjs.employer.jht, jpER: bpjs.employer.jp,
-      jkkER: bpjs.employer.jkk, jkmER: bpjs.employer.jkm, kesER: bpjs.employer.health,
+      gross, bpjsEE: bpjs.totalEmployeeDeductions, pph21: pph.pph21TaxIdr,
+      thp: gross - bpjs.totalEmployeeDeductions - pph.pph21TaxIdr,
+      bpjsER: bpjs.totalEmployerCost,
+      jhtEE: bpjs.jhtEmployee, jpEE: bpjs.jpEmployee, kesEE: bpjs.ksEmployee,
+      jhtER: bpjs.jhtEmployer, jpER: bpjs.jpEmployer,
+      jkkER: bpjs.jkkEmployer, jkmER: bpjs.jkmEmployer, kesER: bpjs.ksEmployer,
     });
   };
 
@@ -120,7 +121,7 @@ export default function PayrollPage() {
                 <p style={{ fontSize: 13, fontWeight: 800, margin: "0 0 14px", color: "#1C1B1F" }}>Rincian Potongan Karyawan (EE)</p>
                 {[
                   { label: "Gaji Bruto", value: result.gross, positive: true },
-                  { label: "BPJS JHT (3.70% EE)", value: -result.jhtEE },
+                  { label: "BPJS JHT (2.00% EE)", value: -result.jhtEE },
                   { label: "BPJS JP (1.00% EE)",  value: -result.jpEE },
                   { label: "BPJS Kesehatan (1% EE)", value: -result.kesEE },
                   { label: "PPh 21 TER", value: -result.pph21 },
