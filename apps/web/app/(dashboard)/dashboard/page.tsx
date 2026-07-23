@@ -90,13 +90,24 @@ export default function DashboardPage() {
             <div className="p-6 pt-0 space-y-4">
               <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
                 <div className="flex items-center space-x-3">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
                   <div>
-                    <p className="text-sm font-semibold text-slate-800">Cuti Bersama Hari Raya 2026</p>
-                    <p className="text-xs text-slate-500">Jadwal Libur Nasional Kemnaker RI</p>
+                    <p className="text-sm font-semibold text-slate-800">Permohonan Cuti Tahunan (23-24 Juli 2026)</p>
+                    <p className="text-xs text-slate-500">Atasan Langsung: Bambang Prasetyo, S.H. (Head of HR)</p>
                   </div>
                 </div>
-                <Badge variant="success">Resmi Kemnaker</Badge>
+                <Badge variant="warning">⏳ Menunggu Persetujuan Atasan</Badge>
+              </div>
+
+              <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-800">Cuti Sakit dengan Surat Dokter (12 Mei 2026)</p>
+                    <p className="text-xs text-slate-500">Telah Diverifikasi HR & Manajer</p>
+                  </div>
+                </div>
+                <Badge variant="success">✓ Disetujui</Badge>
               </div>
 
               <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
@@ -107,7 +118,7 @@ export default function DashboardPage() {
                     <p className="text-xs text-slate-500">Potongan pajak bulanan otomatis diperbarui di slip gaji</p>
                   </div>
                 </div>
-                <Badge variant="neutral">Informasi</Badge>
+                <Badge variant="neutral">Informasi Statutory</Badge>
               </div>
             </div>
           </Card>

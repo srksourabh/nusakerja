@@ -114,7 +114,7 @@ export default function AttendancePage() {
           id: `sess-${Date.now()}`,
           punchIn: now,
           punchOut: null,
-          duration: "0h 01m (Berjalan)",
+          duration: "Sesi Berjalan",
           locationName: gpsLocation.address,
           lat: gpsLocation.lat,
           lng: gpsLocation.lng,
@@ -124,9 +124,25 @@ export default function AttendancePage() {
       ]);
     } else {
       setSessions((prev) =>
-        prev.map((s) => (s.punchOut === null ? { ...s, punchOut: now, duration: "4h 30m" } : s))
+        prev.map((s) => (s.punchOut === null ? { ...s, punchOut: now, duration: "Sesi Selesai" } : s))
       );
     }
+  };
+
+  const handleTriggerMidnightAutoPunchout = () => {
+    setPunchedIn(false);
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.punchOut === null
+          ? {
+              ...s,
+              punchOut: "23:59:59",
+              duration: "Auto Punch-Out Midnight (23:59)",
+              status: "present",
+            }
+          : s
+      )
+    );
   };
 
   const handleCreateRectification = (e: React.FormEvent) => {
@@ -200,18 +216,27 @@ export default function AttendancePage() {
 
             {punchedIn ? (
               <div className="p-5 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-3">
-                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Status: Aktif Bekerja (Present)</span>
+                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Status: Aktif Bekerja (Punched IN)</span>
                 <p className="text-3xl font-black text-emerald-950">Masuk Jam {punchTime}</p>
-                <Button variant="danger" className="w-full h-11 text-sm font-bold bg-red-600 hover:bg-red-700" onClick={() => handlePunch("OUT")}>
-                  Punch OUT (Keluar Kerja)
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="danger" className="w-1/2 h-11 text-xs font-bold bg-red-600 hover:bg-red-700" onClick={() => handlePunch("OUT")}>
+                    Punch OUT (Keluar)
+                  </Button>
+                  <Button variant="outline" className="w-1/2 h-11 text-xs font-bold border-amber-500 text-amber-900 bg-amber-50 hover:bg-amber-100" onClick={handleTriggerMidnightAutoPunchout}>
+                    Simulasi Auto Punch-Out 23:59
+                  </Button>
+                </div>
+                <p className="text-[10px] text-emerald-800 font-medium">
+                  Sesi tetap aktif saat logout/tutup browser. Jika belum punch out hingga 11:59 malam, sistem otomatis memicu Midnight Auto Punch-Out (23:59:59).
+                </p>
               </div>
             ) : (
               <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center space-y-3">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status Sesi: Belum Absen</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status Sesi: Siap Punch IN (Multi-Punch Aktif)</span>
                 <Button variant="primary" className="w-full h-11 text-sm font-bold bg-red-600 hover:bg-red-700 text-white" onClick={() => handlePunch("IN")}>
                   Punch IN (Masuk Kerja)
                 </Button>
+                <p className="text-[10px] text-slate-500">Dapat melakukan Punch IN & OUT beberapa kali dalam 1 hari. Total jam kerja diakumulasikan dari seluruh durasi aktif.</p>
               </div>
             )}
           </div>

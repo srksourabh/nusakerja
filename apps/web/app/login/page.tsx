@@ -123,7 +123,9 @@ export default function LoginPage() {
                   <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
                     Kata Sandi
                   </label>
-                  <a href="#" className="text-[11px] text-slate-400 hover:text-red-400 font-medium">Lupa Kata Sandi?</a>
+                  <Link href="/forgot-password" className="text-[11px] text-slate-400 hover:text-red-400 font-medium">
+                    Lupa Kata Sandi?
+                  </Link>
                 </div>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />

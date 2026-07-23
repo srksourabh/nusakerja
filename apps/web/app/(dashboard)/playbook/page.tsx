@@ -1,6 +1,18 @@
 "use client";
 
-import { BookOpen, ShieldCheck, FileText, CheckCircle2, Award, Info, Scale, HelpCircle, ExternalLink, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { BookOpen, ShieldCheck, FileText, CheckCircle2, Award, Info, Scale, HelpCircle, ExternalLink, ChevronRight, RefreshCw, Sparkles, AlertCircle, Newspaper } from "lucide-react";
+
+interface NewsItem {
+  id: string;
+  source: string;
+  title: string;
+  category: string;
+  effectiveDate: string;
+  summary: string;
+  officialDocUrl: string;
+  isUrgent: boolean;
+}
 
 const sections = [
   {
@@ -31,7 +43,7 @@ const sections = [
     content: [
       {
         subtitle: "BPJS Ketenagakerjaan (JHT, JP, JKK, JKM)",
-        desc: "Batas Atas (Cap) Jaminan Pensiun (JP) berlaku efektif Maret 2026 adalah Rp9.559.600. Tarif JP: 1% Karyawan, 2% Perusahaan. JHT: 2% Karyawan, 3.7% Perusahaan.",
+        desc: "Batas Atas (Cap) Jaminan Pensiun (JP) berlaku efektif Maret 2026 adalah Rp11.086.300. Tarif JP: 1% Karyawan, 2% Perusahaan. JHT: 2% Karyawan, 3.7% Perusahaan.",
       },
       {
         subtitle: "BPJS Kesehatan (Perdir 3/2023)",
@@ -74,6 +86,52 @@ const sections = [
 ];
 
 export default function PlaybookPage() {
+  const [statutoryNews, setStatutoryNews] = useState<NewsItem[]>([]);
+  const [fetching, setFetching] = useState(false);
+  const [lastFetched, setLastFetched] = useState<string | null>(null);
+
+  const fetchStatutoryUpdates = async () => {
+    setFetching(true);
+    try {
+      const res = await fetch("/api/cron/fetch-statutory-updates");
+      const json = await res.json();
+      if (json && json.data) {
+        setStatutoryNews(json.data);
+        setLastFetched(new Date().toLocaleTimeString("id-ID"));
+      }
+    } catch {
+      // Fallback data
+      setStatutoryNews([
+        {
+          id: "stat-1",
+          source: "DJP_PAJAK",
+          title: "PMK 168/2023 & Petunjuk Teknis Coretax PPh 21 TER 2026",
+          category: "PPh 21 TER",
+          effectiveDate: "01 Januari 2026",
+          summary: "Skema pemotongan PPh 21 TER Kategori A, B, C dan penyesuaian non-NPWP surcharge +20%.",
+          officialDocUrl: "https://coretax.pajak.go.id",
+          isUrgent: true,
+        },
+        {
+          id: "stat-2",
+          source: "BPJS_TK",
+          title: "Batas Atas Upah Jaminan Pensiun (JP) Rp11.086.300 Effective March 2026",
+          category: "BPJS Cap 2026",
+          effectiveDate: "01 Maret 2026",
+          summary: "Cap gaji maksimal untuk iuran JP BPJS Ketenagakerjaan adalah Rp11.086.300 per bulan.",
+          officialDocUrl: "https://sipp.bpjsketenagakerjaan.go.id",
+          isUrgent: true,
+        },
+      ]);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStatutoryUpdates();
+  }, []);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
       {/* Header Banner */}
@@ -85,7 +143,53 @@ export default function PlaybookPage() {
             <span>Indonesia Statutory & HR Operations Playbook 2026</span>
           </div>
           <h1 style={{ fontSize: 26, fontWeight: 900, margin: 0, letterSpacing: "-0.02em" }}>Buku Panduan Compliance HR & Penggajian NusaKerja</h1>
-          <p style={{ fontSize: 13, margin: "6px 0 0", opacity: 0.85 }}>Ringkasan regulasi perpajakan PPh 21 TER, jaminan sosial BPJS 2026, UU Cipta Kerja PP 35/2021, & kebijakan internal.</p>
+          <p style={{ fontSize: 13, margin: "6px 0 0", opacity: 0.85 }}>Ringkasan regulasi perpajakan PPh 21 TER, jaminan sosial BPJS 2026, UU Cipta Kerja PP 35/2021, & berita statutory terintegrasi.</p>
+        </div>
+      </div>
+
+      {/* Weekly Automated Government News & Circulars Hub */}
+      <div className="card-white" style={{ padding: 24, border: "1px solid #E2E8F0" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid #E2E8F0" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "#FEF2F2", border: "1px solid #FCA5A5", color: "#DC2626", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Newspaper style={{ width: 18, height: 18 }} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: 16, fontWeight: 900, color: "#0F172A", margin: 0 }}>Portal Berita Circular & Pembaruan Statutory Otomatis</h2>
+              <p style={{ fontSize: 11, color: "#64748B", margin: 0 }}>Super Admin Auto-Fetch Scraper dari Kemnaker, DJP Pajak, & BPJS {lastFetched && `• Terakhir Diperbarui ${lastFetched}`}</p>
+            </div>
+          </div>
+          <button
+            onClick={fetchStatutoryUpdates}
+            disabled={fetching}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 10, background: "#0F172A", color: "#fff", fontSize: 11, fontWeight: 800, border: "none", cursor: "pointer" }}
+          >
+            <RefreshCw style={{ width: 12, height: 12 }} className={fetching ? "animate-spin" : ""} />
+            <span>{fetching ? "Mengambil Berita..." : "Jalankan Auto-Fetch Scraper"}</span>
+          </button>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          {statutoryNews.map((news) => (
+            <div key={news.id} style={{ padding: 16, borderRadius: 16, background: "#F8FAFC", border: news.isUrgent ? "1px solid #FCA5A5" : "1px solid #E2E8F0", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <span style={{ fontSize: 10, fontWeight: 900, background: news.isUrgent ? "#FEE2E2" : "#E2E8F0", color: news.isUrgent ? "#991B1B" : "#334155", padding: "2px 8px", borderRadius: 9999, textTransform: "uppercase" }}>
+                    {news.source} • {news.category}
+                  </span>
+                  <span style={{ fontSize: 10, color: "#64748B", fontWeight: 700 }}>Berlaku: {news.effectiveDate}</span>
+                </div>
+                <h3 style={{ fontSize: 13, fontWeight: 800, color: "#0F172A", margin: "0 0 6px" }}>{news.title}</h3>
+                <p style={{ fontSize: 11, color: "#475569", margin: 0, lineHeight: 1.5 }}>{news.summary}</p>
+              </div>
+              <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid #E2E8F0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 10, color: "#166534", fontWeight: 800 }}>✓ Otomatis Berlaku untuk Seluruh Tenant Schema</span>
+                <a href={news.officialDocUrl} target="_blank" rel="noreferrer" style={{ fontSize: 10, fontWeight: 800, color: "#DC2626", textDecoration: "none", display: "flex", alignItems: "center", gap: 3 }}>
+                  Surat Edaran Resmi <ExternalLink style={{ width: 10, height: 10 }} />
+                </a>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
