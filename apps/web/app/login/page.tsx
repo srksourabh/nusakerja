@@ -64,13 +64,13 @@ export default function LoginPage() {
             <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center animate-in fade-in">
               <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
               <h3 className="text-lg font-bold text-white">Otentikasi Berhasil!</h3>
-              <p className="text-xs text-slate-300 mt-1">Selamat datang kembali, Budi Santoso (PT Nusantara Utama)</p>
+              <p className="text-xs text-slate-300 mt-1">Selamat datang kembali (Sesi Schema Terisolasi)</p>
               <div className="mt-6 flex flex-col gap-2">
-                <Link href="/dashboard text-decoration-none" className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors">
+                <Link href="/dashboard" className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors text-decoration-none">
                   <span>Masuk ke Dasbor Utama</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
-                <Link href="/portal text-decoration-none" className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors">
+                <Link href="/portal" className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors text-decoration-none">
                   <span>Buka Portal Karyawan Mobile</span>
                 </Link>
               </div>
@@ -78,24 +78,22 @@ export default function LoginPage() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               
-              {/* Tenant Selection */}
+              {/* White-Label Organization Identifier */}
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
-                  Perusahaan / Enterprise Tenant
+                  ID Organisasi / Kode Perusahaan
                 </label>
                 <div className="relative">
                   <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                  <select
+                  <input
+                    type="text"
                     value={tenant}
                     onChange={(e) => setTenant(e.target.value)}
+                    placeholder="Kode Perusahaan Anda"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
-                  >
-                    <option value="pt_nusantara">PT Nusantara Utama (DKI Jakarta)</option>
-                    <option value="cv_surabaya">CV Maju Bersama (Surabaya)</option>
-                    <option value="pt_bandung">PT Inovasi Cipta (Bandung)</option>
-                    <option value="new_tenant">+ Perusahaan Baru / Tenant Baru</option>
-                  </select>
+                  />
                 </div>
+                <p className="text-[10px] text-slate-400 mt-1">Akses terisolasi white-label tanpa memperlihatkan tenant lain.</p>
               </div>
 
               {/* Email / NIK */}
