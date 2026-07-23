@@ -1,20 +1,182 @@
+"use client";
+
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, Button, Badge } from "@nusakerja/ui";
-import { Users, Clock, DollarSign, ShieldAlert, FileText, CheckCircle2, ArrowRight } from "lucide-react";
+import { Users, Clock, DollarSign, ShieldAlert, FileText, CheckCircle2, ArrowRight, MapPin, Calendar, Smartphone, UserCheck, BookOpen } from "lucide-react";
+import { useAuth } from "../../../src/context/auth-context";
 
 export default function DashboardPage() {
+  const { user, isEmployee } = useAuth();
+
+  if (isEmployee) {
+    return (
+      <div className="space-y-8">
+        {/* Employee Personal Welcome Banner */}
+        <div className="bg-gradient-to-r from-sky-700 to-sky-600 rounded-2xl p-6 sm:p-8 text-white shadow-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-bold mb-3 border border-white/20">
+              <UserCheck className="w-3.5 h-3.5 text-sky-200" />
+              <span>Portal Mandiri Karyawan (Self-Service)</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Selamat Datang, {user.name}</h1>
+            <p className="mt-1 text-sky-100 text-xs sm:text-sm max-w-xl">
+              {user.designation} • {user.department} ({user.companyName})
+            </p>
+          </div>
+          <Link href="/attendance">
+            <Button variant="secondary" className="bg-white text-sky-900 hover:bg-sky-50 font-bold shadow-lg text-xs">
+              <MapPin className="w-4 h-4 mr-2 text-red-600" />
+              Presensi GPS Punch In/Out
+            </Button>
+          </Link>
+        </div>
+
+        {/* Employee Personal Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status Presensi Hari Ini</span>
+                <Clock className="w-5 h-5 text-sky-500" />
+              </div>
+              <p className="text-2xl font-extrabold text-slate-900 mt-2">Hadir (08:02)</p>
+              <p className="text-xs text-emerald-600 mt-1 flex items-center font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> GPS Sudirman Valid
+              </p>
+            </CardHeader>
+          </Card>
+
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sisa Cuti Tahunan 2026</span>
+                <Calendar className="w-5 h-5 text-purple-500" />
+              </div>
+              <p className="text-3xl font-extrabold text-slate-900 mt-2">7 Hari</p>
+              <p className="text-xs text-slate-500 mt-1 font-medium">Dari kuota 12 hari/tahun</p>
+            </CardHeader>
+          </Card>
+
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Slip Gaji Bulan Ini</span>
+                <FileText className="w-5 h-5 text-emerald-500" />
+              </div>
+              <p className="text-2xl font-extrabold text-emerald-700 mt-2">Terbit (Juli)</p>
+              <p className="text-xs text-slate-500 mt-1 font-medium">PPh 21 TER Dipotong OK</p>
+            </CardHeader>
+          </Card>
+
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Jam Kerja Minggu Ini</span>
+                <Clock className="w-5 h-5 text-amber-500" />
+              </div>
+              <p className="text-3xl font-extrabold text-slate-900 mt-2">41h 30m</p>
+              <p className="text-xs text-emerald-600 mt-1 font-medium">+3h 30m Lembur Sesuai PP 35</p>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* Employee Quick Actions & Schedule */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="lg:col-span-2 border-slate-200 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base font-bold text-slate-900">Agenda & Pengumuman Perusahaan</CardTitle>
+              <p className="text-xs text-slate-500">Jadwal hari libur resmi Cuti Bersama dan pengumuman HR.</p>
+            </CardHeader>
+            <div className="p-6 pt-0 space-y-4">
+              <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-800">Cuti Bersama Hari Raya 2026</p>
+                    <p className="text-xs text-slate-500">Jadwal Libur Nasional Kemnaker RI</p>
+                  </div>
+                </div>
+                <Badge variant="success">Resmi Kemnaker</Badge>
+              </div>
+
+              <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2.5 h-2.5 rounded-full bg-sky-500"></div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-800">Pembaruan Regulasi PPh 21 TER PMK 168/2023</p>
+                    <p className="text-xs text-slate-500">Potongan pajak bulanan otomatis diperbarui di slip gaji</p>
+                  </div>
+                </div>
+                <Badge variant="neutral">Informasi</Badge>
+              </div>
+            </div>
+          </Card>
+
+          {/* Employee Actions */}
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base font-bold text-slate-900">Aksi Mandiri Karyawan</CardTitle>
+            </CardHeader>
+            <div className="p-6 pt-0 space-y-3">
+              <Link href="/attendance" className="block">
+                <Button variant="outline" className="w-full justify-between text-left font-semibold text-slate-800">
+                  <span className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-red-600" />
+                    <span>Presensi GPS Punch In/Out</span>
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-slate-400" />
+                </Button>
+              </Link>
+
+              <Link href="/leave" className="block">
+                <Button variant="outline" className="w-full justify-between text-left font-semibold text-slate-800">
+                  <span className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-purple-600" />
+                    <span>Pengajuan Cuti Karyawan</span>
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-slate-400" />
+                </Button>
+              </Link>
+
+              <Link href="/portal" className="block">
+                <Button variant="outline" className="w-full justify-between text-left font-semibold text-slate-800">
+                  <span className="flex items-center gap-2">
+                    <Smartphone className="w-4 h-4 text-emerald-600" />
+                    <span>Buka Portal Mobile & Slip Gaji</span>
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-slate-400" />
+                </Button>
+              </Link>
+
+              <Link href="/playbook" className="block">
+                <Button variant="outline" className="w-full justify-between text-left font-semibold text-slate-800">
+                  <span className="flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-amber-600" />
+                    <span>Buku Panduan / Playbook HR</span>
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-slate-400" />
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // HR Admin Dashboard
   return (
     <div className="space-y-8">
-      {/* Top Banner */}
-      <div className="bg-gradient-to-r from-red-700 to-red-600 rounded-xl p-6 text-white shadow-lg flex justify-between items-center">
+      {/* Top Banner HR Admin */}
+      <div className="bg-gradient-to-r from-red-700 to-red-600 rounded-2xl p-6 text-white shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Selamat Datang di NusaKerja HRMS</h1>
-          <p className="mt-1 text-red-100 text-sm">
-            Sistem Penggajian & HRMS Sesuai Ketentuan PPh 21 TER (PMK 168/2023), BPJS Ketenagakerjaan/Kesehatan, dan PP 35/2021.
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Konsol Utam HR Admin & Statutory Payroll</h1>
+          <p className="mt-1 text-red-100 text-xs sm:text-sm max-w-xl">
+            Sistem Penggajian & HRMS Sesuai Ketentuan PPh 21 TER (PMK 168/2023), BPJS Ketenagakerjaan/Kesehatan 2026, dan PP 35/2021.
           </p>
         </div>
         <Link href="/payroll">
-          <Button variant="secondary" className="bg-white text-red-700 hover:bg-red-50 font-semibold shadow">
+          <Button variant="secondary" className="bg-white text-red-700 hover:bg-red-50 font-bold shadow text-xs">
             Hitung Payroll Bulan Ini
           </Button>
         </Link>
@@ -22,7 +184,7 @@ export default function DashboardPage() {
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-        <Card className="border-slate-200">
+        <Card className="border-slate-200 shadow-sm">
           <CardHeader>
             <div className="flex justify-between items-center">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Karyawan</span>
@@ -35,7 +197,7 @@ export default function DashboardPage() {
           </CardHeader>
         </Card>
 
-        <Card className="border-slate-200">
+        <Card className="border-slate-200 shadow-sm">
           <CardHeader>
             <div className="flex justify-between items-center">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Gross Payroll</span>
@@ -46,7 +208,7 @@ export default function DashboardPage() {
           </CardHeader>
         </Card>
 
-        <Card className="border-slate-200">
+        <Card className="border-slate-200 shadow-sm">
           <CardHeader>
             <div className="flex justify-between items-center">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Potongan PPh 21 TER</span>
@@ -57,7 +219,7 @@ export default function DashboardPage() {
           </CardHeader>
         </Card>
 
-        <Card className="border-slate-200">
+        <Card className="border-slate-200 shadow-sm">
           <CardHeader>
             <div className="flex justify-between items-center">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">BPJS Total (TK + KS)</span>
@@ -69,15 +231,15 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* statutory Deadlines Widget */}
+      {/* Statutory Deadlines Widget */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 border-slate-200">
+        <Card className="lg:col-span-2 border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base font-bold text-slate-900">Jadwal Kepatuhan Pajak & BPJS Bulan Ini</CardTitle>
             <p className="text-xs text-slate-500">Kalender kewajiban otomatis sesuai regulasi Kemnaker & DJP.</p>
           </CardHeader>
           <div className="p-6 pt-0 space-y-4">
-            <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-lg border border-slate-200">
+            <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
               <div className="flex items-center space-x-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
                 <div>
@@ -88,7 +250,7 @@ export default function DashboardPage() {
               <Badge variant="success">Telah Dibayar</Badge>
             </div>
 
-            <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-lg border border-slate-200">
+            <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
               <div className="flex items-center space-x-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
                 <div>
@@ -99,7 +261,7 @@ export default function DashboardPage() {
               <Badge variant="warning">Menunggu File SIPP</Badge>
             </div>
 
-            <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-lg border border-slate-200">
+            <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
               <div className="flex items-center space-x-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
                 <div>
@@ -112,10 +274,10 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        {/* Quick Links */}
-        <Card className="border-slate-200">
+        {/* HR Admin Quick Links */}
+        <Card className="border-slate-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base font-bold text-slate-900">Aksi Cepat (Quick Actions)</CardTitle>
+            <CardTitle className="text-base font-bold text-slate-900">Aksi Cepat HR Admin</CardTitle>
           </CardHeader>
           <div className="p-6 pt-0 space-y-3">
             <Link href="/onboarding" className="block">
@@ -137,7 +299,7 @@ export default function DashboardPage() {
               </Button>
             </Link>
             <Link href="/payroll" className="block">
-              <Button variant="primary" className="w-full justify-between text-left font-medium">
+              <Button variant="primary" className="w-full justify-between text-left font-medium bg-red-600 hover:bg-red-700">
                 <span>Hitung Payroll & Pajak TER</span>
                 <ArrowRight className="w-4 h-4" />
               </Button>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card, CardHeader, CardTitle, Badge, Button } from "@nusakerja/ui";
 import { Users, FileText, Search, UserPlus, Upload, Download, CheckCircle2, AlertCircle, FileSpreadsheet, Briefcase, MapPin, ShieldCheck, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "../../../src/context/auth-context";
 
 interface EmployeeItem {
   id: string;
@@ -23,6 +24,7 @@ interface EmployeeItem {
 }
 
 export default function EmployeesPage() {
+  const { isHrAdmin, isEmployee } = useAuth();
   const [employeesList, setEmployeesList] = useState<EmployeeItem[]>([
     {
       id: "emp-001",
@@ -189,25 +191,31 @@ export default function EmployeesPage() {
           <div>
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-600/20 text-red-400 text-xs font-bold mb-3 border border-red-600/30">
               <Users className="w-3.5 h-3.5" />
-              <span>Master Data Roster Karyawan Multi-Jabatan</span>
+              <span>{isEmployee ? "Direktori Kontak & Tim Perusahaan" : "Master Data Roster Karyawan Multi-Jabatan"}</span>
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight">Master Karyawan (Employee 360)</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight">
+              {isEmployee ? "Direktori Tim (Company Directory)" : "Master Karyawan (Employee 360)"}
+            </h1>
             <p className="text-xs text-slate-300 mt-2 max-w-2xl">
-              Direktori karyawan PT Nusantara Utama lengkap dengan Jabatan, NIK, NPWP, BPJS TK/Kes, Status PTKP, Kategori TER PPh 21, dan Lokasi Presensi.
+              {isEmployee
+                ? "Daftar seluruh rekan kerja & tim PT Nusantara Utama lengkap dengan Jabatan, Departemen, dan Lokasi Penugasan."
+                : "Direktori karyawan PT Nusantara Utama lengkap dengan Jabatan, NIK, NPWP, BPJS TK/Kes, Status PTKP, Kategori TER PPh 21, dan Lokasi Presensi."}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700" onClick={() => setShowUploadModal(true)}>
-              <Upload className="w-4 h-4 mr-2" />
-              Bulk Upload CSV/Excel
-            </Button>
-            <Link href="/onboarding">
-              <Button variant="primary" className="bg-red-600 hover:bg-red-700 text-white font-bold">
-                <UserPlus className="w-4 h-4 mr-2" />
-                Tambah Karyawan
+          {isHrAdmin && (
+            <div className="flex flex-wrap items-center gap-2">
+              <Button variant="outline" className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700" onClick={() => setShowUploadModal(true)}>
+                <Upload className="w-4 h-4 mr-2" />
+                Bulk Upload CSV/Excel
               </Button>
-            </Link>
-          </div>
+              <Link href="/onboarding">
+                <Button variant="primary" className="bg-red-600 hover:bg-red-700 text-white font-bold">
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Tambah Karyawan
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 

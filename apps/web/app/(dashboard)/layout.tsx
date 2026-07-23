@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Users, Calendar, Clock, DollarSign, FileText, ExternalLink, Calculator, LogOut, ShieldAlert, Network, UserCheck, Building2, Sparkles, BookOpen, Globe } from "lucide-react";
+import { Users, Calendar, Clock, DollarSign, FileText, ExternalLink, Calculator, LogOut, ShieldAlert, Network, UserCheck, Building2, Sparkles, BookOpen, Globe, User, RefreshCw } from "lucide-react";
 import { useI18n } from "../../src/context/i18n-context";
+import { useAuth } from "../../src/context/auth-context";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { locale, setLocale, t } = useI18n();
+  const { role, user, isEmployee, isHrAdmin, setRole } = useAuth();
 
   return (
     <div className="sidebar-layout">
@@ -36,53 +38,72 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Clock style={{ width: 16, height: 16, color: "#F87171", flexShrink: 0 }} />
             <span>{t("nav.dashboard")}</span>
           </Link>
-          <Link href="/admin" className="nav-pill" style={{ marginBottom: 2 }}>
-            <ShieldAlert style={{ width: 16, height: 16, color: "#34D399", flexShrink: 0 }} />
-            <span>{t("nav.clientadmin")}</span>
-          </Link>
-          <Link href="/organogram" className="nav-pill" style={{ marginBottom: 2 }}>
-            <Network style={{ width: 16, height: 16, color: "#818CF8", flexShrink: 0 }} />
-            <span>{t("nav.organogram")}</span>
-          </Link>
+
           <Link href="/portal" className="nav-pill" style={{ marginBottom: 2 }}>
             <UserCheck style={{ width: 16, height: 16, color: "#FBBF24", flexShrink: 0 }} />
             <span>{t("nav.portal")}</span>
           </Link>
 
-          <div className="section-label" style={{ marginTop: 12 }}>Operasional HR & Payroll</div>
+          <Link href="/organogram" className="nav-pill" style={{ marginBottom: 2 }}>
+            <Network style={{ width: 16, height: 16, color: "#818CF8", flexShrink: 0 }} />
+            <span>{t("nav.organogram")}</span>
+          </Link>
+
+          {/* HR & Client Admin Only Links */}
+          {isHrAdmin && (
+            <Link href="/admin" className="nav-pill" style={{ marginBottom: 2 }}>
+              <ShieldAlert style={{ width: 16, height: 16, color: "#34D399", flexShrink: 0 }} />
+              <span>{t("nav.clientadmin")}</span>
+            </Link>
+          )}
+
+          <div className="section-label" style={{ marginTop: 12 }}>
+            {isEmployee ? "Self-Service Karyawan" : "Operasional HR & Payroll"}
+          </div>
+
+          <Link href="/attendance" className="nav-pill" style={{ marginBottom: 2 }}>
+            <Clock style={{ width: 16, height: 16, color: "#FBBF24", flexShrink: 0 }} />
+            <span>{t("nav.attendance")}</span>
+          </Link>
+
+          <Link href="/leave" className="nav-pill" style={{ marginBottom: 2 }}>
+            <Calendar style={{ width: 16, height: 16, color: "#C084FC", flexShrink: 0 }} />
+            <span>{t("nav.leave")}</span>
+          </Link>
+
+          <Link href="/employees" className="nav-pill" style={{ marginBottom: 2 }}>
+            <Users style={{ width: 16, height: 16, color: "#38BDF8", flexShrink: 0 }} />
+            <span>{isEmployee ? "Direktori Tim" : t("nav.employees")}</span>
+          </Link>
 
           <Link href="/playbook" className="nav-pill" style={{ marginBottom: 2 }}>
             <BookOpen style={{ width: 16, height: 16, color: "#F43F5E", flexShrink: 0 }} />
             <span>{t("nav.playbook")}</span>
           </Link>
-          <Link href="/onboarding" className="nav-pill" style={{ marginBottom: 2 }}>
-            <Users style={{ width: 16, height: 16, color: "#34D399", flexShrink: 0 }} />
-            <span>{t("nav.onboarding")}</span>
-          </Link>
-          <Link href="/employees" className="nav-pill" style={{ marginBottom: 2 }}>
-            <Users style={{ width: 16, height: 16, color: "#38BDF8", flexShrink: 0 }} />
-            <span>{t("nav.employees")}</span>
-          </Link>
-          <Link href="/attendance" className="nav-pill" style={{ marginBottom: 2 }}>
-            <Clock style={{ width: 16, height: 16, color: "#FBBF24", flexShrink: 0 }} />
-            <span>{t("nav.attendance")}</span>
-          </Link>
-          <Link href="/leave" className="nav-pill" style={{ marginBottom: 2 }}>
-            <Calendar style={{ width: 16, height: 16, color: "#C084FC", flexShrink: 0 }} />
-            <span>{t("nav.leave")}</span>
-          </Link>
-          <Link href="/payroll" className="nav-pill" style={{ marginBottom: 2 }}>
-            <DollarSign style={{ width: 16, height: 16, color: "#34D399", flexShrink: 0 }} />
-            <span>{t("nav.payroll")}</span>
-          </Link>
-          <Link href="/severance" className="nav-pill" style={{ marginBottom: 2 }}>
-            <Calculator style={{ width: 16, height: 16, color: "#F87171", flexShrink: 0 }} />
-            <span>{t("nav.severance")}</span>
-          </Link>
-          <Link href="/reports" className="nav-pill" style={{ marginBottom: 2 }}>
-            <FileText style={{ width: 16, height: 16, color: "#38BDF8", flexShrink: 0 }} />
-            <span>{t("nav.reports")}</span>
-          </Link>
+
+          {/* HR Admin Restricted Section */}
+          {isHrAdmin && (
+            <>
+              <div className="section-label" style={{ marginTop: 12 }}>Manajemen HR & Tax Statutory</div>
+
+              <Link href="/onboarding" className="nav-pill" style={{ marginBottom: 2 }}>
+                <Users style={{ width: 16, height: 16, color: "#34D399", flexShrink: 0 }} />
+                <span>{t("nav.onboarding")}</span>
+              </Link>
+              <Link href="/payroll" className="nav-pill" style={{ marginBottom: 2 }}>
+                <DollarSign style={{ width: 16, height: 16, color: "#34D399", flexShrink: 0 }} />
+                <span>{t("nav.payroll")}</span>
+              </Link>
+              <Link href="/severance" className="nav-pill" style={{ marginBottom: 2 }}>
+                <Calculator style={{ width: 16, height: 16, color: "#F87171", flexShrink: 0 }} />
+                <span>{t("nav.severance")}</span>
+              </Link>
+              <Link href="/reports" className="nav-pill" style={{ marginBottom: 2 }}>
+                <FileText style={{ width: 16, height: 16, color: "#38BDF8", flexShrink: 0 }} />
+                <span>{t("nav.reports")}</span>
+              </Link>
+            </>
+          )}
         </nav>
 
         {/* Gov Links Panel */}
@@ -130,17 +151,42 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Globe style={{ width: 13, height: 13, color: "#DC2626" }} />
               <span>{locale === "id-ID" ? "Bahasa Indonesia (id-ID)" : "English (en-US)"}</span>
             </button>
-            <span style={{ fontSize: 12, color: "#49454F" }}>
+
+            {/* Interactive Role Switcher Pill */}
+            <button
+              onClick={() => setRole(isEmployee ? "hr_admin" : "employee")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 11,
+                fontWeight: 800,
+                padding: "4px 12px",
+                borderRadius: 9999,
+                background: isEmployee ? "#E0F2FE" : "#F3E8FF",
+                color: isEmployee ? "#0369A1" : "#6B21A8",
+                border: isEmployee ? "1px solid #BAE6FD" : "1px solid #E9D5FF",
+                cursor: "pointer",
+              }}
+              title="Klik untuk beralih mode simulasi Karyawan vs HR Admin"
+            >
+              <RefreshCw style={{ width: 12, height: 12 }} />
+              <span>{isEmployee ? "Akses: Karyawan (Self-Service)" : "Akses: HR & Client Admin"}</span>
+            </button>
+
+            <span style={{ fontSize: 12, color: "#49454F" }} className="hidden md:inline">
               UMK DKI Jakarta 2026: <strong style={{ fontFamily: "var(--font-mono)" }}>Rp5.067.381</strong>
             </span>
           </div>
+
+          {/* User Profile info */}
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ textAlign: "right" }}>
-              <p style={{ fontSize: 13, fontWeight: 800, color: "#1C1B1F", margin: 0 }}>Administrator HR</p>
-              <p style={{ fontSize: 11, color: "#625B71", margin: 0 }}>{t("company.current")} • Client Admin</p>
+              <p style={{ fontSize: 13, fontWeight: 800, color: "#1C1B1F", margin: 0 }}>{user.name}</p>
+              <p style={{ fontSize: 11, color: "#625B71", margin: 0 }}>{user.companyName} • {user.designation}</p>
             </div>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#DC2626", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 14, boxShadow: "0 2px 8px rgba(220,38,38,0.3)", border: "2px solid #FEE2E2" }}>
-              HR
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: isEmployee ? "#0284C7" : "#DC2626", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 14, boxShadow: "0 2px 8px rgba(2,132,199,0.3)", border: "2px solid #E0F2FE" }}>
+              {user.avatarText}
             </div>
           </div>
         </header>

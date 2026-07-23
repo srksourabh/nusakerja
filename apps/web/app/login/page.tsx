@@ -3,18 +3,21 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ShieldCheck, Mail, Lock, Building2, ArrowRight, CheckCircle2, User, KeyRound, Sparkles } from "lucide-react";
+import { useAuth, UserRole } from "../../src/context/auth-context";
 
 export default function LoginPage() {
+  const { setRole: authSetRole } = useAuth();
   const [tenant, setTenant] = useState("pt_nusantara");
   const [email, setEmail] = useState("budi.santoso@nusantara.co.id");
   const [password, setPassword] = useState("••••••••••••");
-  const [role, setRole] = useState("employee");
+  const [role, setRole] = useState<UserRole>("employee");
   const [loading, setLoading] = useState(false);
   const [logged, setLogged] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    authSetRole(role);
     setTimeout(() => {
       setLoading(false);
       setLogged(true);
@@ -149,7 +152,7 @@ export default function LoginPage() {
                     <button
                       type="button"
                       key={r.id}
-                      onClick={() => setRole(r.id)}
+                      onClick={() => setRole(r.id as UserRole)}
                       className={`py-2 px-3 rounded-xl border font-bold transition-all ${
                         role === r.id
                           ? "bg-red-600/20 border-red-500 text-red-400"
@@ -184,14 +187,14 @@ export default function LoginPage() {
           <div className="mt-8 pt-6 border-t border-slate-800 text-center">
             <p className="text-[11px] text-slate-400 mb-3 font-semibold">Tautan Cepat Mode Uji Coba Simulasi:</p>
             <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
-              <Link href="/admin" className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700">
+              <Link href="/admin" onClick={() => authSetRole("hr_admin")} className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700">
                 Konsol HR Admin
               </Link>
-              <Link href="/portal" className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700">
+              <Link href="/portal" onClick={() => authSetRole("employee")} className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700">
                 Portal Karyawan
               </Link>
-              <Link href="/super-admin" className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700">
-                Super Admin
+              <Link href="/secret-super-admin-setup" onClick={() => authSetRole("super_admin")} className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700">
+                Super Admin Secret Setup
               </Link>
             </div>
           </div>
