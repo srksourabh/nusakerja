@@ -1,6 +1,16 @@
 # PROGRESS.md — NusaKerja Master Task & Production Readiness Tracker
 
-> Status: All Core Phases (0–5) & Multi-Persona Consoles fully built, compiled, and verified with 0 errors.
+> Status: Foundation, 13 application routes, database migration, CI, and Vercel production deployment are operational. Live-data integration and full automated test coverage remain pending launch work.
+
+## Latest Verified Release — 2026-07-23
+
+- Production: `https://nusakerja.vercel.app` — HTTP 200 verified.
+- Production dashboard: `/dashboard` — HTTP 200 verified.
+- Health endpoint: `/api/health` — application, PostgreSQL, and Redis report connected.
+- GitHub `main`: commit `61e712b`; local and remote branches synchronized.
+- GitHub Actions: lint, typecheck, route tests, and production build all pass.
+- Database: committed Drizzle migrations applied successfully.
+- App Router: 13 unique application pages validated on `main`.
 
 ---
 
@@ -25,7 +35,7 @@
   - Agent blueprints: `agent.md` (Anti-Gravity) & `CLAUDE.md` (Claude Code / Cursor).
 - [x] **Phase 6: Multi-Persona Consoles & Redesign Suite**
   - Generated vector logo saved at `apps/web/public/logo.png`.
-  - Next.js Favicon configured at `apps/web/app/icon.png`.
+  - Next.js favicon configured at `apps/web/public/favicon.ico`.
   - Super Admin Tenant Onboarding Portal (`/super-admin`).
   - Client Admin Console (`/admin`).
   - Interactive Department Organogram Tree Chart (`/organogram`).
@@ -40,6 +50,8 @@
 - [x] Added a single canonical contribution and page-merge workflow.
 - [x] Added non-interactive ESLint and duplicate App Router validation to unblock GitHub Actions.
 - [x] Verified all 13 prepared application pages are present as unique routes on `main`.
+- [x] Repaired clean-install dependency ownership; GitHub Actions now passes end-to-end.
+- [x] Verified the latest Git-triggered Vercel production deployment is Ready.
 
 ## 3. Pending Production Enhancement Tasks (Roadmap to Launch)
 
