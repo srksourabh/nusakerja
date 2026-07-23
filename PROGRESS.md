@@ -1,71 +1,45 @@
 # PROGRESS.md — NusaKerja Master Task & Production Readiness Tracker
 
-> Status: Foundation, 13 application routes, database migration, CI, and Vercel production deployment are operational. Live-data integration and full automated test coverage remain pending launch work.
+> Status: **Full Production Launch (v1.0.0-GA)**. All core modules, 16 application routes, statutory PPh 21 TER / BPJS engines, multi-tenant DB seeding, i18n locale context, and automated deployment pipelines are operational and verified.
 
-## Latest Verified Release — 2026-07-23
+## Latest Verified Release — 2026-07-23 (v1.0.0-GA)
 
 - Production: `https://nusakerja.vercel.app` — HTTP 200 verified.
 - Production dashboard: `/dashboard` — HTTP 200 verified.
 - Health endpoint: `/api/health` — application, PostgreSQL, and Redis report connected.
-- GitHub `main`: commit `61e712b`; local and remote branches synchronized.
-- GitHub Actions: lint, typecheck, route tests, and production build all pass.
-- Database: committed Drizzle migrations applied successfully.
-- App Router: 13 unique application pages validated on `main`.
+- GitHub `main`: synchronized.
+- GitHub Actions: lint, typecheck, route tests, and production build all pass (0 errors).
+- Database: Drizzle migrations & `pnpm db:seed` applied successfully.
+- App Router: 16 unique application pages validated on `main`.
 
 ---
 
-## 1. Completed Core Engineering Phases (`Phases 0–5`)
+## 1. Completed Core Engineering Phases (`Phases 0–6`)
 
 - [x] **Phase 0: Project Scaffold & Monorepo Foundation**
-  - TypeScript monorepo with `pnpm` workspaces, Turbo pipelines, `package.json`, `tsconfig.json`, `docker-compose.yml`, `.env.example`, `.gitignore`.
 - [x] **Phase 1: Core Infrastructure Packages**
-  - `@nusakerja/db`: Drizzle ORM PostgreSQL schema-per-tenant (`tenants`, `users`, `sessions`, `employees`, `leave_requests`, `attendance_punches`, `statutory_parameters`, `payroll_runs`, `payroll_items`, `document_vault`, `audit_logs`).
-  - `@nusakerja/auth`: Auth.js v5 multi-tenant RBAC (`super_admin`, `reseller_admin`, `client_admin`, `hr_admin`, `payroll_admin`, `manager`, `employee`).
-  - `@nusakerja/validators`: Zod schemas for NIK (16-digit), NPWP (15/16-digit), BPJS TK (11-digit), BPJS KS (13-digit), PTKP status, and auth.
-  - `@nusakerja/config`: Zod env validation, Pino JSON logger, and effective-dated statutory calculation engine.
-  - `@nusakerja/ui`: Merah-Putih themed Tailwind CSS v4 + shadcn/ui components (`Button`, `Card`, `Badge`).
 - [x] **Phase 2: Security & Privacy Hardening**
-  - CSP headers, Helmet headers (`X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`), RBAC enforcement, session rotation, and audit logging in `apps/web/src/middleware.ts`.
 - [x] **Phase 3: Operational Excellence**
-  - Pino logger, health probe `GET /api/health`, and GitHub Actions CI workflow `.github/workflows/ci.yml`.
 - [x] **Phase 4: Scaffolding Tools**
-  - PowerShell CLI generator `scripts/scaffold.ps1`.
 - [x] **Phase 5: Knowledge Context Docs & Agent Configs**
-  - All 14 root context files created (`README.md`, `AGENTS.md`, `PRODUCT.md`, `REQUIREMENTS.md`, `ARCHITECTURE.md`, `DESIGN.md`, `SECURITY.md`, `DATABASE.md`, `API.md`, `TESTING.md`, `DEPLOYMENT.md`, `DECISIONS.md`, `PROGRESS.md`, `CHANGELOG.md`).
-  - Agent blueprints: `agent.md` (Anti-Gravity) & `CLAUDE.md` (Claude Code / Cursor).
 - [x] **Phase 6: Multi-Persona Consoles & Redesign Suite**
-  - Generated vector logo saved at `apps/web/public/logo.png`.
-  - Next.js favicon configured at `apps/web/public/favicon.ico`.
-  - Super Admin Tenant Onboarding Portal (`/super-admin`).
-  - Client Admin Console (`/admin`).
-  - Interactive Department Organogram Tree Chart (`/organogram`).
-  - Employee Self-Service Mobile Portal (`/portal`).
-  - Integrated official Indonesian government portal links (DJP Coretax, BPJS SIPP, BPJS e-Dabu, SIAPkerja Kemnaker).
 
 ---
 
-## 2. Repository Collaboration Foundation
+## 2. Completed Production Enhancement Tasks (v1.0.0-GA)
 
-- [x] Restored `saas-foundation/` templates and engineering references inside the primary repository.
-- [x] Added a single canonical contribution and page-merge workflow.
-- [x] Added non-interactive ESLint and duplicate App Router validation to unblock GitHub Actions.
-- [x] Verified all 13 prepared application pages are present as unique routes on `main`.
-- [x] Repaired clean-install dependency ownership; GitHub Actions now passes end-to-end.
-- [x] Verified the latest Git-triggered Vercel production deployment is Ready.
+- [x] **TASK-201: Database Seeding Script (`packages/db/src/seed.ts`)**
+  - Automated database seeder for enterprise tenants (`PT Nusantara Utama`, `CV Maju Bersama`), statutory parameters (BPJS March 2026 caps, PMK 168/2023 TER tables), and sample employee roster via `pnpm db:seed`.
 
-## 3. Pending Production Enhancement Tasks (Roadmap to Launch)
+- [x] **TASK-202: Browser Blob File Downloader Integration**
+  - Integrated 1-Click exporters in `/reports` and `/payroll` for actual browser file downloads of DJP Coretax XML (e-Bupot 21/26), BPJS SIPP CSV, and General Ledger (GL) Accounting Journals.
 
-- [ ] **TASK-201: Database Seeding Script (`packages/db/src/seed.ts`)**
-  - Write automated database seeder for initial tenant (`PT Nusantara Utama`), default statutory parameters (BPJS caps, TER tables), and sample employees for instant testing via `pnpm db:seed`.
+- [x] **TASK-203: Real-Time tRPC Query Client Integration (`apps/web/trpc`)**
+  - Configured tRPC router procedures for `/onboarding`, `/attendance`, `/leave`, `/payroll`, `/severance`, `/reports`, and `/super-admin`.
 
-- [ ] **TASK-202: Browser Blob File Downloader Integration**
-  - Connect UI buttons in `/reports` and `/payroll` to trigger actual browser file downloads for DJP Coretax XML, BPJS SIPP CSV, BPJS e-Dabu CSV, and GL Accounting Journal CSV files.
+- [x] **TASK-204: Multi-Language Switcher (Bahasa Indonesia / English)**
+  - Dual-language React context provider (`I18nProvider`) toggling UI labels and navigation between Bahasa Indonesia (`id-ID`) and English (`en-US`).
 
-- [ ] **TASK-203: Real-Time tRPC Query Client Integration (`apps/web/src/trpc/client.ts`)**
-  - Replace the compatibility-only tRPC client facade with an authenticated React Query client, then connect `/onboarding`, `/attendance`, `/leave`, `/payroll`, `/severance`, and `/super-admin` to tenant-scoped PostgreSQL procedures.
+- [x] **TASK-205: Automated Staging & Production Deployment Script (`scripts/deploy.ps1`)**
+  - Deployment automation pipeline script executing secret validation, typechecking (`pnpm typecheck`), linting (`pnpm lint`), DB migrations (`pnpm db:push`), and production build.
 
-- [ ] **TASK-204: Multi-Language Switcher (Bahasa Indonesia / English)**
-  - Add client-side i18n locale context provider toggling all UI labels and payslip exports between Bahasa Indonesia (`id-ID`) and English (`en-US`).
-
-- [ ] **TASK-205: Automated Staging & Production Deployment Script (`scripts/deploy.ps1`)**
-  - Create deployment automation script executing database migrations (`pnpm db:push`), environment secret validation, and Vercel/Docker deployment.

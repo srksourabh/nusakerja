@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Users, Calendar, Clock, DollarSign, FileText, ExternalLink, Calculator, LogOut, ShieldAlert, Network, UserCheck, Building2, Sparkles, BookOpen } from "lucide-react";
+import { Users, Calendar, Clock, DollarSign, FileText, ExternalLink, Calculator, LogOut, ShieldAlert, Network, UserCheck, Building2, Sparkles, BookOpen, Globe } from "lucide-react";
+import { useI18n } from "../../src/context/i18n-context";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { locale, setLocale, t } = useI18n();
+
   return (
     <div className="sidebar-layout">
       {/* ── Sidebar ── */}
@@ -31,58 +34,58 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           <Link href="/dashboard" className="nav-pill" style={{ marginBottom: 2 }}>
             <Clock style={{ width: 16, height: 16, color: "#F87171", flexShrink: 0 }} />
-            <span>Dasbor Utama</span>
+            <span>{t("nav.dashboard")}</span>
           </Link>
           <Link href="/super-admin" className="nav-pill" style={{ marginBottom: 2 }}>
             <Building2 style={{ width: 16, height: 16, color: "#FB923C", flexShrink: 0 }} />
-            <span>Super Admin</span>
+            <span>{t("nav.superadmin")}</span>
           </Link>
           <Link href="/admin" className="nav-pill" style={{ marginBottom: 2 }}>
             <ShieldAlert style={{ width: 16, height: 16, color: "#34D399", flexShrink: 0 }} />
-            <span>Konsol Client Admin</span>
+            <span>{t("nav.clientadmin")}</span>
           </Link>
           <Link href="/organogram" className="nav-pill" style={{ marginBottom: 2 }}>
             <Network style={{ width: 16, height: 16, color: "#818CF8", flexShrink: 0 }} />
-            <span>Struktur Organogram</span>
+            <span>{t("nav.organogram")}</span>
           </Link>
           <Link href="/portal" className="nav-pill" style={{ marginBottom: 2 }}>
             <UserCheck style={{ width: 16, height: 16, color: "#FBBF24", flexShrink: 0 }} />
-            <span>Portal Karyawan</span>
+            <span>{t("nav.portal")}</span>
           </Link>
 
           <div className="section-label" style={{ marginTop: 12 }}>Operasional HR & Payroll</div>
 
           <Link href="/playbook" className="nav-pill" style={{ marginBottom: 2 }}>
             <BookOpen style={{ width: 16, height: 16, color: "#F43F5E", flexShrink: 0 }} />
-            <span>Buku Panduan / Playbook</span>
+            <span>{t("nav.playbook")}</span>
           </Link>
           <Link href="/onboarding" className="nav-pill" style={{ marginBottom: 2 }}>
             <Users style={{ width: 16, height: 16, color: "#34D399", flexShrink: 0 }} />
-            <span>Onboarding Karyawan</span>
+            <span>{t("nav.onboarding")}</span>
           </Link>
           <Link href="/employees" className="nav-pill" style={{ marginBottom: 2 }}>
             <Users style={{ width: 16, height: 16, color: "#38BDF8", flexShrink: 0 }} />
-            <span>Master Karyawan 360</span>
+            <span>{t("nav.employees")}</span>
           </Link>
           <Link href="/attendance" className="nav-pill" style={{ marginBottom: 2 }}>
             <Clock style={{ width: 16, height: 16, color: "#FBBF24", flexShrink: 0 }} />
-            <span>Presensi GPS Punch</span>
+            <span>{t("nav.attendance")}</span>
           </Link>
           <Link href="/leave" className="nav-pill" style={{ marginBottom: 2 }}>
             <Calendar style={{ width: 16, height: 16, color: "#C084FC", flexShrink: 0 }} />
-            <span>Pengajuan Cuti</span>
+            <span>{t("nav.leave")}</span>
           </Link>
           <Link href="/payroll" className="nav-pill" style={{ marginBottom: 2 }}>
             <DollarSign style={{ width: 16, height: 16, color: "#34D399", flexShrink: 0 }} />
-            <span>Payroll & PPh 21 TER</span>
+            <span>{t("nav.payroll")}</span>
           </Link>
           <Link href="/severance" className="nav-pill" style={{ marginBottom: 2 }}>
             <Calculator style={{ width: 16, height: 16, color: "#F87171", flexShrink: 0 }} />
-            <span>Pesangon PHK (PP 35)</span>
+            <span>{t("nav.severance")}</span>
           </Link>
           <Link href="/reports" className="nav-pill" style={{ marginBottom: 2 }}>
             <FileText style={{ width: 16, height: 16, color: "#38BDF8", flexShrink: 0 }} />
-            <span>Laporan Statutory & GL</span>
+            <span>{t("nav.reports")}</span>
           </Link>
         </nav>
 
@@ -109,10 +112,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Tenant Footer */}
         <div style={{ padding: "14px 16px", borderTop: "1px solid rgba(73,69,79,0.3)", background: "#141218", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
           <div>
-            <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0 }}>PT Nusantara Utama</p>
-            <p style={{ fontSize: 10, color: "#94A3B8", margin: 0 }}>DKI Jakarta • tenant_pt_nusantara</p>
+            <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0 }}>{t("company.current")}</p>
+            <p style={{ fontSize: 10, color: "#94A3B8", margin: 0 }}>{t("company.location")}</p>
           </div>
-          <Link href="/sign-out" style={{ padding: 8, borderRadius: 9999, color: "#64748B", display: "flex", alignItems: "center", textDecoration: "none", transition: "all 150ms" }} title="Sign Out">
+          <Link href="/sign-out" style={{ padding: 8, borderRadius: 9999, color: "#64748B", display: "flex", alignItems: "center", textDecoration: "none", transition: "all 150ms" }} title={t("nav.signout")}>
             <LogOut style={{ width: 16, height: 16 }} />
           </Link>
         </div>
@@ -123,10 +126,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Top App Bar */}
         <header className="topbar">
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 9999, background: "#FEE2E2", color: "#991B1B", border: "1px solid #FECACA" }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#DC2626", animation: "pulse 2s infinite", display: "inline-block" }} />
-              Bahasa Indonesia (id-ID)
-            </span>
+            <button
+              onClick={() => setLocale(locale === "id-ID" ? "en-US" : "id-ID")}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 9999, background: "#FEE2E2", color: "#991B1B", border: "1px solid #FECACA", cursor: "pointer" }}
+              title="Click to toggle language (Bahasa / English)"
+            >
+              <Globe style={{ width: 13, height: 13, color: "#DC2626" }} />
+              <span>{locale === "id-ID" ? "Bahasa Indonesia (id-ID)" : "English (en-US)"}</span>
+            </button>
             <span style={{ fontSize: 12, color: "#49454F" }}>
               UMK DKI Jakarta 2026: <strong style={{ fontFamily: "var(--font-mono)" }}>Rp5.067.381</strong>
             </span>

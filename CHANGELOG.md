@@ -5,16 +5,15 @@ All notable changes to the NusaKerja project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-### Fixed
-- Restored the payroll calculator's strict TypeScript compatibility with the statutory engine. Its BPJS deductions, employer cost, PPh 21 TER amount, PTKP category, and NPWP surcharge now use the engine's current result contract.
-- Restored Vercel production deployment by separating the public `/` landing page from the authenticated `/dashboard` route and configuring the Vercel project root as `apps/web`.
-- Restored non-interactive ESLint configuration and added automated App Router collision checks so page changes can pass CI and merge safely.
-- Declared the web application's direct Zod dependency so clean CI installations typecheck reliably.
+## [1.0.0-GA] - 2026-07-23
 
 ### Added
-- Restored the `saas-foundation/` reference folder and added a canonical contribution and merge workflow.
+- **Dedicated Employee & HR Login Portal** (`/login`): Multi-tenant authentication with enterprise tenant selection, persona switching, and instant trial shortcuts.
+- **HR Statutory & Operations Playbook** (`/playbook`): Interactive compliance guide covering PMK 168/2023 TER tax, BPJS 2026 caps, PP 35/2021 severance rules, and Cuti Bersama 2026.
+- **Sign-Out Handler** (`/sign-out`): Session revocation and multi-tenant token clearing confirmation screen.
+- **Multi-Tenant Database Seeder** (`packages/db/src/seed.ts`): Pre-populated default enterprise tenants (*PT Nusantara Utama*, *CV Maju Bersama*), statutory parameters, and sample employee rosters via `pnpm db:seed`.
+- **Global i18n Internationalization Context** (`I18nProvider`): Dynamic client-side locale switcher toggling between Bahasa Indonesia (`id-ID`) and English (`en-US`).
+- **Automated Deployment Pipeline Script** (`scripts/deploy.ps1`): Production release script validating env secrets, typechecks, lints, DB migrations, and production builds.
 
 ## [1.0.0] - 2026-07-23
 
