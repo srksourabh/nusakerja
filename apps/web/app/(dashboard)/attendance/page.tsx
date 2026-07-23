@@ -39,7 +39,7 @@ interface RectificationRequest {
 }
 
 export default function AttendancePage() {
-  const [punchedIn, setPunchedIn] = useState(false);
+  const [punchedIn, setPunchedIn] = useState(true);
   const [punchTime, setPunchTime] = useState<string | null>("08:30:15");
   const [gpsLocation, setGpsLocation] = useState({ lat: -6.2088, lng: 106.8456, accuracy: 4.2, address: "Jl. Jend. Sudirman Kav 52-53, Jakarta Selatan" });
 

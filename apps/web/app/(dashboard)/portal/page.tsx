@@ -19,12 +19,19 @@ const attendance = [
 ];
 
 export default function EmployeePortalPage() {
-  const [punched, setPunched] = useState(false);
-  const [time, setTime]       = useState("08:03:22 WIB");
+  const [punched, setPunched] = useState(true);
+  const [time, setTime] = useState("08:03:22 WIB");
+  const [punchOutTime, setPunchOutTime] = useState<string | null>(null);
 
-  const handlePunch = () => {
-    setPunched(true);
-    setTime(new Date().toLocaleTimeString("id-ID") + " WIB");
+  const handlePunchToggle = () => {
+    const now = new Date().toLocaleTimeString("id-ID") + " WIB";
+    if (!punched) {
+      setPunched(true);
+      setTime(now);
+    } else {
+      setPunched(false);
+      setPunchOutTime(now);
+    }
   };
 
   return (
@@ -77,13 +84,16 @@ export default function EmployeePortalPage() {
             </div>
           </div>
 
-          <button onClick={handlePunch} disabled={punched} className="btn btn-danger btn-xl" style={{ width: "100%" }}>
-            {punched
-              ? <><CheckCircle2 style={{ width: 18, height: 18 }} /><span>Punch In Berhasil — {time}</span></>
-              : <><ShieldCheck style={{ width: 18, height: 18 }} /><span>PUNCH IN — Tap GPS</span></>
-            }
+          <button onClick={handlePunchToggle} className={punched ? "btn btn-danger btn-xl" : "btn btn-primary btn-xl"} style={{ width: "100%", background: punched ? "#DC2626" : "#047857" }}>
+            {punched ? (
+              <><ShieldCheck style={{ width: 18, height: 18 }} /><span>PUNCH OUT (Tap GPS Keluar)</span></>
+            ) : (
+              <><ShieldCheck style={{ width: 18, height: 18 }} /><span>PUNCH IN (Tap GPS Masuk)</span></>
+            )}
           </button>
-          {punched && <p style={{ fontSize: 11, color: "#625B71", marginTop: 8, textAlign: "center" }}>Presensi tercatat. Punch Out pukul 17:00 WIB.</p>}
+          <p style={{ fontSize: 11, color: "#625B71", marginTop: 8, textAlign: "center" }}>
+            {punched ? `Masuk: ${time}. Klik tombol di atas untuk Punch OUT.` : `Keluar: ${punchOutTime || "Selesai"}. Klik di atas untuk Punch IN.`}
+          </p>
         </div>
 
         {/* Right Column */}

@@ -175,6 +175,80 @@ export default function PayrollPage() {
         </div>
       </div>
 
+      {/* PT Nusa Teknik Mandiri Sample Company Payroll Breakdown */}
+      <div className="card-white" style={{ padding: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid #E2E8F0" }}>
+          <div>
+            <h3 style={{ fontSize: 16, fontWeight: 900, color: "#0F172A", margin: 0 }}>Ringkasan Penggajian PT Nusa Teknik Mandiri (5 Karyawan Sampel)</h3>
+            <p style={{ fontSize: 12, color: "#64748B", margin: 0 }}>Perhitungan Otomatis PPh 21 TER PMK 168/2023 & BPJS Ketenagakerjaan/Kesehatan Maret 2026</p>
+          </div>
+          <span className="badge badge-success" style={{ fontSize: 11, fontWeight: 800 }}>✓ Periode Juli 2026</span>
+        </div>
+
+        <div className="table-wrap">
+          <table className="table" style={{ fontSize: 12 }}>
+            <thead>
+              <tr style={{ background: "#F8FAFC", textTransform: "uppercase", fontSize: 11 }}>
+                <th>NIK & Nama</th>
+                <th>Kategori Peran</th>
+                <th>Gaji Pokok (Bruto)</th>
+                <th>BPJS Karyawan (3%)</th>
+                <th>PPh 21 TER</th>
+                <th>Take Home Pay (THP)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { name: "Ir. Aris Pratama, M.T.", code: "NTM-2026-001", role: "Admin", gross: 22000000, bpjs: 496788, pph: 2420000, thp: 19083212 },
+                { name: "Bambang Prasetyo, S.H.", code: "NTM-2026-002", role: "HR", gross: 18500000, bpjs: 496788, pph: 1665000, thp: 16338212 },
+                { name: "Hendra Wijaya", code: "NTM-2026-003", role: "Team Leader", gross: 14000000, bpjs: 451192, pph: 980000, thp: 12568808 },
+                { name: "Rian Kurniawan, S.T.", code: "NTM-2026-004", role: "Service Engineer", gross: 9500000, bpjs: 285000, pph: 237500, thp: 8977500 },
+                { name: "Budi Santoso", code: "NTM-2026-005", role: "Service Engineer", gross: 7200000, bpjs: 216000, pph: 90000, thp: 6894000 },
+              ].map((emp) => (
+                <tr key={emp.code}>
+                  <td>
+                    <div style={{ fontWeight: 800, color: "#0F172A" }}>{emp.name}</div>
+                    <div style={{ fontSize: 10, color: "#64748B", fontFamily: "var(--font-mono)" }}>{emp.code}</div>
+                  </td>
+                  <td>
+                    <span
+                      style={{
+                        padding: "2px 8px",
+                        borderRadius: 9999,
+                        fontSize: 10,
+                        fontWeight: 900,
+                        background:
+                          emp.role === "Admin"
+                            ? "#F3E8FF"
+                            : emp.role === "HR"
+                            ? "#E0F2FE"
+                            : emp.role === "Team Leader"
+                            ? "#FEF3C7"
+                            : "#D1FAE5",
+                        color:
+                          emp.role === "Admin"
+                            ? "#6B21A8"
+                            : emp.role === "HR"
+                            ? "#0369A1"
+                            : emp.role === "Team Leader"
+                            ? "#92400E"
+                            : "#065F46",
+                      }}
+                    >
+                      {emp.role}
+                    </span>
+                  </td>
+                  <td style={{ fontFamily: "var(--font-mono)", fontWeight: 800 }}>Rp {emp.gross.toLocaleString("id-ID")}</td>
+                  <td style={{ fontFamily: "var(--font-mono)", color: "#DC2626" }}>- Rp {emp.bpjs.toLocaleString("id-ID")}</td>
+                  <td style={{ fontFamily: "var(--font-mono)", color: "#DC2626" }}>- Rp {emp.pph.toLocaleString("id-ID")}</td>
+                  <td style={{ fontFamily: "var(--font-mono)", fontWeight: 900, color: "#059669" }}>Rp {emp.thp.toLocaleString("id-ID")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* TER Reference Table */}
       <div className="card-white" style={{ padding: 24 }}>
         <button onClick={() => setShowTer(v => !v)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
