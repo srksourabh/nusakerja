@@ -156,16 +156,22 @@ export default function ReportsPage() {
     },
   ];
 
-  const downloadFile = (filename: string, content: string, type: string) => {
-    const blob = new Blob([content], { type });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const [isExporting, setIsExporting] = useState<string | null>(null);
+
+  const downloadFile = (filename: string, content: string, type: string, exportKey: string) => {
+    setIsExporting(exportKey);
+    setTimeout(() => {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setIsExporting(null);
+    }, 800);
   };
 
   const handleWeeklyAttendanceCsv = () => {
@@ -174,7 +180,7 @@ NK-2026-001,Dr. Budi Santoso,Chief Executive Officer,Dewan Direksi,42h 00m,44h 3
 NK-2026-002,Bambang Prasetyo,Head of HR,Human Resources,40h 00m,42h 15m,40h 00m,41h 30m,163h 45m,3h 45m
 NK-2026-003,Dewi Lestari,VP of Software Engineering,Technology & Systems,45h 00m,48h 00m,44h 30m,46h 15m,183h 45m,23h 45m
 NK-2026-004,Hendra Wijaya,Senior Field Engineer,Field Engineering,48h 00m,50h 30m,47h 00m,49h 15m,194h 45m,34h 45m`;
-    downloadFile("Laporan_Presensi_Mingguan_Maret2026.csv", csv, "text/csv");
+    downloadFile("Laporan_Presensi_Mingguan_Maret2026.csv", csv, "text/csv", "csv");
   };
 
   const handleCoretaxXml = () => {
@@ -198,14 +204,14 @@ NK-2026-004,Hendra Wijaya,Senior Field Engineer,Field Engineering,48h 00m,50h 30
     </Item>
   </DetailItems>
 </eBupot2126>`;
-    downloadFile("eBupot2126_Maret2026_PTNusantaraUtama.xml", xml, "application/xml");
+    downloadFile("eBupot2126_Maret2026_PTNusantaraUtama.xml", xml, "application/xml", "xml");
   };
 
   const handleBpjsSippCsv = () => {
     const csv = `NPP,NIK_KTP,NAMA_KARYAWAN,UPAH_LAPOR_IDR,JKK_TIER,JKM_TIER,JHT_EMP,JP_EMP
 JKT88992011,3171021990040001,Budi Santoso,65000000,0.0024,0.003,1300000,110863
 JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,110863`;
-    downloadFile("BPJS_TK_SIPP_Maret2026.csv", csv, "text/csv");
+    downloadFile("BPJS_TK_SIPP_Maret2026.csv", csv, "text/csv", "bpjs");
   };
 
   const handleGlAccountingCsv = () => {
@@ -214,7 +220,7 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
 21010,PPh 21 Tax Payable,0,4800000,DJP Coretax Withholding
 21020,BPJS Employee Payable,0,9600000,BPJS Employee Portion
 11010,Bank Mandiri Disbursement,0,305600000,Net Bank Salary Payout`;
-    downloadFile("GeneralLedger_Payroll_Maret2026.csv", csv, "text/csv");
+    downloadFile("GeneralLedger_Payroll_Maret2026.csv", csv, "text/csv", "gl");
   };
 
   return (
@@ -293,10 +299,11 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
             </div>
             <button
               onClick={handleWeeklyAttendanceCsv}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center space-x-2 shadow-md transition-all"
+              disabled={isExporting !== null}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center space-x-2 shadow-md transition-all"
             >
-              <Download className="w-4 h-4" />
-              <span>Export CSV Laporan Mingguan</span>
+              <Download className={`w-4 h-4 ${isExporting === "csv" ? "animate-spin" : ""}`} />
+              <span>{isExporting === "csv" ? "Mengekspor CSV..." : "Export CSV Laporan Mingguan"}</span>
             </button>
           </div>
 

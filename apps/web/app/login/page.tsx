@@ -185,21 +185,34 @@ export default function LoginPage() {
             </form>
           )}
 
-          {/* Quick Demo Shortcuts */}
-          <div className="mt-8 pt-6 border-t border-slate-800 text-center">
-            <p className="text-[11px] text-slate-400 mb-3 font-semibold">Tautan Cepat Mode Uji Coba Simulasi:</p>
-            <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
-              <Link href="/admin" onClick={() => authSetRole("hr_admin")} className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700">
-                Konsol HR Admin
-              </Link>
-              <Link href="/portal" onClick={() => authSetRole("employee")} className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700">
-                Portal Karyawan
-              </Link>
-              <Link href="/secret-super-admin-setup" onClick={() => authSetRole("super_admin")} className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700">
-                Super Admin Secret Setup
-              </Link>
+          {/* Quick Demo Shortcuts (Only visible in development mode) */}
+          {process.env.NODE_ENV !== "production" && (
+            <div className="mt-8 pt-6 border-t border-slate-800 text-center">
+              <p className="text-[11px] text-slate-400 mb-3 font-semibold">Tautan Cepat Mode Uji Coba Simulasi (Dev Mode):</p>
+              <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail("bambang.hr@nusantara.co.id");
+                    setRole("hr_admin");
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700"
+                >
+                  Isi HR Admin
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail("budi.santoso@nusantara.co.id");
+                    setRole("employee");
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700"
+                >
+                  Isi Karyawan
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </main>
 

@@ -44,11 +44,12 @@ export default function SecretSuperAdminSetupPage() {
 
   const handlePasskeySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passkey.trim() === "NK-SEC-2026" || passkey.trim() === "superadmin" || passkey.length >= 4) {
+    const targetPasskey = process.env.NEXT_PUBLIC_SUPER_ADMIN_PASSKEY || "NK-SEC-2026-SAAS-SUPERADMIN#";
+    if (passkey.trim() === targetPasskey || passkey.trim() === "NK-SEC-2026") {
       setIsAuthenticated(true);
       setErrorMsg("");
     } else {
-      setErrorMsg("Kunci Keamanan Secret Passkey Tidak Valid.");
+      setErrorMsg("Kunci Keamanan Secret Passkey Tidak Valid. Otentikasi Ditolak.");
     }
   };
 

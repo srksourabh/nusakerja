@@ -105,7 +105,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (savedFirstLogin === "true") {
-      setMustChangePassword(true);
+      const tempCreatedAt = localStorage.getItem("nusakerja_temp_pass_time");
+      const now = Date.now();
+      const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+      if (tempCreatedAt && now - Number(tempCreatedAt) > twentyFourHoursMs) {
+        // Expired temporary password
+        setMustChangePassword(true);
+      } else {
+        setMustChangePassword(true);
+      }
     }
   }, []);
 
