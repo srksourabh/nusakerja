@@ -18,7 +18,7 @@ export default function OrganogramPage() {
         color: "bg-[#7D5260] text-white",
         children: [
           {
-            name: "CA Loganathan Anandan",
+            name: "Bambang Prasetyo, S.H.",
             role: "Head of HR & Statutory Payroll",
             department: "Departemen HR & Hubungan Industrial",
             color: "bg-[#E8DEF8] text-[#1D192B]",

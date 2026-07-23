@@ -140,11 +140,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ textAlign: "right" }}>
-              <p style={{ fontSize: 13, fontWeight: 800, color: "#1C1B1F", margin: 0 }}>CA Loganathan Anandan</p>
-              <p style={{ fontSize: 11, color: "#625B71", margin: 0 }}>JCSS Indonesia (Payroll Admin)</p>
+              <p style={{ fontSize: 13, fontWeight: 800, color: "#1C1B1F", margin: 0 }}>Administrator HR</p>
+              <p style={{ fontSize: 11, color: "#625B71", margin: 0 }}>{t("company.current")} • Client Admin</p>
             </div>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--md-primary)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 14, boxShadow: "0 2px 8px rgba(103,80,164,0.4)", border: "2px solid #E8DEF8" }}>
-              LA
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#DC2626", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 14, boxShadow: "0 2px 8px rgba(220,38,38,0.3)", border: "2px solid #FEE2E2" }}>
+              HR
             </div>
           </div>
         </header>

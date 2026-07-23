@@ -31,7 +31,7 @@ export default function ReportsPage() {
   const notPresentRows: NotPresentRow[] = [
     { employeeCode: "NK-014", name: "Rizky Ramadhan", department: "Engineering", manager: "Budi Santoso", reason: "Absent" },
     { employeeCode: "NK-022", name: "Dewi Lestari", department: "HR & Operations", manager: "Siti Nurhaliza", reason: "On-Leave" },
-    { employeeCode: "NK-035", name: "Ahmad Hidayat", department: "Finance", manager: "Loganathan A.", reason: "Unexcused" },
+    { employeeCode: "NK-035", name: "Ahmad Hidayat", department: "Finance", manager: "Budi Santoso", reason: "Unexcused" },
   ];
 
   const monthlyGridRows: MonthlySummaryRow[] = [
