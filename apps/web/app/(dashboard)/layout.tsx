@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Users, Calendar, Clock, DollarSign, FileText, ExternalLink, Calculator, LogOut, ShieldAlert, Network, UserCheck, Building2, Sparkles } from "lucide-react";
+import { Users, Calendar, Clock, DollarSign, FileText, ExternalLink, Calculator, LogOut, ShieldAlert, Network, UserCheck, Building2, Sparkles, BookOpen } from "lucide-react";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -52,6 +52,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           <div className="section-label" style={{ marginTop: 12 }}>Operasional HR & Payroll</div>
 
+          <Link href="/playbook" className="nav-pill" style={{ marginBottom: 2 }}>
+            <BookOpen style={{ width: 16, height: 16, color: "#F43F5E", flexShrink: 0 }} />
+            <span>Buku Panduan / Playbook</span>
+          </Link>
           <Link href="/onboarding" className="nav-pill" style={{ marginBottom: 2 }}>
             <Users style={{ width: 16, height: 16, color: "#34D399", flexShrink: 0 }} />
             <span>Onboarding Karyawan</span>
@@ -108,7 +112,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <p style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0 }}>PT Nusantara Utama</p>
             <p style={{ fontSize: 10, color: "#94A3B8", margin: 0 }}>DKI Jakarta • tenant_pt_nusantara</p>
           </div>
-          <Link href="/login" style={{ padding: 8, borderRadius: 9999, color: "#64748B", display: "flex", alignItems: "center", textDecoration: "none", transition: "all 150ms" }}>
+          <Link href="/sign-out" style={{ padding: 8, borderRadius: 9999, color: "#64748B", display: "flex", alignItems: "center", textDecoration: "none", transition: "all 150ms" }} title="Sign Out">
             <LogOut style={{ width: 16, height: 16 }} />
           </Link>
         </div>
