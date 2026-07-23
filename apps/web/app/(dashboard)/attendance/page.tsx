@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, Button, Badge } from "@nusakerja/ui";
-import { MapPin, Clock, ShieldCheck, AlertTriangle, RefreshCw, FileText, CheckCircle2, XCircle, Calendar, PlusCircle } from "lucide-react";
+import { MapPin, Clock, ShieldCheck, AlertTriangle, RefreshCw, FileText, CheckCircle2, XCircle, Calendar, PlusCircle, Navigation, Radio } from "lucide-react";
 import { calculateOvertimePay } from "@nusakerja/config";
 
 interface Session {
@@ -10,9 +10,23 @@ interface Session {
   punchIn: string;
   punchOut: string | null;
   duration: string;
-  location: string;
+  locationName: string;
+  lat: number;
+  lng: number;
   geofenceValid: boolean;
   status: "present" | "late" | "half-day" | "on-leave";
+}
+
+interface FieldWorkerPunch {
+  id: string;
+  employeeName: string;
+  designation: string;
+  punchInTime: string;
+  locationName: string;
+  lat: number;
+  lng: number;
+  distanceKm: string;
+  geofenceStatus: "valid" | "field_approved" | "out_of_bounds";
 }
 
 interface RectificationRequest {
@@ -27,19 +41,55 @@ interface RectificationRequest {
 export default function AttendancePage() {
   const [punchedIn, setPunchedIn] = useState(false);
   const [punchTime, setPunchTime] = useState<string | null>("08:30:15");
-  const [gpsLocation, setGpsLocation] = useState({ lat: -6.2088, lng: 106.8456, accuracy: 4.2 });
-  const [syncQueueCount, setSyncQueueCount] = useState(0);
+  const [gpsLocation, setGpsLocation] = useState({ lat: -6.2088, lng: 106.8456, accuracy: 4.2, address: "Jl. Jend. Sudirman Kav 52-53, Jakarta Selatan" });
+
+  // Field-Connect active team location list
+  const [fieldPunches, setFieldPunches] = useState<FieldWorkerPunch[]>([
+    {
+      id: "fp-1",
+      employeeName: "Hendra Wijaya",
+      designation: "Senior Field Operations Engineer",
+      punchInTime: "07:45:00",
+      locationName: "Surabaya Industrial Park (Field Site A)",
+      lat: -7.2575,
+      lng: 112.7521,
+      distanceKm: "0.2 km",
+      geofenceStatus: "valid",
+    },
+    {
+      id: "fp-2",
+      employeeName: "Ahmad Hidayat",
+      designation: "Enterprise Sales Account Executive",
+      punchInTime: "08:15:10",
+      locationName: "Bandung Hub Office, Jl. Asia Afrika",
+      lat: -6.9175,
+      lng: 107.6191,
+      distanceKm: "0.4 km",
+      geofenceStatus: "field_approved",
+    },
+    {
+      id: "fp-3",
+      employeeName: "Dewi Lestari, S.Kom.",
+      designation: "VP of Software Engineering",
+      punchInTime: "08:28:45",
+      locationName: "HQ Sudirman, Jakarta",
+      lat: -6.2088,
+      lng: 106.8456,
+      distanceKm: "0.0 km",
+      geofenceStatus: "valid",
+    },
+  ]);
 
   // Sessions history (Field-Connect timeline model)
   const [sessions, setSessions] = useState<Session[]>([
-    { id: "sess-1", punchIn: "08:30:15", punchOut: "12:00:00", duration: "3h 30m", location: "HQ Sudirman, Jakarta", geofenceValid: true, status: "present" },
-    { id: "sess-2", punchIn: "13:00:00", punchOut: null, duration: "3h 15m (Berjalan)", location: "HQ Sudirman, Jakarta", geofenceValid: true, status: "present" },
+    { id: "sess-1", punchIn: "08:30:15", punchOut: "12:00:00", duration: "3h 30m", locationName: "HQ Sudirman, Jakarta", lat: -6.2088, lng: 106.8456, geofenceValid: true, status: "present" },
+    { id: "sess-2", punchIn: "13:00:00", punchOut: null, duration: "3h 15m (Berjalan)", locationName: "HQ Sudirman, Jakarta", lat: -6.2088, lng: 106.8456, geofenceValid: true, status: "present" },
   ]);
 
   // Rectification Requests state
   const [showRectificationModal, setShowRectificationModal] = useState(false);
   const [rectifications, setRectifications] = useState<RectificationRequest[]>([
-    { id: "rec-101", date: "2026-07-21", type: "punch_out", proposedTime: "17:30", reason: "Server outage saat jam pulang", status: "approved" },
+    { id: "rec-101", date: "2026-07-21", type: "punch_out", proposedTime: "17:30", reason: "Jaringan mati saat di lokasi proyek", status: "approved" },
   ]);
   const [rectDate, setRectDate] = useState("2026-07-22");
   const [rectTime, setRectTime] = useState("08:30");
@@ -65,7 +115,9 @@ export default function AttendancePage() {
           punchIn: now,
           punchOut: null,
           duration: "0h 01m (Berjalan)",
-          location: "HQ Sudirman, Jakarta",
+          locationName: gpsLocation.address,
+          lat: gpsLocation.lat,
+          lng: gpsLocation.lng,
           geofenceValid: true,
           status: "present",
         },
@@ -96,48 +148,53 @@ export default function AttendancePage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Sync status banner */}
-      <div className="p-4 rounded-xl bg-slate-900 text-white flex items-center justify-between shadow-lg">
+      {/* Header & Sync status banner */}
+      <div className="p-5 rounded-2xl bg-slate-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-            <RefreshCw className="w-5 h-5 animate-spin" />
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+            <Radio className="w-5 h-5 animate-pulse" />
           </div>
           <div>
-            <p className="text-sm font-bold">Field-Connect Attendance Sync Active</p>
-            <p className="text-xs text-slate-400">0 data punch tertunda di offline buffer. Seluruh koordinat GPS terverifikasi.</p>
+            <p className="text-sm font-extrabold text-white">Field-Connect Real-Time GPS Tracking & Attendance</p>
+            <p className="text-xs text-slate-400">Verifikasi lokasi presisi & sinkronisasi otomatis offline punch buffer.</p>
           </div>
         </div>
         <button
           onClick={() => setShowRectificationModal(true)}
-          className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center space-x-1.5 transition-colors"
+          className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center space-x-1.5 transition-all shadow-md"
         >
           <PlusCircle className="w-4 h-4" />
-          <span>Pengajuan Koreksi Presensi</span>
+          <span>Form Koreksi Presensi (Rectification)</span>
         </button>
       </div>
 
+      {/* Main Grid: GPS Mobile Punch Simulator & Overtime */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* GPS Mobile Punch Simulator */}
         <Card className="border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base font-bold text-slate-900 flex items-center">
               <MapPin className="w-5 h-5 text-red-600 mr-2" />
-              Presensi GPS Field-Connect (Mobile Punch)
+              Presensi GPS Field-Connect (Mobile Location Punch)
             </CardTitle>
             <p className="text-xs text-slate-500">
-              Verifikasi lokasi GPS presisi tinggi & geofence kantor sesuai regulasi UU PDP No. 27/2022.
+              Sistem verifikasi lokasi presensi presisi tinggi sesuai regulasi UU PDP Law No. 27/2022.
             </p>
           </CardHeader>
 
           <div className="p-6 pt-0 space-y-5">
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-500 font-medium">Status Geofence Radius:</span>
-                <Badge variant="success">✓ Terverifikasi di Radius Kantor (5m)</Badge>
+                <Badge variant="success">✓ Radius Terverifikasi (Sudirman HQ)</Badge>
               </div>
-              <div className="text-xs text-slate-600 font-mono flex justify-between">
+              <div className="text-xs text-slate-700 font-semibold flex items-center space-x-1">
+                <Navigation className="w-3.5 h-3.5 text-red-600" />
+                <span>{gpsLocation.address}</span>
+              </div>
+              <div className="text-[11px] text-slate-500 font-mono flex justify-between pt-1">
                 <span>Lat: {gpsLocation.lat}° S, Lng: {gpsLocation.lng}° E</span>
-                <span className="text-slate-400">Akurasi: {gpsLocation.accuracy}m</span>
+                <span className="text-emerald-700 font-bold">Akurasi GPS: ±{gpsLocation.accuracy}m</span>
               </div>
             </div>
 
@@ -145,14 +202,14 @@ export default function AttendancePage() {
               <div className="p-5 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-3">
                 <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Status: Aktif Bekerja (Present)</span>
                 <p className="text-3xl font-black text-emerald-950">Masuk Jam {punchTime}</p>
-                <Button variant="danger" className="w-full h-11 text-sm font-bold" onClick={() => handlePunch("OUT")}>
+                <Button variant="danger" className="w-full h-11 text-sm font-bold bg-red-600 hover:bg-red-700" onClick={() => handlePunch("OUT")}>
                   Punch OUT (Keluar Kerja)
                 </Button>
               </div>
             ) : (
               <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center space-y-3">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status Sesi: Belum Absen</span>
-                <Button variant="primary" className="w-full h-11 text-sm font-bold" onClick={() => handlePunch("IN")}>
+                <Button variant="primary" className="w-full h-11 text-sm font-bold bg-red-600 hover:bg-red-700 text-white" onClick={() => handlePunch("IN")}>
                   Punch IN (Masuk Kerja)
                 </Button>
               </div>
@@ -168,7 +225,7 @@ export default function AttendancePage() {
               Kalkulator Upah Lembur (PP 35/2021)
             </CardTitle>
             <p className="text-xs text-slate-500">
-              Rumus statutory: <code className="font-mono text-red-600 bg-red-50 px-1 py-0.5 rounded">1/173 x Upah Sebulan</code> dengan pengali 1,5x dan 2,0x.
+              Rumus statutory: <code className="font-mono text-red-600 bg-red-50 px-1 py-0.5 rounded">1/173 x Upah Sebulan</code> dengan pengali 1.5x dan 2.0x.
             </p>
           </CardHeader>
 
@@ -181,7 +238,7 @@ export default function AttendancePage() {
                 type="number"
                 value={monthlyWage}
                 onChange={(e) => setMonthlyWage(parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono font-bold"
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-mono font-bold"
               />
             </div>
 
@@ -193,7 +250,7 @@ export default function AttendancePage() {
                 type="number"
                 value={overtimeHours}
                 onChange={(e) => setOvertimeHours(parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono font-bold"
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-mono font-bold"
               />
             </div>
 
@@ -210,7 +267,7 @@ export default function AttendancePage() {
               </label>
             </div>
 
-            <div className="p-4 bg-red-50 border border-red-200 rounded-xl space-y-1 mt-4">
+            <div className="p-4 bg-red-50 border border-red-200 rounded-2xl space-y-1 mt-4">
               <span className="text-[10px] font-extrabold text-red-700 uppercase tracking-wider">Total Upah Lembur Hak Karyawan</span>
               <p className="text-2xl font-black text-red-950 font-mono">
                 Rp {calculatedOvertime.toLocaleString("id-ID")}
@@ -220,6 +277,50 @@ export default function AttendancePage() {
           </div>
         </Card>
       </div>
+
+      {/* Field-Connect Live Team Location Tracking Roster */}
+      <Card className="border-slate-200 shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-base font-bold text-slate-900 flex items-center">
+            <Navigation className="w-5 h-5 text-emerald-600 mr-2" />
+            Monitoring Lokasi Tim Field-Connect (Live GPS Tracking)
+          </CardTitle>
+          <p className="text-xs text-slate-500">Daftar lokasi presensi lapangan tim secara real-time dari aplikasi mobile.</p>
+        </CardHeader>
+        <div className="p-6 pt-0 overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-100 border-b text-slate-700 font-bold uppercase">
+              <tr>
+                <th className="p-3">Nama & Jabatan</th>
+                <th className="p-3">Waktu Punch IN</th>
+                <th className="p-3">Lokasi Terverifikasi</th>
+                <th className="p-3 text-center">Jarak HQ</th>
+                <th className="p-3 text-center">Status Geofence</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {fieldPunches.map((fp) => (
+                <tr key={fp.id} className="hover:bg-slate-50">
+                  <td className="p-3">
+                    <p className="font-bold text-slate-900">{fp.employeeName}</p>
+                    <p className="text-[10px] text-slate-500">{fp.designation}</p>
+                  </td>
+                  <td className="p-3 font-mono font-bold text-slate-800">{fp.punchInTime}</td>
+                  <td className="p-3">
+                    <p className="font-semibold text-slate-800">{fp.locationName}</p>
+                    <p className="text-[10px] text-slate-400 font-mono">Lat: {fp.lat}°, Lng: {fp.lng}°</p>
+                  </td>
+                  <td className="p-3 text-center font-mono font-bold text-slate-700">{fp.distanceKm}</td>
+                  <td className="p-3 text-center">
+                    {fp.geofenceStatus === "valid" && <Badge variant="success">✓ Valid Geofence</Badge>}
+                    {fp.geofenceStatus === "field_approved" && <Badge variant="info"> Field Approved</Badge>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
       {/* Session Timeline & Rectification History */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -237,7 +338,7 @@ export default function AttendancePage() {
               <div key={s.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
                 <div>
                   <p className="font-bold text-slate-900">Sesi {s.punchIn} — {s.punchOut || "Berjalan"}</p>
-                  <p className="text-[11px] text-slate-500">{s.location}</p>
+                  <p className="text-[11px] text-slate-500">{s.locationName}</p>
                 </div>
                 <div className="text-right">
                   <span className="font-bold text-emerald-700 font-mono block">{s.duration}</span>
@@ -304,7 +405,7 @@ export default function AttendancePage() {
                 <textarea
                   value={rectReason}
                   onChange={(e) => setRectReason(e.target.value)}
-                  placeholder="Contoh: Lupa punch out karena jaringan mati"
+                  placeholder="Contoh: Lupa punch out karena jaringan mati di lapangan"
                   className="w-full px-3 py-2 border rounded-lg h-20"
                 />
               </div>

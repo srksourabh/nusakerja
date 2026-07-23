@@ -1,7 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Download, CheckCircle2, ShieldCheck, FileCode, FileSpreadsheet, Sparkles, UserX, Calendar, Search, Users } from "lucide-react";
+import { FileText, Download, CheckCircle2, ShieldCheck, FileCode, FileSpreadsheet, Sparkles, UserX, Calendar, Search, Users, BarChart3, Clock } from "lucide-react";
+
+interface WeeklySummaryRow {
+  employeeCode: string;
+  name: string;
+  designation: string;
+  department: string;
+  w1Hours: string;
+  w2Hours: string;
+  w3Hours: string;
+  w4Hours: string;
+  totalMonthlyHours: string;
+  totalOvertimeHours: string;
+  lateOccurrences: number;
+}
 
 interface MonthlySummaryRow {
   employeeCode: string;
@@ -13,63 +27,132 @@ interface MonthlySummaryRow {
   leaveDays: number;
   totalHours: string;
   avgHoursPerDay: string;
-  days: Record<number, "P" | "A" | "L" | "C" | "H">; // P=Present, A=Absent, L=Late, C=Cuti, H=Half-day
+  days: Record<number, "P" | "A" | "L" | "C" | "H">;
 }
 
 interface NotPresentRow {
   employeeCode: string;
   name: string;
+  designation: string;
   department: string;
   manager: string;
   reason: "Absent" | "On-Leave" | "Unexcused";
 }
 
 export default function ReportsPage() {
-  const [activeTab, setActiveTab] = useState<"statutory" | "not_present" | "monthly_grid">("monthly_grid");
+  const [activeTab, setActiveTab] = useState<"weekly" | "monthly_grid" | "not_present" | "statutory">("weekly");
   const [searchTerm, setSearchTerm] = useState("");
 
+  const weeklyRows: WeeklySummaryRow[] = [
+    {
+      employeeCode: "NK-2026-001",
+      name: "Dr. Budi Santoso, M.B.A.",
+      designation: "Chief Executive Officer",
+      department: "Dewan Direksi",
+      w1Hours: "42h 00m",
+      w2Hours: "44h 30m",
+      w3Hours: "41h 15m",
+      w4Hours: "43h 00m",
+      totalMonthlyHours: "170h 45m",
+      totalOvertimeHours: "10h 45m",
+      lateOccurrences: 0,
+    },
+    {
+      employeeCode: "NK-2026-002",
+      name: "Bambang Prasetyo, S.H.",
+      designation: "Head of HR & Industrial Relations",
+      department: "Human Resources",
+      w1Hours: "40h 00m",
+      w2Hours: "42h 15m",
+      w3Hours: "40h 00m",
+      w4Hours: "41h 30m",
+      totalMonthlyHours: "163h 45m",
+      totalOvertimeHours: "3h 45m",
+      lateOccurrences: 1,
+    },
+    {
+      employeeCode: "NK-2026-003",
+      name: "Dewi Lestari, S.Kom.",
+      designation: "VP of Software Engineering",
+      department: "Technology & Systems",
+      w1Hours: "45h 00m",
+      w2Hours: "48h 00m",
+      w3Hours: "44h 30m",
+      w4Hours: "46h 15m",
+      totalMonthlyHours: "183h 45m",
+      totalOvertimeHours: "23h 45m",
+      lateOccurrences: 0,
+    },
+    {
+      employeeCode: "NK-2026-004",
+      name: "Hendra Wijaya",
+      designation: "Senior Field Operations Engineer",
+      department: "Field Engineering",
+      w1Hours: "48h 00m",
+      w2Hours: "50h 30m",
+      w3Hours: "47h 00m",
+      w4Hours: "49h 15m",
+      totalMonthlyHours: "194h 45m",
+      totalOvertimeHours: "34h 45m",
+      lateOccurrences: 1,
+    },
+    {
+      employeeCode: "NK-2026-005",
+      name: "Siti Nurhaliza, S.E.",
+      designation: "Senior Tax & Payroll Specialist",
+      department: "Finance & Tax",
+      w1Hours: "40h 00m",
+      w2Hours: "41h 00m",
+      w3Hours: "40h 00m",
+      w4Hours: "42h 00m",
+      totalMonthlyHours: "163h 00m",
+      totalOvertimeHours: "3h 00m",
+      lateOccurrences: 0,
+    },
+  ];
+
   const notPresentRows: NotPresentRow[] = [
-    { employeeCode: "NK-014", name: "Rizky Ramadhan", department: "Engineering", manager: "Budi Santoso", reason: "Absent" },
-    { employeeCode: "NK-022", name: "Dewi Lestari", department: "HR & Operations", manager: "Siti Nurhaliza", reason: "On-Leave" },
-    { employeeCode: "NK-035", name: "Ahmad Hidayat", department: "Finance", manager: "Budi Santoso", reason: "Unexcused" },
+    { employeeCode: "NK-2026-007", name: "Ahmad Hidayat", designation: "Sales Account Executive", department: "Sales & Commercial", manager: "Budi Santoso", reason: "Unexcused" },
+    { employeeCode: "NK-2026-014", name: "Rizky Ramadhan", designation: "QA Systems Engineer", department: "Technology & Systems", manager: "Dewi Lestari", reason: "Absent" },
+    { employeeCode: "NK-2026-022", name: "Rudi Hermawan", designation: "Tax Manager", department: "Finance & Tax", manager: "Siti Nurhaliza", reason: "On-Leave" },
   ];
 
   const monthlyGridRows: MonthlySummaryRow[] = [
     {
-      employeeCode: "NK-001",
-      name: "Budi Santoso",
-      department: "Management",
+      employeeCode: "NK-2026-001",
+      name: "Dr. Budi Santoso, M.B.A.",
+      department: "Dewan Direksi",
+      daysPresent: 22,
+      daysAbsent: 0,
+      lateDays: 0,
+      leaveDays: 0,
+      totalHours: "170h 45m",
+      avgHoursPerDay: "7.8h",
+      days: { 1: "P", 2: "P", 3: "P", 4: "P", 5: "P", 6: "P", 7: "P", 8: "P", 9: "P", 10: "P", 11: "P", 12: "P", 13: "P", 14: "P", 15: "P", 16: "P", 17: "P", 18: "P", 19: "P", 20: "P", 21: "P", 22: "P" },
+    },
+    {
+      employeeCode: "NK-2026-003",
+      name: "Dewi Lestari, S.Kom.",
+      department: "Technology & Systems",
+      daysPresent: 22,
+      daysAbsent: 0,
+      lateDays: 0,
+      leaveDays: 0,
+      totalHours: "183h 45m",
+      avgHoursPerDay: "8.3h",
+      days: { 1: "P", 2: "P", 3: "P", 4: "P", 5: "P", 6: "P", 7: "P", 8: "P", 9: "P", 10: "P", 11: "P", 12: "P", 13: "P", 14: "P", 15: "P", 16: "P", 17: "P", 18: "P", 19: "P", 20: "P", 21: "P", 22: "P" },
+    },
+    {
+      employeeCode: "NK-2026-004",
+      name: "Hendra Wijaya",
+      department: "Field Engineering",
       daysPresent: 22,
       daysAbsent: 0,
       lateDays: 1,
       leaveDays: 0,
-      totalHours: "176h 30m",
-      avgHoursPerDay: "8.0h",
-      days: { 1: "P", 2: "P", 3: "P", 4: "P", 5: "P", 6: "L", 7: "P", 8: "P", 9: "P", 10: "P", 11: "P", 12: "P", 13: "P", 14: "P", 15: "P", 16: "P", 17: "P", 18: "P", 19: "P", 20: "P", 21: "P", 22: "P" },
-    },
-    {
-      employeeCode: "NK-002",
-      name: "Siti Nurhaliza",
-      department: "HR & Operations",
-      daysPresent: 20,
-      daysAbsent: 1,
-      lateDays: 2,
-      leaveDays: 1,
-      totalHours: "160h 00m",
-      avgHoursPerDay: "8.0h",
-      days: { 1: "P", 2: "P", 3: "C", 4: "P", 5: "L", 6: "P", 7: "P", 8: "P", 9: "A", 10: "P", 11: "P", 12: "P", 13: "P", 14: "P", 15: "P", 16: "P", 17: "P", 18: "P", 19: "P", 20: "P" },
-    },
-    {
-      employeeCode: "NK-003",
-      name: "Jean-Pierre Dupont",
-      department: "International Division",
-      daysPresent: 21,
-      daysAbsent: 0,
-      lateDays: 0,
-      leaveDays: 1,
-      totalHours: "168h 15m",
-      avgHoursPerDay: "8.0h",
-      days: { 1: "P", 2: "P", 3: "P", 4: "P", 5: "P", 6: "P", 7: "P", 8: "C", 9: "P", 10: "P", 11: "P", 12: "P", 13: "P", 14: "P", 15: "P", 16: "P", 17: "P", 18: "P", 19: "P", 20: "P", 21: "P" },
+      totalHours: "194h 45m",
+      avgHoursPerDay: "8.8h",
+      days: { 1: "P", 2: "P", 3: "P", 4: "P", 5: "L", 6: "P", 7: "P", 8: "P", 9: "P", 10: "P", 11: "P", 12: "P", 13: "P", 14: "P", 15: "P", 16: "P", 17: "P", 18: "P", 19: "P", 20: "P", 21: "P", 22: "P" },
     },
   ];
 
@@ -85,6 +168,15 @@ export default function ReportsPage() {
     URL.revokeObjectURL(url);
   };
 
+  const handleWeeklyAttendanceCsv = () => {
+    const csv = `KODE_KARYAWAN,NAMA_KARYAWAN,JABATAN,DEPARTEMEN,MINGGU_1,MINGGU_2,MINGGU_3,MINGGU_4,TOTAL_JAM_BULANAN,JAM_LEMBUR
+NK-2026-001,Dr. Budi Santoso,Chief Executive Officer,Dewan Direksi,42h 00m,44h 30m,41h 15m,43h 00m,170h 45m,10h 45m
+NK-2026-002,Bambang Prasetyo,Head of HR,Human Resources,40h 00m,42h 15m,40h 00m,41h 30m,163h 45m,3h 45m
+NK-2026-003,Dewi Lestari,VP of Software Engineering,Technology & Systems,45h 00m,48h 00m,44h 30m,46h 15m,183h 45m,23h 45m
+NK-2026-004,Hendra Wijaya,Senior Field Engineer,Field Engineering,48h 00m,50h 30m,47h 00m,49h 15m,194h 45m,34h 45m`;
+    downloadFile("Laporan_Presensi_Mingguan_Maret2026.csv", csv, "text/csv");
+  };
+
   const handleCoretaxXml = () => {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <eBupot2126 xmlns="http://www.pajak.go.id/coretax/ebupot2126">
@@ -97,12 +189,12 @@ export default function ReportsPage() {
   <DetailItems>
     <Item>
       <NIK>3171021990040001</NIK>
-      <Nama>Budi Pratama</Nama>
+      <Nama>Budi Santoso</Nama>
       <KodeObjekPajak>21-100-01</KodeObjekPajak>
-      <JumlahBruto>12000000</JumlahBruto>
-      <TERCategory>A</TERCategory>
-      <TERRate>0.015</TERRate>
-      <PPhDipotong>180000</PPhDipotong>
+      <JumlahBruto>65000000</JumlahBruto>
+      <TERCategory>B</TERCategory>
+      <TERRate>0.15</TERRate>
+      <PPhDipotong>9750000</PPhDipotong>
     </Item>
   </DetailItems>
 </eBupot2126>`;
@@ -110,18 +202,10 @@ export default function ReportsPage() {
   };
 
   const handleBpjsSippCsv = () => {
-    const csv = `NPP,NIK_KTP,NAMA_KARYAWAN,UAPAH_LAPOR_IDR,JKK_TIER,JKM_TIER,JHT_EMP,JP_EMP
-JKT88992011,3171021990040001,Budi Pratama,12000000,0.0024,0.003,240000,110863
-JKT88992011,3171021990040002,Siti Nurhaliza,9500000,0.0024,0.003,190000,95000`;
+    const csv = `NPP,NIK_KTP,NAMA_KARYAWAN,UPAH_LAPOR_IDR,JKK_TIER,JKM_TIER,JHT_EMP,JP_EMP
+JKT88992011,3171021990040001,Budi Santoso,65000000,0.0024,0.003,1300000,110863
+JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,110863`;
     downloadFile("BPJS_TK_SIPP_Maret2026.csv", csv, "text/csv");
-  };
-
-  const handleMonthlyAttendanceCsv = () => {
-    const csv = `KODE_KARYAWAN,NAMA_KARYAWAN,DEPARTEMEN,HARI_HADIR,HARI_ABSEN,HARI_TERLAMBAT,HARI_CUTI,TOTAL_JAM_KERJA,RATA_JAM_PER_HARI
-NK-001,Budi Santoso,Management,22,0,1,0,176h 30m,8.0h
-NK-002,Siti Nurhaliza,HR & Operations,20,1,2,1,160h 00m,8.0h
-NK-003,Jean-Pierre Dupont,International Division,21,0,0,1,168h 15m,8.0h`;
-    downloadFile("Laporan_Presensi_Bulanan_Maret2026.csv", csv, "text/csv");
   };
 
   const handleGlAccountingCsv = () => {
@@ -140,19 +224,30 @@ NK-003,Jean-Pierre Dupont,International Division,21,0,0,1,168h 15m,8.0h`;
         <div className="relative z-10 flex items-center justify-between">
           <div>
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 text-red-400 text-xs font-bold mb-3 backdrop-blur-md">
-              <FileText className="w-3.5 h-3.5 text-amber-300" />
-              <span>UDS-HR & Statutory Report Exporter Platform</span>
+              <BarChart3 className="w-3.5 h-3.5 text-amber-300" />
+              <span>UDS-HR & Field-Connect Weekly & Monthly Reporting Hub</span>
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight">Pusat Pelaporan Presensi & Statutory</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight">Laporan Presensi & Statutory Export</h1>
             <p className="text-sm text-slate-300 mt-2 max-w-2xl">
-              Laporan Presensi Bulanan UDS-HR (Grid 1–31), Roster Tidak Hadir Hari Ini, XML DJP Coretax PPh 21 TER, CSV BPJS, & Jurnal General Ledger.
+              Laporan Mingguan (Weekly Summary), Grid Presensi Bulanan (UDS-HR), Exceptions &quot;Not Present Today&quot;, XML DJP Coretax PPh 21 TER, &amp; CSV BPJS.
             </p>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 gap-2">
+      <div className="flex flex-wrap border-b border-slate-200 gap-2">
+        <button
+          onClick={() => setActiveTab("weekly")}
+          className={`py-3 px-5 text-sm font-bold border-b-2 transition-all ${
+            activeTab === "weekly"
+              ? "border-red-600 text-red-600"
+              : "border-transparent text-slate-500 hover:text-slate-900"
+          }`}
+        >
+          <Clock className="w-4 h-4 inline mr-2" />
+          Laporan Mingguan (Weekly Summary)
+        </button>
         <button
           onClick={() => setActiveTab("monthly_grid")}
           className={`py-3 px-5 text-sm font-bold border-b-2 transition-all ${
@@ -188,24 +283,75 @@ NK-003,Jean-Pierre Dupont,International Division,21,0,0,1,168h 15m,8.0h`;
         </button>
       </div>
 
-      {/* Tab Content 1: Monthly Attendance Summary Grid */}
+      {/* Tab Content 1: Weekly Summary Report */}
+      {activeTab === "weekly" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Rekapitulasi Presensi & Jam Lembur Mingguan</h2>
+              <p className="text-xs text-slate-500">Rincian jam kerja terhitung Minggu 1 s.d. Minggu 4 dan total akumulasi lembur.</p>
+            </div>
+            <button
+              onClick={handleWeeklyAttendanceCsv}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center space-x-2 shadow-md transition-all"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export CSV Laporan Mingguan</span>
+            </button>
+          </div>
+
+          <div className="card-white p-4 border rounded-2xl overflow-x-auto shadow-sm">
+            <table className="w-full text-xs text-left">
+              <thead>
+                <tr className="bg-slate-100 border-b text-slate-700 font-bold uppercase">
+                  <th className="p-3">Karyawan & Jabatan</th>
+                  <th className="p-3 text-center">Minggu 1</th>
+                  <th className="p-3 text-center">Minggu 2</th>
+                  <th className="p-3 text-center">Minggu 3</th>
+                  <th className="p-3 text-center">Minggu 4</th>
+                  <th className="p-3 text-center">Total Jam Bulanan</th>
+                  <th className="p-3 text-center">Total Lembur</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {weeklyRows.map((w) => (
+                  <tr key={w.employeeCode} className="hover:bg-slate-50">
+                    <td className="p-3">
+                      <p className="font-bold text-slate-900">{w.name}</p>
+                      <p className="text-[10px] text-slate-500">{w.designation} • <span className="text-slate-400">{w.department}</span></p>
+                    </td>
+                    <td className="p-3 text-center font-mono">{w.w1Hours}</td>
+                    <td className="p-3 text-center font-mono">{w.w2Hours}</td>
+                    <td className="p-3 text-center font-mono">{w.w3Hours}</td>
+                    <td className="p-3 text-center font-mono">{w.w4Hours}</td>
+                    <td className="p-3 text-center font-mono font-bold text-slate-900">{w.totalMonthlyHours}</td>
+                    <td className="p-3 text-center font-mono font-bold text-red-600">{w.totalOvertimeHours}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Tab Content 2: Monthly Summary Grid */}
       {activeTab === "monthly_grid" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Rekapitulasi Presensi Karyawan Bulanan</h2>
+              <h2 className="text-lg font-bold text-slate-900">Rekapitulasi Presensi Karyawan Bulanan Grid</h2>
               <p className="text-xs text-slate-500">Kalkulasi total jam hadir, keterlambatan, dan status presensi harian per karyawan.</p>
             </div>
             <button
-              onClick={handleMonthlyAttendanceCsv}
+              onClick={handleWeeklyAttendanceCsv}
               className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center space-x-2 shadow-md transition-all"
             >
               <Download className="w-4 h-4" />
-              <span>Export CSV Presensi Bulanan</span>
+              <span>Export CSV Grid Bulanan</span>
             </button>
           </div>
 
-          <div className="card-white p-4 border rounded-2xl overflow-x-auto">
+          <div className="card-white p-4 border rounded-2xl overflow-x-auto shadow-sm">
             <table className="w-full text-xs text-left border-collapse">
               <thead>
                 <tr className="bg-slate-100 border-b">
@@ -239,7 +385,7 @@ NK-003,Jean-Pierre Dupont,International Division,21,0,0,1,168h 15m,8.0h`;
         </div>
       )}
 
-      {/* Tab Content 2: Not Present Today */}
+      {/* Tab Content 3: Not Present Today */}
       {activeTab === "not_present" && (
         <div className="space-y-4">
           <div>
@@ -247,13 +393,13 @@ NK-003,Jean-Pierre Dupont,International Division,21,0,0,1,168h 15m,8.0h`;
             <p className="text-xs text-slate-500">Daftar karyawan yang belum melakukan punch-in presensi atau sedang mengambil cuti.</p>
           </div>
 
-          <div className="card-white p-4 border rounded-2xl">
+          <div className="card-white p-4 border rounded-2xl shadow-sm">
             <table className="w-full text-xs text-left">
               <thead>
                 <tr className="bg-slate-100 border-b">
                   <th className="p-3 font-bold">NIK/Code</th>
                   <th className="p-3 font-bold">Nama Karyawan</th>
-                  <th className="p-3 font-bold">Departemen</th>
+                  <th className="p-3 font-bold">Jabatan & Departemen</th>
                   <th className="p-3 font-bold">Manager Atasan</th>
                   <th className="p-3 font-bold">Status Alasan</th>
                 </tr>
@@ -263,7 +409,7 @@ NK-003,Jean-Pierre Dupont,International Division,21,0,0,1,168h 15m,8.0h`;
                   <tr key={np.employeeCode} className="hover:bg-slate-50">
                     <td className="p-3 font-mono font-bold">{np.employeeCode}</td>
                     <td className="p-3 font-bold text-slate-900">{np.name}</td>
-                    <td className="p-3 text-slate-600">{np.department}</td>
+                    <td className="p-3 text-slate-600">{np.designation} ({np.department})</td>
                     <td className="p-3 text-slate-600">{np.manager}</td>
                     <td className="p-3">
                       {np.reason === "Absent" && <span className="px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-bold text-[10px]">Tanpa Keterangan (Absent)</span>}
@@ -278,7 +424,7 @@ NK-003,Jean-Pierre Dupont,International Division,21,0,0,1,168h 15m,8.0h`;
         </div>
       )}
 
-      {/* Tab Content 3: Download Statutory & GL Export Cards */}
+      {/* Tab Content 4: Download Statutory & GL Export Cards */}
       {activeTab === "statutory" && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* DJP Coretax XML Card */}

@@ -2,32 +2,147 @@
 
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, Badge, Button } from "@nusakerja/ui";
-import { Users, FileText, Search, UserPlus, Upload, Download, CheckCircle2, AlertCircle, FileSpreadsheet } from "lucide-react";
+import { Users, FileText, Search, UserPlus, Upload, Download, CheckCircle2, AlertCircle, FileSpreadsheet, Briefcase, MapPin, ShieldCheck, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 interface EmployeeItem {
   id: string;
   code: string;
   name: string;
+  designation: string;
+  department: string;
   category: string;
   ptkp: string;
   terCategory: string;
   npwp: string;
   bpjsTk: string;
+  bpjsKs: string;
   salary: number;
+  location: string;
+  status: "active" | "field_punch" | "expat";
 }
 
 export default function EmployeesPage() {
   const [employeesList, setEmployeesList] = useState<EmployeeItem[]>([
-    { id: "1", code: "NK-2026-001", name: "Budi Santoso", category: "PKWTT", ptkp: "K/1", terCategory: "B", npwp: "01.234.567.8-013.001", bpjsTk: "10012345678", salary: 15000000 },
-    { id: "2", code: "NK-2026-002", name: "Siti Nurhaliza", category: "PKWTT", ptkp: "TK/0", terCategory: "A", npwp: "01.234.567.8-013.002", bpjsTk: "10012345679", salary: 9500000 },
-    { id: "3", code: "NK-2026-003", name: "Agus Harimurti", category: "PKWT", ptkp: "TK/1", terCategory: "A", npwp: "Missing", bpjsTk: "10012345680", salary: 6500000 },
-    { id: "4", code: "NK-2026-004", name: "Jean-Pierre Dupont", category: "TKA (Expat)", ptkp: "K/2", terCategory: "B", npwp: "01.234.567.8-013.003", bpjsTk: "10012345681", salary: 45000000 },
+    {
+      id: "emp-001",
+      code: "NK-2026-001",
+      name: "Dr. Budi Santoso, M.B.A.",
+      designation: "Direktur Utama (Chief Executive Officer)",
+      department: "Dewan Direksi",
+      category: "PKWTT",
+      ptkp: "K/2",
+      terCategory: "B",
+      npwp: "01.234.567.8-013.001",
+      bpjsTk: "10012345678",
+      bpjsKs: "0001234567890",
+      salary: 65000000,
+      location: "HQ Sudirman, Jakarta",
+      status: "active",
+    },
+    {
+      id: "emp-002",
+      code: "NK-2026-002",
+      name: "Bambang Prasetyo, S.H.",
+      designation: "Head of HR & Industrial Relations",
+      department: "Human Resources",
+      category: "PKWTT",
+      ptkp: "K/1",
+      terCategory: "B",
+      npwp: "01.234.567.8-013.002",
+      bpjsTk: "10012345679",
+      bpjsKs: "0001234567891",
+      salary: 28000000,
+      location: "HQ Sudirman, Jakarta",
+      status: "active",
+    },
+    {
+      id: "emp-003",
+      code: "NK-2026-003",
+      name: "Dewi Lestari, S.Kom.",
+      designation: "VP of Software Engineering",
+      department: "Technology & Systems",
+      category: "PKWTT",
+      ptkp: "TK/0",
+      terCategory: "A",
+      npwp: "01.234.567.8-013.003",
+      bpjsTk: "10012345680",
+      bpjsKs: "0001234567892",
+      salary: 32000000,
+      location: "HQ Sudirman, Jakarta",
+      status: "active",
+    },
+    {
+      id: "emp-004",
+      code: "NK-2026-004",
+      name: "Hendra Wijaya",
+      designation: "Senior Field Operations Engineer",
+      department: "Field Engineering",
+      category: "PKWTT",
+      ptkp: "K/1",
+      terCategory: "B",
+      npwp: "01.234.567.8-013.004",
+      bpjsTk: "10012345681",
+      bpjsKs: "0001234567893",
+      salary: 16500000,
+      location: "Surabaya Industrial Hub (Field GPS)",
+      status: "field_punch",
+    },
+    {
+      id: "emp-005",
+      code: "NK-2026-005",
+      name: "Siti Nurhaliza, S.E.",
+      designation: "Senior Tax & Payroll Specialist",
+      department: "Finance & Tax",
+      category: "PKWTT",
+      ptkp: "TK/1",
+      terCategory: "A",
+      npwp: "01.234.567.8-013.005",
+      bpjsTk: "10012345682",
+      bpjsKs: "0001234567894",
+      salary: 14500000,
+      location: "HQ Sudirman, Jakarta",
+      status: "active",
+    },
+    {
+      id: "emp-006",
+      code: "NK-2026-006",
+      name: "Jean-Pierre Dupont",
+      designation: "International Business Advisor",
+      department: "Global Expansion",
+      category: "TKA (Expat)",
+      ptkp: "K/3",
+      terCategory: "C",
+      npwp: "01.234.567.8-013.006",
+      bpjsTk: "10012345683",
+      bpjsKs: "0001234567895",
+      salary: 55000000,
+      location: "HQ Sudirman, Jakarta (KITAS 2027)",
+      status: "expat",
+    },
+    {
+      id: "emp-007",
+      code: "NK-2026-007",
+      name: "Ahmad Hidayat",
+      designation: "Enterprise Sales Account Executive",
+      department: "Sales & Commercial",
+      category: "PKWT",
+      ptkp: "TK/0",
+      terCategory: "A",
+      npwp: "Missing",
+      bpjsTk: "10012345684",
+      bpjsKs: "0001234567896",
+      salary: 9500000,
+      location: "Bandung Branch Office",
+      status: "active",
+    },
   ]);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDept, setSelectedDept] = useState("ALL");
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [selectedEmp, setSelectedEmp] = useState<EmployeeItem | null>(null);
 
   const handleSimulatedBulkUpload = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,97 +150,155 @@ export default function EmployeesPage() {
     setTimeout(() => {
       setEmployeesList((prev) => [
         ...prev,
-        { id: "5", code: "NK-2026-005", name: "Dewi Lestari (Bulk Import)", category: "PKWTT", ptkp: "TK/0", terCategory: "A", npwp: "01.234.567.8-013.005", bpjsTk: "10012345682", salary: 11000000 },
+        {
+          id: `emp-${Date.now()}`,
+          code: "NK-2026-008",
+          name: "Rizky Ramadhan (Bulk Import)",
+          designation: "QA Systems Engineer",
+          department: "Technology & Systems",
+          category: "PKWTT",
+          ptkp: "TK/0",
+          terCategory: "A",
+          npwp: "01.234.567.8-013.008",
+          bpjsTk: "10012345685",
+          bpjsKs: "0001234567897",
+          salary: 12000000,
+          location: "HQ Sudirman, Jakarta",
+          status: "active",
+        },
       ]);
       setUploadSuccess(false);
       setShowUploadModal(false);
     }, 1200);
   };
 
-  const filteredEmployees = employeesList.filter((emp) =>
-    emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.code.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEmployees = employeesList.filter((emp) => {
+    const matchesSearch =
+      emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.designation.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDept = selectedDept === "ALL" || emp.department === selectedDept;
+    return matchesSearch && matchesDept;
+  });
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Master Data Karyawan (Employee 360)</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Pengelolaan data karyawan terisolasi white-label, status PTKP, Kategori TER PPh 21, & kelengkapan BPJS.
-          </p>
-        </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={() => setShowUploadModal(true)}>
-            <Upload className="w-4 h-4 mr-2" />
-            Bulk Upload CSV/Excel
-          </Button>
-          <Link href="/onboarding">
-            <Button variant="primary">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Tambah Karyawan Baru
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Header Banner */}
+      <div className="card-md p-8 bg-gradient-to-r from-[#0F172A] to-[#1E293B] text-white rounded-3xl relative overflow-hidden shadow-xl">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-600/20 text-red-400 text-xs font-bold mb-3 border border-red-600/30">
+              <Users className="w-3.5 h-3.5" />
+              <span>Master Data Roster Karyawan Multi-Jabatan</span>
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight">Master Karyawan (Employee 360)</h1>
+            <p className="text-xs text-slate-300 mt-2 max-w-2xl">
+              Direktori karyawan PT Nusantara Utama lengkap dengan Jabatan, NIK, NPWP, BPJS TK/Kes, Status PTKP, Kategori TER PPh 21, dan Lokasi Presensi.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700" onClick={() => setShowUploadModal(true)}>
+              <Upload className="w-4 h-4 mr-2" />
+              Bulk Upload CSV/Excel
             </Button>
-          </Link>
+            <Link href="/onboarding">
+              <Button variant="primary" className="bg-red-600 hover:bg-red-700 text-white font-bold">
+                <UserPlus className="w-4 h-4 mr-2" />
+                Tambah Karyawan
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
-      <Card className="border-slate-200">
-        <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
-          <div className="relative w-72">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Cari nama, NIK, atau kode..."
-              className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
+      {/* Filter & Search Bar */}
+      <Card className="border-slate-200 shadow-sm">
+        <div className="p-4 flex flex-col sm:flex-row gap-3 justify-between items-center bg-slate-50/50">
+          <div className="flex flex-1 items-center gap-3 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-72">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Cari nama, NIK, atau jabatan..."
+                className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+            <select
+              value={selectedDept}
+              onChange={(e) => setSelectedDept(e.target.value)}
+              className="px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white font-semibold text-slate-700"
+            >
+              <option value="ALL">Semua Departemen</option>
+              <option value="Dewan Direksi">Dewan Direksi</option>
+              <option value="Human Resources">Human Resources</option>
+              <option value="Technology & Systems">Technology & Systems</option>
+              <option value="Field Engineering">Field Engineering</option>
+              <option value="Finance & Tax">Finance & Tax</option>
+              <option value="Global Expansion">Global Expansion</option>
+              <option value="Sales & Commercial">Sales & Commercial</option>
+            </select>
           </div>
-          <span className="text-xs text-slate-500 font-medium">Total: {filteredEmployees.length} Karyawan Terdaftar</span>
+          <span className="text-xs text-slate-500 font-bold whitespace-nowrap">Total: {filteredEmployees.length} Karyawan Terdaftar</span>
         </div>
 
+        {/* Table Employee List */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-100 border-b border-slate-200 text-slate-700 text-xs uppercase font-semibold">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase">
               <tr>
-                <th className="p-4">Kode & Nama</th>
+                <th className="p-4">Karyawan & NIK</th>
+                <th className="p-4">Jabatan & Departemen</th>
                 <th className="p-4">Kategori Pekerja</th>
-                <th className="p-4">Status PTKP</th>
-                <th className="p-4">Kategori TER PPh 21</th>
-                <th className="p-4">NPWP Perusahaan</th>
+                <th className="p-4">PTKP / TER</th>
+                <th className="p-4">NPWP & BPJS</th>
                 <th className="p-4 text-right">Gaji Pokok (IDR)</th>
-                <th className="p-4 text-center">Aksi</th>
+                <th className="p-4 text-center">Aksi 360</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
               {filteredEmployees.map((emp) => (
                 <tr key={emp.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="p-4 font-medium text-slate-900">
-                    <div>{emp.name}</div>
-                    <div className="text-xs font-mono text-slate-500">{emp.code} • BPJS: {emp.bpjsTk}</div>
+                  <td className="p-4">
+                    <p className="font-bold text-slate-900 text-sm">{emp.name}</p>
+                    <p className="text-[11px] font-mono text-slate-500">{emp.code}</p>
                   </td>
                   <td className="p-4">
-                    <Badge variant={emp.category.includes("TKA") ? "warning" : "neutral"}>
-                      {emp.category}
-                    </Badge>
-                  </td>
-                  <td className="p-4 font-mono font-medium text-slate-700">{emp.ptkp}</td>
-                  <td className="p-4">
-                    <Badge variant="info">Kategori {emp.terCategory}</Badge>
+                    <p className="font-semibold text-slate-800">{emp.designation}</p>
+                    <p className="text-[11px] text-slate-500">{emp.department} • <span className="text-slate-400">{emp.location}</span></p>
                   </td>
                   <td className="p-4">
-                    {emp.npwp !== "Missing" ? (
-                      <span className="text-xs text-emerald-600 font-medium font-mono">✓ {emp.npwp}</span>
+                    {emp.status === "expat" ? (
+                      <Badge variant="warning">TKA Expat</Badge>
+                    ) : emp.status === "field_punch" ? (
+                      <Badge variant="info">Field GPS</Badge>
                     ) : (
-                      <span className="text-xs text-rose-600 font-medium">✕ Missing (+20% TER)</span>
+                      <Badge variant="neutral">{emp.category}</Badge>
                     )}
                   </td>
-                  <td className="p-4 text-right font-mono font-bold text-slate-900">
+                  <td className="p-4 font-mono">
+                    <span className="font-bold text-slate-800">{emp.ptkp}</span>
+                    <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-bold">Kat {emp.terCategory}</span>
+                  </td>
+                  <td className="p-4 font-mono">
+                    {emp.npwp !== "Missing" ? (
+                      <p className="text-[11px] text-emerald-700 font-bold">✓ {emp.npwp}</p>
+                    ) : (
+                      <p className="text-[11px] text-rose-600 font-bold">✕ Surcharge (+20% TER)</p>
+                    )}
+                    <p className="text-[10px] text-slate-400">TK: {emp.bpjsTk}</p>
+                  </td>
+                  <td className="p-4 text-right font-mono font-extrabold text-slate-900 text-sm">
                     Rp{emp.salary.toLocaleString("id-ID")}
                   </td>
                   <td className="p-4 text-center">
-                    <Button variant="outline" size="sm">Detail 360</Button>
+                    <button
+                      onClick={() => setSelectedEmp(emp)}
+                      className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[11px] font-bold transition-colors"
+                    >
+                      View 360
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -133,6 +306,62 @@ export default function EmployeesPage() {
           </table>
         </div>
       </Card>
+
+      {/* Employee 360 Detail Modal */}
+      {selectedEmp && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in fade-in">
+            <div className="flex items-center justify-between border-b pb-3">
+              <h3 className="text-lg font-black text-slate-900">Profil Employee 360</h3>
+              <button onClick={() => setSelectedEmp(null)} className="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            <div className="space-y-3 text-xs">
+              <div className="p-4 bg-slate-50 rounded-2xl border space-y-1">
+                <p className="text-sm font-black text-slate-900">{selectedEmp.name}</p>
+                <p className="text-xs text-red-600 font-bold">{selectedEmp.designation}</p>
+                <p className="text-[11px] text-slate-500">{selectedEmp.department} • {selectedEmp.location}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 font-mono">
+                <div className="p-3 bg-slate-50 rounded-xl border">
+                  <span className="text-[10px] text-slate-400 uppercase font-sans">Kode Karyawan</span>
+                  <p className="font-bold text-slate-900">{selectedEmp.code}</p>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border">
+                  <span className="text-[10px] text-slate-400 uppercase font-sans">Kategori Pekerja</span>
+                  <p className="font-bold text-slate-900">{selectedEmp.category}</p>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border">
+                  <span className="text-[10px] text-slate-400 uppercase font-sans">Status PTKP</span>
+                  <p className="font-bold text-slate-900">{selectedEmp.ptkp}</p>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border">
+                  <span className="text-[10px] text-slate-400 uppercase font-sans">PPh 21 TER</span>
+                  <p className="font-bold text-purple-700">Kategori {selectedEmp.terCategory}</p>
+                </div>
+              </div>
+
+              <div className="p-3 bg-slate-50 rounded-xl border font-mono space-y-1">
+                <p className="text-[10px] text-slate-400 font-sans uppercase font-bold">Identitas Pajak & BPJS</p>
+                <p className="text-slate-800">NPWP: {selectedEmp.npwp}</p>
+                <p className="text-slate-800">BPJS TK: {selectedEmp.bpjsTk}</p>
+                <p className="text-slate-800">BPJS Kes: {selectedEmp.bpjsKs}</p>
+              </div>
+
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex justify-between items-center">
+                <span className="font-bold text-emerald-900">Gaji Pokok IDR:</span>
+                <span className="text-lg font-black text-emerald-950 font-mono">Rp{selectedEmp.salary.toLocaleString("id-ID")}</span>
+              </div>
+            </div>
+            <button
+              onClick={() => setSelectedEmp(null)}
+              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs"
+            >
+              Tutup Profil
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Bulk Upload Modal */}
       {showUploadModal && (

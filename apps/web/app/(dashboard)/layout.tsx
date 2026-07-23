@@ -36,10 +36,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Clock style={{ width: 16, height: 16, color: "#F87171", flexShrink: 0 }} />
             <span>{t("nav.dashboard")}</span>
           </Link>
-          <Link href="/super-admin" className="nav-pill" style={{ marginBottom: 2 }}>
-            <Building2 style={{ width: 16, height: 16, color: "#FB923C", flexShrink: 0 }} />
-            <span>{t("nav.superadmin")}</span>
-          </Link>
           <Link href="/admin" className="nav-pill" style={{ marginBottom: 2 }}>
             <ShieldAlert style={{ width: 16, height: 16, color: "#34D399", flexShrink: 0 }} />
             <span>{t("nav.clientadmin")}</span>
