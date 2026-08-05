@@ -333,8 +333,8 @@ flowchart LR
 1. U1 schema + capabilities (foundation)
 2. U2 session context wiring
 3. U3 control plane
-4. U4 CA assignment + portfolio
-5. U5 payroll authority gates
+4. U5 payroll authority gates
+5. U4 CA portfolio UI (after gates exist)
 6. U6 leave + attendance RBAC (preserve UX)
 7. U7 role POV nav + login demo seed
 8. U8 authorization tests
@@ -390,7 +390,7 @@ U8 may start characterization tests as soon as U1–U2 land (test-first for AE c
 - **Requirements:** R6, R7, R8, R9, R23
 - **Files:** CA portfolio page under `apps/web/app/(dashboard)/`, `apps/web/trpc/routers/payroll.ts`, nav in `apps/web/app/(dashboard)/layout.tsx`
 - **Approach:** Portfolio query filters by assignment; entering company sets active tenant for CA session; calculate allowed; disburse/filing denied.
-- **Dependencies:** U1, U2, U5 (payroll gates may land with U5 in same PR if sequenced carefully — prefer U5 before exposing UI)
+- **Dependencies:** U1, U2, U5
 - **Test scenarios:**
   - AE1 isolation
   - AE3 CA filing deny
