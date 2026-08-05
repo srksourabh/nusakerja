@@ -5,6 +5,8 @@ export interface SessionUser {
   name: string;
   role: "super_admin" | "reseller_admin" | "client_admin" | "hr_admin" | "payroll_admin" | "manager" | "employee";
   locale: string;
+  /** Populated for CA (reseller_admin) users. */
+  assignedTenantIds?: string[];
 }
 
 export function hasPermission(
@@ -23,3 +25,19 @@ export function hasPermission(
 
   return roleHierarchy[userRole] >= roleHierarchy[requiredRole];
 }
+
+export {
+  can,
+  ROLE_DISPLAY_NAME,
+  type Capability,
+  type AuthContextFlags,
+  type UserRole,
+} from "./capabilities";
+
+export {
+  hashPassword,
+  verifyPassword,
+  newSessionToken,
+  hashToken,
+  SESSION_COOKIE,
+} from "./password";

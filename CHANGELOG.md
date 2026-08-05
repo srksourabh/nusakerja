@@ -5,6 +5,14 @@ All notable changes to the NusaKerja project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **SaaS RBAC three-layer model**: Platform SuperAdmin / CA (`reseller_admin`) / Company Admin–HR–Manager–Employee with capability checks (`@nusakerja/auth` `can()`).
+- **CA assignment tables** (`ca_firms`, `company_ca_assignments`, `invites`) and platform tRPC control-plane routers.
+- **Payroll authority split**: calculate finalize vs disbursement approve vs filing sign-off; leave/attendance tenant + role gates preserved.
+- **Demo seed personas** including `srksourabh@gmail.com` SuperAdmin and login sample autofill for all six roles; `/ca` portfolio page.
+
 ## [1.0.0-GA] - 2026-07-23
 
 ### Added
