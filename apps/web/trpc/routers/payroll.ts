@@ -2,8 +2,23 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { can } from "@nusakerja/auth";
-import { db, payrollRuns, payrollItems, employees, auditLogs } from "@nusakerja/db";
-import { calculateBpjsContribution, calculatePph21Ter } from "@nusakerja/config";
+import {
+  db,
+  payrollRuns,
+  payrollItems,
+  employees,
+  auditLogs,
+  hrPolicies,
+  policyAssignments,
+  resolvePolicy,
+  localDateKey,
+  type PolicyKind,
+} from "@nusakerja/db";
+import {
+  calculateThr,
+  computeStatutoryPayrollLine,
+  parsePayStructureCompensation,
+} from "@nusakerja/config";
 import { router, protectedProcedure } from "../trpc";
 
 function assertCap(
@@ -22,7 +37,7 @@ function assertCap(
   if (!ok) {
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "Anda tidak memiliki hak untuk melakukan tindakan payroll ini.",
+      message: "You do not have permission for this payroll action.",
     });
   }
 }
@@ -45,16 +60,118 @@ async function writeAudit(opts: {
   });
 }
 
+async function loadPayStructureMaps(tenantId: string, asOf: string) {
+  const policies = await db.select().from(hrPolicies).where(eq(hrPolicies.tenantId, tenantId));
+  const assignments = await db
+    .select()
+    .from(policyAssignments)
+    .where(eq(policyAssignments.tenantId, tenantId));
+
+  return {
+    policies: policies.map((p) => ({
+      id: p.id,
+      tenantId: p.tenantId,
+      name: p.name,
+      kind: p.kind as PolicyKind,
+      payload: (p.payload ?? {}) as Record<string, unknown>,
+      effectiveFrom: p.effectiveFrom,
+      effectiveTo: p.effectiveTo,
+    })),
+    assignments: assignments.map((a) => ({
+      policyId: a.policyId,
+      grade: a.grade,
+      employeeId: a.employeeId,
+    })),
+    asOf,
+  };
+}
+
+function compensationForEmployee(
+  maps: Awaited<ReturnType<typeof loadPayStructureMaps>>,
+  emp: { id: string; grade: number | null; basicSalaryIdr: string }
+) {
+  const resolved = resolvePolicy({
+    policies: maps.policies,
+    assignments: maps.assignments,
+    kind: "pay_structure",
+    employeeId: emp.id,
+    grade: emp.grade ?? 1,
+    asOf: maps.asOf,
+  });
+  const fallback = parseFloat(emp.basicSalaryIdr) || 0;
+  const parsed = parsePayStructureCompensation(resolved?.payload ?? null, fallback);
+  return {
+    ...parsed,
+    policyId: resolved?.policyId ?? null,
+    policyName: resolved?.name ?? null,
+    resolveSource: resolved?.source ?? null,
+  };
+}
+
 export const payrollRouter = router({
   listRuns: protectedProcedure.query(async ({ ctx }) => {
     if (!ctx.tenantId) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Tenant tidak dipilih." });
+      throw new TRPCError({ code: "FORBIDDEN", message: "No company context." });
     }
     if (ctx.user.role === "super_admin") {
-      throw new TRPCError({ code: "FORBIDDEN", message: "SuperAdmin tidak mengakses data payroll." });
+      throw new TRPCError({ code: "FORBIDDEN", message: "SuperAdmin cannot access payroll." });
     }
     return await db.select().from(payrollRuns).where(eq(payrollRuns.tenantId, ctx.tenantId));
   }),
+
+  /** Preview one employee line using resolved pay_structure → statutory engines. */
+  previewEmployee: protectedProcedure
+    .input(
+      z.object({
+        employeeId: z.string().uuid(),
+        asOf: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        includeThr: z.boolean().default(false),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      assertCap(ctx, "payroll.calculate_finalize");
+      if (!ctx.tenantId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "No company context." });
+      }
+      const [emp] = await db
+        .select()
+        .from(employees)
+        .where(eq(employees.id, input.employeeId))
+        .limit(1);
+      if (!emp || emp.tenantId !== ctx.tenantId) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Employee not found." });
+      }
+
+      const asOf = input.asOf ?? localDateKey(new Date());
+      const maps = await loadPayStructureMaps(ctx.tenantId, asOf);
+      const comp = compensationForEmployee(maps, emp);
+      const thrPayIdr = input.includeThr
+        ? calculateThr(comp.basicSalaryIdr, comp.fixedAllowancesIdr)
+        : 0;
+      const line = computeStatutoryPayrollLine({
+        basicSalaryIdr: comp.basicSalaryIdr,
+        fixedAllowancesIdr: comp.fixedAllowancesIdr,
+        thrPayIdr,
+        ptkpStatus: emp.ptkpStatus,
+        hasNpwp: !!emp.npwp,
+        workerCategory: emp.workerCategory,
+        payStructureSource: comp.source,
+      });
+
+      return {
+        employeeId: emp.id,
+        fullName: emp.fullName,
+        grade: emp.grade,
+        policyId: comp.policyId,
+        policyName: comp.policyName,
+        resolveSource: comp.resolveSource,
+        components: comp.components,
+        line,
+      };
+    }),
 
   calculatePayrollRun: protectedProcedure
     .input(
@@ -68,10 +185,12 @@ export const payrollRouter = router({
       assertCap(ctx, "payroll.calculate_finalize");
       const tenantId = ctx.tenantId;
       if (!tenantId) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Tenant tidak dipilih." });
+        throw new TRPCError({ code: "FORBIDDEN", message: "No company context." });
       }
 
       const employeeList = await db.select().from(employees).where(eq(employees.tenantId, tenantId));
+      const asOf = `${input.year}-${String(input.month).padStart(2, "0")}-01`;
+      const maps = await loadPayStructureMaps(tenantId, asOf);
 
       const [run] = await db
         .insert(payrollRuns)
@@ -90,55 +209,66 @@ export const payrollRouter = router({
       let totalBpjsEmployer = 0;
       let totalBpjsEmployee = 0;
       let totalNet = 0;
+      let fromPolicy = 0;
 
       for (const emp of employeeList) {
-        const basicSalary = parseFloat(emp.basicSalaryIdr);
-        const fixedAllowance = 0;
-        const variableAllowance = 0;
-        const overtimePay = 0;
-        const thrPay = input.includeThr ? basicSalary : 0;
-        const grossSalary = basicSalary + fixedAllowance + variableAllowance + overtimePay + thrPay;
-        const bpjs = calculateBpjsContribution(basicSalary, fixedAllowance, emp.workerCategory);
-        const tax = calculatePph21Ter(grossSalary, emp.ptkpStatus, !!emp.npwp, emp.workerCategory);
-        const netSalary = grossSalary - bpjs.totalEmployeeDeductions - tax.pph21TaxIdr;
+        const comp = compensationForEmployee(maps, emp);
+        if (comp.source === "policy") fromPolicy += 1;
+        const thrPayIdr = input.includeThr
+          ? calculateThr(comp.basicSalaryIdr, comp.fixedAllowancesIdr)
+          : 0;
+        const line = computeStatutoryPayrollLine({
+          basicSalaryIdr: comp.basicSalaryIdr,
+          fixedAllowancesIdr: comp.fixedAllowancesIdr,
+          thrPayIdr,
+          ptkpStatus: emp.ptkpStatus,
+          hasNpwp: !!emp.npwp,
+          workerCategory: emp.workerCategory,
+          payStructureSource: comp.source,
+        });
 
         await db.insert(payrollItems).values({
           payrollRunId: run.id,
           employeeId: emp.id,
-          basicSalaryIdr: basicSalary.toString(),
-          fixedAllowancesIdr: fixedAllowance.toString(),
-          variableAllowancesIdr: variableAllowance.toString(),
-          overtimePayIdr: overtimePay.toString(),
-          thrPayIdr: thrPay.toString(),
-          grossSalaryIdr: grossSalary.toString(),
-          bpjsJhtEmployeeIdr: bpjs.jhtEmployee.toString(),
-          bpjsJpEmployeeIdr: bpjs.jpEmployee.toString(),
-          bpjsKsEmployeeIdr: bpjs.ksEmployee.toString(),
-          bpjsJhtEmployerIdr: bpjs.jhtEmployer.toString(),
-          bpjsJpEmployerIdr: bpjs.jpEmployer.toString(),
-          bpjsJkkEmployerIdr: bpjs.jkkEmployer.toString(),
-          bpjsJkmEmployerIdr: bpjs.jkmEmployer.toString(),
-          bpjsJkpEmployerIdr: bpjs.jkpEmployer.toString(),
-          bpjsKsEmployerIdr: bpjs.ksEmployer.toString(),
-          terCategory: tax.terCategory,
-          terRatePercent: tax.terRatePercent.toString(),
-          pph21TaxIdr: tax.pph21TaxIdr.toString(),
-          hasNpwpSurcharge: tax.npwpSurcharge.toString(),
-          netSalaryIdr: netSalary.toString(),
+          basicSalaryIdr: line.basicSalaryIdr.toString(),
+          fixedAllowancesIdr: line.fixedAllowancesIdr.toString(),
+          variableAllowancesIdr: line.variableAllowancesIdr.toString(),
+          overtimePayIdr: line.overtimePayIdr.toString(),
+          thrPayIdr: line.thrPayIdr.toString(),
+          grossSalaryIdr: line.grossSalaryIdr.toString(),
+          bpjsJhtEmployeeIdr: line.bpjs.jhtEmployee.toString(),
+          bpjsJpEmployeeIdr: line.bpjs.jpEmployee.toString(),
+          bpjsKsEmployeeIdr: line.bpjs.ksEmployee.toString(),
+          bpjsJhtEmployerIdr: line.bpjs.jhtEmployer.toString(),
+          bpjsJpEmployerIdr: line.bpjs.jpEmployer.toString(),
+          bpjsJkkEmployerIdr: line.bpjs.jkkEmployer.toString(),
+          bpjsJkmEmployerIdr: line.bpjs.jkmEmployer.toString(),
+          bpjsJkpEmployerIdr: line.bpjs.jkpEmployer.toString(),
+          bpjsKsEmployerIdr: line.bpjs.ksEmployer.toString(),
+          terCategory: line.terCategory,
+          terRatePercent: line.terRatePercent.toString(),
+          pph21TaxIdr: line.pph21TaxIdr.toString(),
+          hasNpwpSurcharge: line.tax.npwpSurcharge.toString(),
+          netSalaryIdr: line.netSalaryIdr.toString(),
           calculationDrilldown: {
-            bpjsUpahBase: bpjs.upahBase,
-            terCategory: tax.terCategory,
-            terRatePercent: tax.terRatePercent,
+            bpjsUpahBase: line.bpjs.upahBase,
+            terCategory: line.terCategory,
+            terRatePercent: line.terRatePercent,
             hasNpwp: !!emp.npwp,
-            npwpSurchargeApplied: tax.npwpSurcharge,
+            npwpSurchargeApplied: line.tax.npwpSurcharge,
+            payStructureSource: line.payStructureSource,
+            payStructurePolicyId: comp.policyId,
+            payStructurePolicyName: comp.policyName,
+            resolveSource: comp.resolveSource,
+            components: comp.components,
           },
         });
 
-        totalGross += grossSalary;
-        totalPph21 += tax.pph21TaxIdr;
-        totalBpjsEmployer += bpjs.totalEmployerCost;
-        totalBpjsEmployee += bpjs.totalEmployeeDeductions;
-        totalNet += netSalary;
+        totalGross += line.grossSalaryIdr;
+        totalPph21 += line.pph21TaxIdr;
+        totalBpjsEmployer += line.bpjsEmployerIdr;
+        totalBpjsEmployee += line.bpjsEmployeeIdr;
+        totalNet += line.netSalaryIdr;
       }
 
       await db
@@ -158,11 +288,13 @@ export const payrollRouter = router({
         action: "payroll.calculate_finalize",
         resource: "payroll_run",
         resourceId: run.id,
+        details: { fromPolicy, employeeCount: employeeList.length },
       });
 
       return {
         runId: run.id,
         employeeCount: employeeList.length,
+        employeesFromPayStructure: fromPolicy,
         totalGrossIdr: totalGross,
         totalPph21TaxIdr: totalPph21,
         totalNetPayoutIdr: totalNet,
@@ -173,14 +305,14 @@ export const payrollRouter = router({
     .input(z.object({ runId: z.string().uuid() }))
     .mutation(async ({ input, ctx }) => {
       assertCap(ctx, "payroll.disburse");
-      if (!ctx.tenantId) throw new TRPCError({ code: "FORBIDDEN", message: "Tenant tidak dipilih." });
+      if (!ctx.tenantId) throw new TRPCError({ code: "FORBIDDEN", message: "No company context." });
 
       const [run] = await db.select().from(payrollRuns).where(eq(payrollRuns.id, input.runId)).limit(1);
       if (!run || run.tenantId !== ctx.tenantId) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Payroll run tidak ditemukan." });
+        throw new TRPCError({ code: "NOT_FOUND", message: "Payroll run not found." });
       }
       if (run.status !== "CALCULATED" && run.status !== "REVIEWED") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Status payroll tidak siap untuk disbursement." });
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Payroll status is not ready for disbursement." });
       }
 
       const [updated] = await db
@@ -209,11 +341,11 @@ export const payrollRouter = router({
     .input(z.object({ runId: z.string().uuid() }))
     .mutation(async ({ input, ctx }) => {
       assertCap(ctx, "filing.signoff");
-      if (!ctx.tenantId) throw new TRPCError({ code: "FORBIDDEN", message: "Tenant tidak dipilih." });
+      if (!ctx.tenantId) throw new TRPCError({ code: "FORBIDDEN", message: "No company context." });
 
       const [run] = await db.select().from(payrollRuns).where(eq(payrollRuns.id, input.runId)).limit(1);
       if (!run || run.tenantId !== ctx.tenantId) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Payroll run tidak ditemukan." });
+        throw new TRPCError({ code: "NOT_FOUND", message: "Payroll run not found." });
       }
 
       const [updated] = await db
