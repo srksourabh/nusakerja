@@ -1,12 +1,12 @@
 # PROGRESS.md — NusaKerja Master Task & Production Readiness Tracker
 
-> Status: **Production** on `main` includes SaaS RBAC + Easy Login + company URLs. Next program planned: role portals / attendance map / grade policies (`docs/plans/2026-08-06-001-feat-hr-ops-role-portals-plan.md`).
+> Status: **Production** on `main` includes SaaS RBAC + Easy Login + company URLs. HR ops role portals program in progress on `cursor/hr-ops-role-portal-plan-a88a` (`docs/plans/2026-08-06-001-feat-hr-ops-role-portals-plan.md`).
 
-## Planned next — HR ops role portals (not started)
+## Planned next — HR ops role portals
 
 - [x] U1 Kill Simulasi + English default + dual My Work / Manage shells
 - [x] U2 Org tree manager + grade 1–5
-- [ ] U3 Multi-punch day hours + live timer
+- [x] U3 Multi-punch day hours + live timer
 - [ ] U4 OSM punch / team map
 - [ ] U5 Policy engine by grade
 - [ ] U6 Leave + expense → immediate boss

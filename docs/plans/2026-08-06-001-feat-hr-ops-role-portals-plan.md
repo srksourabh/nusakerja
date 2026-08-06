@@ -201,15 +201,19 @@ orphan OUT ignored/warned; trailing IN → live elapsed only
 
 ### U3 — Multi-punch day hours + live timer
 
-**Files:** `apps/web/trpc/routers/attendance.ts`, attendance/portal UI, pure helper `packages/config` or `apps/web/src/utils/punch-hours.ts`.
+**Status:** Done (2026-08-06)
+
+**Files:** `packages/db/src/punch-hours.ts`, `apps/web/trpc/routers/attendance.ts`, `apps/web/src/components/punch-clock-panel.tsx`, attendance/portal UI.
 
 **Behavior:**
 - Allow many IN/OUT per day (already event rows — enforce pairing rules).
 - API: `todayStatus` → `{ state: 'IN'|'OUT', since, segments[], totalSecondsClosed, liveElapsedSeconds }`.
 - UI timer ticks while IN.
 - Day total = sum closed segments.
+- Second IN while IN / OUT while OUT rejected (`assertNextPunchAllowed`).
+- Open session at midnight: existing auto punch-out rule remains (documented; map work in U4).
 
-**Tests:** Three pairs → hours equal sum; double IN rejected or auto-closes prior (pick one — recommend reject second IN until OUT).
+**Tests:** Three pairs → hours equal sum; double IN rejected; OUT when already out rejected.
 
 ### U4 — OpenStreetMap punch map + manager team map
 
@@ -306,7 +310,7 @@ U1 is a security/UX hotfix and should ship first (even alone). U3/U4 can paralle
 - [ ] English default; ID opt-in
 - [ ] Dual shell for Admin/HR/Manager
 - [ ] Grade 1–5 + manager tree
-- [ ] Multi-punch hours + live timer
+- [x] Multi-punch hours + live timer
 - [ ] OSM maps (self + manager team)
 - [ ] Policies assignable by grade/person
 - [ ] Leave + expenses to immediate boss with notifications
