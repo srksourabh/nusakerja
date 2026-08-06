@@ -14,7 +14,7 @@
 2. `users`: System users with tenant references and assigned roles (`user_role`).
 3. `sessions`: Active authentication sessions.
 4. `audit_logs`: Audit trail for compliance and security events.
-5. `employees`: Indonesian employee 360 data including NIK, NPWP, BPJS numbers, PTKP status, worker category, and salary.
+5. `employees`: Indonesian employee 360 data including NIK, NPWP, BPJS numbers, PTKP status, worker category, salary, **grade (1–5)**, and **manager_employee_id** (immediate boss).
 6. `payroll_runs`: Monthly payroll runs tracking total gross, PPh 21 tax, BPJS contributions, and net payouts.
 
 ---

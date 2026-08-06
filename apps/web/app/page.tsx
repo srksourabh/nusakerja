@@ -6,7 +6,7 @@ import { Sparkles, ShieldCheck, ArrowRight, Building2, Network, UserCheck, Dolla
 
 export default function Home() {
   // Dual Language State: 'ID' (Bahasa Indonesia) or 'EN' (English)
-  const [lang, setLang] = useState<"ID" | "EN">("ID");
+  const [lang, setLang] = useState<"ID" | "EN">("EN");
 
   const content = {
     ID: {

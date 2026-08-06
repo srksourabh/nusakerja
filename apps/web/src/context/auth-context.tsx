@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { ROLE_DISPLAY_NAME } from "@nusakerja/auth";
 
 export type UserRole =
   | "employee"
@@ -9,6 +10,9 @@ export type UserRole =
   | "client_admin"
   | "reseller_admin"
   | "super_admin";
+
+/** UI mode — does NOT change authorization role. */
+export type ShellMode = "my_work" | "manage";
 
 export interface UserProfile {
   id: string;
@@ -25,10 +29,20 @@ export interface UserProfile {
 interface AuthContextType {
   role: UserRole;
   user: UserProfile;
-  setRole: (role: UserRole) => void;
+  /** Login / session restore only — not for privilege switching. */
   loginAs: (role: UserRole, email?: string) => void;
+  shellMode: ShellMode;
+  setShellMode: (mode: ShellMode) => void;
+  canManage: boolean;
+  /** True when My Work shell is active (pure employee, or Admin/HR/Manager in self-service). */
   isEmployee: boolean;
+  isManager: boolean;
+  /** True when session role is HR or Company Admin (capability hint — still gate with shellMode for nav). */
   isHrAdmin: boolean;
+  isCompanyAdmin: boolean;
+  isSuperAdmin: boolean;
+  isCa: boolean;
+  roleLabel: string;
   mustChangePassword: boolean;
   completeFirstTimePasswordChange: (newPassword: string) => Promise<boolean>;
   sendPasswordResetEmail: (email: string) => Promise<{ success: boolean; message: string }>;
@@ -112,13 +126,24 @@ const ALL_ROLES: UserRole[] = [
   "super_admin",
 ];
 
+function canUseManagePortal(role: UserRole): boolean {
+  return role === "client_admin" || role === "hr_admin" || role === "manager";
+}
+
 const AuthContext = createContext<AuthContextType>({
   role: "employee",
   user: defaultProfiles.employee,
-  setRole: () => {},
   loginAs: () => {},
+  shellMode: "my_work",
+  setShellMode: () => {},
+  canManage: false,
   isEmployee: true,
+  isManager: false,
   isHrAdmin: false,
+  isCompanyAdmin: false,
+  isSuperAdmin: false,
+  isCa: false,
+  roleLabel: "Employee",
   mustChangePassword: false,
   completeFirstTimePasswordChange: async () => true,
   sendPasswordResetEmail: async () => ({ success: true, message: "" }),
@@ -126,31 +151,47 @@ const AuthContext = createContext<AuthContextType>({
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRoleState] = useState<UserRole>("employee");
+  const [shellMode, setShellModeState] = useState<ShellMode>("my_work");
   const [mustChangePassword, setMustChangePassword] = useState<boolean>(false);
   const [activeProfile, setActiveProfile] = useState<UserProfile>(defaultProfiles.employee);
 
   useEffect(() => {
-    const savedRole = localStorage.getItem("nusakerja_user_role") as UserRole;
+    localStorage.removeItem("nusakerja_user_role");
+
+    const savedRole = localStorage.getItem("nusakerja_session_role") as UserRole | null;
     if (savedRole && ALL_ROLES.includes(savedRole)) {
       setRoleState(savedRole);
       setActiveProfile(defaultProfiles[savedRole]);
+      const savedMode = localStorage.getItem("nusakerja_shell_mode") as ShellMode | null;
+      if (canUseManagePortal(savedRole) && (savedMode === "my_work" || savedMode === "manage")) {
+        setShellModeState(savedMode);
+      } else {
+        setShellModeState(canUseManagePortal(savedRole) ? "manage" : "my_work");
+      }
     }
+
     if (localStorage.getItem("nusakerja_first_login") === "true") {
       setMustChangePassword(true);
     }
   }, []);
 
-  const setRole = (newRole: UserRole) => {
+  const loginAs = (newRole: UserRole, email?: string) => {
     setRoleState(newRole);
-    localStorage.setItem("nusakerja_user_role", newRole);
-    setActiveProfile(defaultProfiles[newRole]);
+    localStorage.setItem("nusakerja_session_role", newRole);
+    setActiveProfile({
+      ...defaultProfiles[newRole],
+      email: email || defaultProfiles[newRole].email,
+      role: newRole,
+    });
+    const nextMode: ShellMode = canUseManagePortal(newRole) ? "manage" : "my_work";
+    setShellModeState(nextMode);
+    localStorage.setItem("nusakerja_shell_mode", nextMode);
   };
 
-  const loginAs = (newRole: UserRole, email?: string) => {
-    setRole(newRole);
-    if (email) {
-      setActiveProfile((prev) => ({ ...prev, ...defaultProfiles[newRole], email, role: newRole }));
-    }
+  const setShellMode = (mode: ShellMode) => {
+    if (!canUseManagePortal(role)) return;
+    setShellModeState(mode);
+    localStorage.setItem("nusakerja_shell_mode", mode);
   };
 
   const completeFirstTimePasswordChange = async (_newPassword: string): Promise<boolean> => {
@@ -162,21 +203,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const sendPasswordResetEmail = async (email: string) => ({
     success: true,
-    message: `Tautan instruksi reset kata sandi telah dikirimkan ke email ${email}.`,
+    message: `Password reset instructions were sent to ${email}.`,
   });
 
-  const isEmployee = role === "employee";
+  const canManage = canUseManagePortal(role);
+  const isEmployee = role === "employee" || (canManage && shellMode === "my_work");
+  const isManager = role === "manager";
   const isHrAdmin = role === "hr_admin" || role === "client_admin";
+  const isCompanyAdmin = role === "client_admin";
+  const isSuperAdmin = role === "super_admin";
+  const isCa = role === "reseller_admin";
+  const roleLabel = ROLE_DISPLAY_NAME[role] ?? role;
 
   return (
     <AuthContext.Provider
       value={{
         role,
         user: activeProfile,
-        setRole,
         loginAs,
+        shellMode,
+        setShellMode,
+        canManage,
         isEmployee,
+        isManager,
         isHrAdmin,
+        isCompanyAdmin,
+        isSuperAdmin,
+        isCa,
+        roleLabel,
         mustChangePassword,
         completeFirstTimePasswordChange,
         sendPasswordResetEmail,

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardHeader, CardTitle, Button, Badge } from "@nusakerja/ui";
-import { MapPin, Clock, ShieldCheck, AlertTriangle, RefreshCw, FileText, CheckCircle2, XCircle, Calendar, PlusCircle, Navigation, Radio } from "lucide-react";
+import { Card, CardHeader, CardTitle, Badge } from "@nusakerja/ui";
+import { MapPin, Clock, FileText, Calendar, PlusCircle, Navigation, Radio } from "lucide-react";
 import { calculateOvertimePay } from "@nusakerja/config";
+import { PunchClockPanel } from "../../../src/components/punch-clock-panel";
 
 interface Session {
   id: string;
@@ -39,12 +40,15 @@ interface RectificationRequest {
 }
 
 export default function AttendancePage() {
-  const [punchedIn, setPunchedIn] = useState(true);
-  const [punchTime, setPunchTime] = useState<string | null>("08:30:15");
-  const [gpsLocation, setGpsLocation] = useState({ lat: -6.2088, lng: 106.8456, accuracy: 4.2, address: "Jl. Jend. Sudirman Kav 52-53, Jakarta Selatan" });
+  const [gpsLocation] = useState({
+    lat: -6.2088,
+    lng: 106.8456,
+    accuracy: 4.2,
+    address: "Jl. Jend. Sudirman Kav 52-53, Jakarta Selatan",
+  });
 
   // Field-Connect active team location list
-  const [fieldPunches, setFieldPunches] = useState<FieldWorkerPunch[]>([
+  const [fieldPunches] = useState<FieldWorkerPunch[]>([
     {
       id: "fp-1",
       employeeName: "Hendra Wijaya",
@@ -80,16 +84,43 @@ export default function AttendancePage() {
     },
   ]);
 
-  // Sessions history (Field-Connect timeline model)
-  const [sessions, setSessions] = useState<Session[]>([
-    { id: "sess-1", punchIn: "08:30:15", punchOut: "12:00:00", duration: "3h 30m", locationName: "HQ Sudirman, Jakarta", lat: -6.2088, lng: 106.8456, geofenceValid: true, status: "present" },
-    { id: "sess-2", punchIn: "13:00:00", punchOut: null, duration: "3h 15m (Berjalan)", locationName: "HQ Sudirman, Jakarta", lat: -6.2088, lng: 106.8456, geofenceValid: true, status: "present" },
+  // Sessions history (sample — live segments are on PunchClockPanel)
+  const [sessions] = useState<Session[]>([
+    {
+      id: "sess-1",
+      punchIn: "08:30:15",
+      punchOut: "12:00:00",
+      duration: "3h 30m",
+      locationName: "HQ Sudirman, Jakarta",
+      lat: -6.2088,
+      lng: 106.8456,
+      geofenceValid: true,
+      status: "present",
+    },
+    {
+      id: "sess-2",
+      punchIn: "13:00:00",
+      punchOut: "17:00:00",
+      duration: "4h 0m",
+      locationName: "HQ Sudirman, Jakarta",
+      lat: -6.2088,
+      lng: 106.8456,
+      geofenceValid: true,
+      status: "present",
+    },
   ]);
 
   // Rectification Requests state
   const [showRectificationModal, setShowRectificationModal] = useState(false);
   const [rectifications, setRectifications] = useState<RectificationRequest[]>([
-    { id: "rec-101", date: "2026-07-21", type: "punch_out", proposedTime: "17:30", reason: "Jaringan mati saat di lokasi proyek", status: "approved" },
+    {
+      id: "rec-101",
+      date: "2026-07-21",
+      type: "punch_out",
+      proposedTime: "17:30",
+      reason: "Jaringan mati saat di lokasi proyek",
+      status: "approved",
+    },
   ]);
   const [rectDate, setRectDate] = useState("2026-07-22");
   const [rectTime, setRectTime] = useState("08:30");
@@ -101,49 +132,6 @@ export default function AttendancePage() {
   const [isHoliday, setIsHoliday] = useState(false);
 
   const calculatedOvertime = calculateOvertimePay(monthlyWage, overtimeHours, isHoliday);
-
-  const handlePunch = (type: "IN" | "OUT") => {
-    const now = new Date().toLocaleTimeString("id-ID");
-    setPunchedIn(type === "IN");
-    setPunchTime(now);
-
-    if (type === "IN") {
-      setSessions((prev) => [
-        ...prev,
-        {
-          id: `sess-${Date.now()}`,
-          punchIn: now,
-          punchOut: null,
-          duration: "Sesi Berjalan",
-          locationName: gpsLocation.address,
-          lat: gpsLocation.lat,
-          lng: gpsLocation.lng,
-          geofenceValid: true,
-          status: "present",
-        },
-      ]);
-    } else {
-      setSessions((prev) =>
-        prev.map((s) => (s.punchOut === null ? { ...s, punchOut: now, duration: "Sesi Selesai" } : s))
-      );
-    }
-  };
-
-  const handleTriggerMidnightAutoPunchout = () => {
-    setPunchedIn(false);
-    setSessions((prev) =>
-      prev.map((s) =>
-        s.punchOut === null
-          ? {
-              ...s,
-              punchOut: "23:59:59",
-              duration: "Auto Punch-Out Midnight (23:59)",
-              status: "present",
-            }
-          : s
-      )
-    );
-  };
 
   const handleCreateRectification = (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,6 +152,8 @@ export default function AttendancePage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
+      <PunchClockPanel />
+
       {/* Header & Sync status banner */}
       <div className="p-5 rounded-2xl bg-slate-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
         <div className="flex items-center space-x-3">
@@ -214,31 +204,14 @@ export default function AttendancePage() {
               </div>
             </div>
 
-            {punchedIn ? (
-              <div className="p-5 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-3">
-                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Status: Aktif Bekerja (Punched IN)</span>
-                <p className="text-3xl font-black text-emerald-950">Masuk Jam {punchTime}</p>
-                <div className="flex gap-2">
-                  <Button variant="danger" className="w-1/2 h-11 text-xs font-bold bg-red-600 hover:bg-red-700" onClick={() => handlePunch("OUT")}>
-                    Punch OUT (Keluar)
-                  </Button>
-                  <Button variant="outline" className="w-1/2 h-11 text-xs font-bold border-amber-500 text-amber-900 bg-amber-50 hover:bg-amber-100" onClick={handleTriggerMidnightAutoPunchout}>
-                    Simulasi Auto Punch-Out 23:59
-                  </Button>
-                </div>
-                <p className="text-[10px] text-emerald-800 font-medium">
-                  Sesi tetap aktif saat logout/tutup browser. Jika belum punch out hingga 11:59 malam, sistem otomatis memicu Midnight Auto Punch-Out (23:59:59).
-                </p>
-              </div>
-            ) : (
-              <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center space-y-3">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status Sesi: Siap Punch IN (Multi-Punch Aktif)</span>
-                <Button variant="primary" className="w-full h-11 text-sm font-bold bg-red-600 hover:bg-red-700 text-white" onClick={() => handlePunch("IN")}>
-                  Punch IN (Masuk Kerja)
-                </Button>
-                <p className="text-[10px] text-slate-500">Dapat melakukan Punch IN & OUT beberapa kali dalam 1 hari. Total jam kerja diakumulasikan dari seluruh durasi aktif.</p>
-              </div>
-            )}
+            <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+              <p className="text-xs font-bold text-slate-800">
+                Use the Punch Clock above for IN/OUT. Multiple pairs per day are allowed; closed segments sum to working hours. Open IN runs a live timer until OUT.
+              </p>
+              <p className="text-[10px] text-slate-500">
+                Midnight auto punch-out (23:59:59) still applies to open sessions. Map pins land in U4.
+              </p>
+            </div>
           </div>
         </Card>
 

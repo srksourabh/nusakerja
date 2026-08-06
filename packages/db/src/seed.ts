@@ -8,7 +8,7 @@ import {
   caFirms,
 } from "./schema";
 import { randomBytes, scryptSync } from "crypto";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 function hashPassword(password: string): string {
   const salt = randomBytes(16).toString("hex");
@@ -98,6 +98,7 @@ export async function seed() {
         workerCategory: "PKWTT" as const,
         joinDate: "2022-01-15",
         basicSalaryIdr: "15000000.00",
+        grade: 1,
       },
       {
         tenantId: defaultTenantId,
@@ -111,6 +112,7 @@ export async function seed() {
         workerCategory: "PKWTT" as const,
         joinDate: "2023-05-10",
         basicSalaryIdr: "9500000.00",
+        grade: 1,
       },
       {
         tenantId: defaultTenantId,
@@ -126,11 +128,60 @@ export async function seed() {
         basicSalaryIdr: "45000000.00",
         kitasExpiryDate: "2027-02-01",
         rptkaRef: "RPTKA-2024-88991",
+        grade: 2,
+      },
+      {
+        tenantId: defaultTenantId,
+        employeeCode: "NK-MGR",
+        fullName: "Rina Manager",
+        nikKtp: "3171021988030011",
+        npwp: "01.234.567.8-013.011",
+        ptkpStatus: "K_1" as const,
+        workerCategory: "PKWTT" as const,
+        joinDate: "2020-03-01",
+        basicSalaryIdr: "18000000.00",
+        grade: 3,
+      },
+      {
+        tenantId: defaultTenantId,
+        employeeCode: "NK-HR",
+        fullName: "Bambang Prasetyo, S.H.",
+        nikKtp: "3171021985050022",
+        npwp: "01.234.567.8-013.022",
+        ptkpStatus: "K_2" as const,
+        workerCategory: "PKWTT" as const,
+        joinDate: "2019-01-10",
+        basicSalaryIdr: "18500000.00",
+        grade: 4,
+      },
+      {
+        tenantId: defaultTenantId,
+        employeeCode: "NK-ADM",
+        fullName: "Administrator HR Master",
+        nikKtp: "3171021980010033",
+        npwp: "01.234.567.8-013.033",
+        ptkpStatus: "K_3" as const,
+        workerCategory: "PKWTT" as const,
+        joinDate: "2018-01-01",
+        basicSalaryIdr: "22000000.00",
+        grade: 5,
       },
     ];
 
     for (const emp of sampleEmployees) {
-      await db.insert(employees).values(emp).onConflictDoNothing();
+      const existing = await db
+        .select()
+        .from(employees)
+        .where(and(eq(employees.tenantId, defaultTenantId), eq(employees.employeeCode, emp.employeeCode)))
+        .limit(1);
+      if (existing[0]) {
+        await db
+          .update(employees)
+          .set({ grade: emp.grade, updatedAt: new Date() })
+          .where(eq(employees.id, existing[0].id));
+      } else {
+        await db.insert(employees).values(emp);
+      }
     }
   }
 
@@ -225,6 +276,52 @@ export async function seed() {
     }
     // Second tenant intentionally unassigned for AE4 demos
     void secondTenantId;
+  }
+
+  // Link login users → employee rows and wire manager tree (U2)
+  if (defaultTenantId) {
+    const byCode = async (code: string) => {
+      const [row] = await db
+        .select()
+        .from(employees)
+        .where(and(eq(employees.tenantId, defaultTenantId), eq(employees.employeeCode, code)))
+        .limit(1);
+      return row;
+    };
+    const linkUser = async (email: string, code: string) => {
+      const [u] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      const emp = await byCode(code);
+      if (u && emp) {
+        await db.update(employees).set({ userId: u.id, updatedAt: new Date() }).where(eq(employees.id, emp.id));
+      }
+    };
+    await linkUser("budi.santoso@nusantara.co.id", "NK-001");
+    await linkUser("manager@nusantara.co.id", "NK-MGR");
+    await linkUser("bambang.hr@nusantara.co.id", "NK-HR");
+    await linkUser("admin@nusantara.co.id", "NK-ADM");
+
+    const adm = await byCode("NK-ADM");
+    const hr = await byCode("NK-HR");
+    const mgr = await byCode("NK-MGR");
+    const budi = await byCode("NK-001");
+    const siti = await byCode("NK-002");
+    const jean = await byCode("NK-003");
+
+    // Admin (G5) → HR (G4), Manager (G3) → Budi/Siti/Jean (G1–2)
+    if (adm && hr) {
+      await db.update(employees).set({ managerEmployeeId: adm.id, updatedAt: new Date() }).where(eq(employees.id, hr.id));
+    }
+    if (adm && mgr) {
+      await db.update(employees).set({ managerEmployeeId: adm.id, updatedAt: new Date() }).where(eq(employees.id, mgr.id));
+    }
+    for (const report of [budi, siti, jean]) {
+      if (mgr && report) {
+        await db
+          .update(employees)
+          .set({ managerEmployeeId: mgr.id, updatedAt: new Date() })
+          .where(eq(employees.id, report.id));
+      }
+    }
   }
 
   console.log("✅ Database seeding completed successfully!");

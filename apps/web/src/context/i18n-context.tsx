@@ -15,57 +15,70 @@ const translations: Record<Locale, Record<string, string>> = {
     "app.title": "NusaKerja — Platform HRMS & Payroll Statutory Indonesia",
     "nav.dashboard": "Dasbor Utama",
     "nav.superadmin": "Super Admin Tenant",
-    "nav.clientadmin": "Konsol Client Admin",
+    "nav.clientadmin": "Konsol Company Admin",
     "nav.organogram": "Struktur Organogram",
-    "nav.portal": "Portal Karyawan Mobile",
+    "nav.portal": "Portal Saya",
     "nav.playbook": "Buku Panduan / Playbook",
     "nav.onboarding": "Onboarding Karyawan",
     "nav.employees": "Master Karyawan 360",
-    "nav.attendance": "Presensi GPS Punch",
+    "nav.attendance": "Presensi GPS",
     "nav.leave": "Pengajuan Cuti",
     "nav.payroll": "Payroll & PPh 21 TER",
     "nav.severance": "Pesangon PHK (PP 35)",
     "nav.reports": "Laporan Statutory & GL",
-    "nav.signout": "Keluar (Sign Out)",
-    "nav.login": "Masuk (Sign In)",
+    "nav.signout": "Keluar",
+    "nav.login": "Masuk",
+    "nav.mywork": "Kerja Saya",
+    "nav.manage": "Kelola",
+    "nav.team": "Tim & Peran",
+    "nav.expenses": "Klaim Biaya",
+    "nav.payslip": "Slip Gaji",
     "company.current": "PT Nusantara Utama",
     "company.location": "DKI Jakarta • tenant_pt_nusantara",
   },
   "en-US": {
     "app.title": "NusaKerja — Indonesia Enterprise HRMS & Statutory Payroll SaaS",
-    "nav.dashboard": "Main Dashboard",
+    "nav.dashboard": "Dashboard",
     "nav.superadmin": "Super Admin Portal",
-    "nav.clientadmin": "Client Admin Console",
-    "nav.organogram": "Organogram Tree",
-    "nav.portal": "Employee Field Portal",
+    "nav.clientadmin": "Company Admin Console",
+    "nav.organogram": "Organogram",
+    "nav.portal": "My Portal",
     "nav.playbook": "HR Statutory Playbook",
     "nav.onboarding": "Employee Onboarding",
-    "nav.employees": "Employee 360 Master",
-    "nav.attendance": "GPS Attendance Punch",
-    "nav.leave": "Leave & Time Off",
-    "nav.payroll": "Payroll & Tax Engine",
+    "nav.employees": "Employee 360",
+    "nav.attendance": "GPS Attendance",
+    "nav.leave": "Leave",
+    "nav.payroll": "Payroll & Tax",
     "nav.severance": "PP 35 Severance",
     "nav.reports": "Statutory Reports & GL",
     "nav.signout": "Sign Out",
     "nav.login": "Sign In",
-    "company.current": "PT Nusantara Utama Ltd",
+    "nav.mywork": "My Work",
+    "nav.manage": "Manage",
+    "nav.team": "Team & Roles",
+    "nav.expenses": "Expenses",
+    "nav.payslip": "Payslip",
+    "company.current": "PT Nusantara Utama",
     "company.location": "Jakarta Head Office • tenant_pt_nusantara",
   },
 };
 
 const I18nContext = createContext<I18nContextType>({
-  locale: "id-ID",
+  locale: "en-US",
   setLocale: () => {},
   t: (key: string) => key,
 });
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("id-ID");
+  const [locale, setLocaleState] = useState<Locale>("en-US");
 
   useEffect(() => {
-    const saved = localStorage.getItem("nusakerja_locale") as Locale;
-    if (saved && (saved === "id-ID" || saved === "en-US")) {
+    const saved = localStorage.getItem("nusakerja_locale") as Locale | null;
+    if (saved === "id-ID" || saved === "en-US") {
       setLocaleState(saved);
+    } else {
+      setLocaleState("en-US");
+      localStorage.setItem("nusakerja_locale", "en-US");
     }
   }, []);
 
@@ -75,7 +88,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   };
 
   const t = (key: string): string => {
-    return translations[locale]?.[key] || translations["id-ID"]?.[key] || key;
+    return translations[locale]?.[key] || translations["en-US"]?.[key] || key;
   };
 
   return (
