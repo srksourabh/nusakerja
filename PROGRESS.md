@@ -7,7 +7,7 @@
 - [x] U1 Kill Simulasi + English default + dual My Work / Manage shells
 - [x] U2 Org tree manager + grade 1–5
 - [x] U3 Multi-punch day hours + live timer
-- [ ] U4 OSM punch / team map
+- [x] U4 OSM punch / team map
 - [ ] U5 Policy engine by grade
 - [ ] U6 Leave + expense → immediate boss
 - [ ] U7 Pay structure → statutory payroll
