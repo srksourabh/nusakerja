@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CA assignment tables** (`ca_firms`, `company_ca_assignments`, `invites`) and platform tRPC control-plane routers.
 - **Payroll authority split**: calculate finalize vs disbursement approve vs filing sign-off; leave/attendance tenant + role gates preserved.
 - **Demo seed personas** including `srksourabh@gmail.com` SuperAdmin and login sample autofill for all six roles; `/ca` portfolio page.
+- **Role entry clarity**: login explains SuperAdmin → Company Admin → HR ladder; one-click SuperAdmin / CA / Company Admin; SuperAdmin onboard requires Company Admin email; `/team` for appoint HR; CA portfolio wired to `ca.portfolio`.
 
 ## [1.0.0-GA] - 2026-07-23
 

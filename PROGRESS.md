@@ -9,6 +9,9 @@
 - [x] Session-backed tRPC context + login API
 - [x] Platform / CA / payroll / leave / attendance authz gates
 - [x] Demo seed users + login autofill personas
+- [x] Login hierarchy guide + one-click SuperAdmin / CA / Company Admin entry
+- [x] SuperAdmin create company + invite Company Admin + assign CA (wired UI)
+- [x] CA portfolio live query + Company Admin Tim & Peran (angkat HR)
 - [ ] DB push of new tables to production (run `pnpm db:push` / migrate in deploy)
 - [ ] Full AE1–AE8 integration tests against live DB
 
