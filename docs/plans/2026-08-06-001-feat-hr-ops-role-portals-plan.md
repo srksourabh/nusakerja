@@ -171,6 +171,8 @@ orphan OUT ignored/warned; trailing IN → live elapsed only
 
 ### U1 — Kill Simulasi + English default + role shells
 
+**Status:** Done (2026-08-06)
+
 **Files:** `apps/web/app/(dashboard)/layout.tsx`, `apps/web/src/context/auth-context.tsx`, `apps/web/src/context/i18n-context.tsx`, portal/dashboard pages as needed.
 
 **Behavior:**
