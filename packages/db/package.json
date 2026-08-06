@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./punch-hours": "./src/punch-hours.ts",
     "./org-tree": "./src/org-tree.ts",
-    "./map-pins": "./src/map-pins.ts"
+    "./map-pins": "./src/map-pins.ts",
+    "./resolve-policy": "./src/resolve-policy.ts"
   },
   "scripts": {
     "db:push": "drizzle-kit push",

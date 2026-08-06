@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **U2 org tree**: employee `grade` (1–5) + `managerEmployeeId`; orgTree / listTeamSubtree / updateOrg; organogram UI; seed hierarchy.
 - **U3 multi-punch clock**: `punch-hours` helper; `attendance.todayStatus` + pairing rules; live timer UI on Attendance and Portal; day hours = sum of closed IN/OUT segments.
 - **U4 OSM maps**: Leaflet + OpenStreetMap punch map (self day pins) and manager/HR team map (latest pin per person in subtree/company); punches without coords omitted; GPS attached on punch when available.
+- **U5 grade policies**: `hr_policies` + `policy_assignments`; resolve person → grade → tenant; policies tRPC + `/policies` HR UI; seed leave examples.
 
 ## [1.0.0-GA] - 2026-07-23
 

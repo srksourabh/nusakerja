@@ -232,14 +232,16 @@ orphan OUT ignored/warned; trailing IN → live elapsed only
 
 ### U5 — Policy engine by grade
 
-**Files:** new schema `hr_policies`, `policy_assignments`; tRPC `policies` router; HR UI.
+**Status:** Done (2026-08-06)
+
+**Files:** `packages/db/src/schema/hr_policies.ts`, `resolve-policy.ts`, migration `0002_hr_policies.sql`, `apps/web/trpc/routers/policies.ts`, `/policies` UI.
 
 **Behavior:**
 - HR creates policies (`leave`, `hr_general`, `pay_structure`).
-- Assign to grade and/or employee (employee override wins).
+- Assign to grade and/or employee (employee override wins); both-null assignment = tenant default.
 - Leave entitlement / pay components resolve: person override → grade → tenant default.
 
-**Tests:** Grade-3 leave days differ from grade-1; person override beats grade.
+**Tests:** Grade-3 leave days differ from grade-1; person override beats grade; expired policies ignored.
 
 ### U6 — Leave + expense → immediate boss + notifications
 
@@ -316,7 +318,7 @@ U1 is a security/UX hotfix and should ship first (even alone). U3/U4 can paralle
 - [ ] Grade 1–5 + manager tree
 - [x] Multi-punch hours + live timer
 - [x] OSM maps (self + manager team)
-- [ ] Policies assignable by grade/person
+- [x] Policies assignable by grade/person
 - [ ] Leave + expenses to immediate boss with notifications
 - [ ] Payroll still Indonesia-statutory via existing engines
 - [ ] `pnpm typecheck`, lint, and unit tests for punch-hours + policy resolve green
