@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **U1 role shells**: removed Simulasi privilege switch; English default locale; My Work / Manage dual shell for Admin, HR, Manager.
 - **U2 org tree**: employee `grade` (1–5) + `managerEmployeeId`; orgTree / listTeamSubtree / updateOrg; organogram UI; seed hierarchy.
 - **U3 multi-punch clock**: `punch-hours` helper; `attendance.todayStatus` + pairing rules; live timer UI on Attendance and Portal; day hours = sum of closed IN/OUT segments.
+- **U5 grade policies**: `hr_policies` + `policy_assignments`; resolve person → grade → tenant; policies tRPC + `/policies` HR UI; seed leave examples.
 
 ## [1.0.0-GA] - 2026-07-23
 

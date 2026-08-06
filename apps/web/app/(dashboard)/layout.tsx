@@ -17,6 +17,7 @@ import {
   BookOpen,
   Globe,
   Briefcase,
+  ClipboardList,
 } from "lucide-react";
 import { useI18n } from "../../src/context/i18n-context";
 import { useAuth } from "../../src/context/auth-context";
@@ -245,6 +246,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link href="/organogram" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Network style={{ width: 16, height: 16, color: "#818CF8", flexShrink: 0 }} />
                 <span>{t("nav.organogram")}</span>
+              </Link>
+              <Link href="/policies" className="nav-pill" style={{ marginBottom: 2 }}>
+                <ClipboardList style={{ width: 16, height: 16, color: "#14B8A6", flexShrink: 0 }} />
+                <span>Policies</span>
               </Link>
               <Link href="/employees" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Users style={{ width: 16, height: 16, color: "#38BDF8", flexShrink: 0 }} />

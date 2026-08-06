@@ -6,6 +6,8 @@ import {
   users,
   companyCaAssignments,
   caFirms,
+  hrPolicies,
+  policyAssignments,
 } from "./schema";
 import { randomBytes, scryptSync } from "crypto";
 import { eq, and } from "drizzle-orm";
@@ -320,6 +322,69 @@ export async function seed() {
           .update(employees)
           .set({ managerEmployeeId: mgr.id, updatedAt: new Date() })
           .where(eq(employees.id, report.id));
+      }
+    }
+
+    // U5 sample leave policies: tenant default 12d, grade 3 = 18d, Budi person override 24d
+    const existingLeave = await db
+      .select()
+      .from(hrPolicies)
+      .where(and(eq(hrPolicies.tenantId, defaultTenantId), eq(hrPolicies.kind, "leave")))
+      .limit(1);
+    if (!existingLeave[0]) {
+      const [defPol] = await db
+        .insert(hrPolicies)
+        .values({
+          tenantId: defaultTenantId,
+          name: "Default annual leave",
+          kind: "leave",
+          payload: { annualLeaveDays: 12, sickLeaveDays: 14 },
+          effectiveFrom: "2026-01-01",
+        })
+        .returning();
+      const [g3Pol] = await db
+        .insert(hrPolicies)
+        .values({
+          tenantId: defaultTenantId,
+          name: "Grade 3 leave",
+          kind: "leave",
+          payload: { annualLeaveDays: 18, sickLeaveDays: 14 },
+          effectiveFrom: "2026-01-01",
+        })
+        .returning();
+      const [personPol] = await db
+        .insert(hrPolicies)
+        .values({
+          tenantId: defaultTenantId,
+          name: "Budi leave override",
+          kind: "leave",
+          payload: { annualLeaveDays: 24, sickLeaveDays: 14 },
+          effectiveFrom: "2026-01-01",
+        })
+        .returning();
+      if (defPol) {
+        await db.insert(policyAssignments).values({
+          tenantId: defaultTenantId,
+          policyId: defPol.id,
+          grade: null,
+          employeeId: null,
+        });
+      }
+      if (g3Pol) {
+        await db.insert(policyAssignments).values({
+          tenantId: defaultTenantId,
+          policyId: g3Pol.id,
+          grade: 3,
+          employeeId: null,
+        });
+      }
+      if (personPol && budi) {
+        await db.insert(policyAssignments).values({
+          tenantId: defaultTenantId,
+          policyId: personPol.id,
+          grade: null,
+          employeeId: budi.id,
+        });
       }
     }
   }

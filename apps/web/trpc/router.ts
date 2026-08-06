@@ -10,12 +10,14 @@ import { authRouter } from "./routers/auth";
 import { platformRouter } from "./routers/platform";
 import { caRouter } from "./routers/ca";
 import { companyRouter } from "./routers/company";
+import { policiesRouter } from "./routers/policies";
 
 export const appRouter = router({
   auth: authRouter,
   platform: platformRouter,
   ca: caRouter,
   company: companyRouter,
+  policies: policiesRouter,
   employees: employeesRouter,
   attendance: attendanceRouter,
   leave: leaveRouter,
