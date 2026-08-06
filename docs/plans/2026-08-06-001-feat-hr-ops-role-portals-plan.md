@@ -239,15 +239,17 @@ orphan OUT ignored/warned; trailing IN → live elapsed only
 
 ### U6 — Leave + expense → immediate boss + notifications
 
-**Files:** extend `leave_requests` (approver routing), new `expense_claims`, `notifications`; leave UI; new expenses UI; inbox for managers.
+**Status:** Done (2026-08-06)
+
+**Files:** `leave_requests.approver_employee_id`, `expense_claims`, `notifications`, `approval-routing.ts`, leave/expenses/notifications routers, `/leave` `/expenses` `/inbox` UI.
 
 **Behavior:**
 - On submit, set `approverEmployeeId = managerEmployeeId` (fallback HR).
 - Insert notification for approver’s user.
-- Approve/reject with audit.
+- Approve/reject with audit; non-boss managers rejected (HR/Admin may escalate).
 - Expense categories: `TRAVEL`, `MEAL`, `MEDICAL`, `OTHER` (O1).
 
-**Tests:** Submit leave creates PENDING for boss; non-boss approve fails; employee sees status.
+**Tests:** Approver routing + non-boss decide denied (Vitest).
 
 ### U7 — Pay structure → statutory payroll
 
@@ -313,7 +315,7 @@ U1 is a security/UX hotfix and should ship first (even alone). U3/U4 can paralle
 - [x] Multi-punch hours + live timer
 - [ ] OSM maps (self + manager team)
 - [ ] Policies assignable by grade/person
-- [ ] Leave + expenses to immediate boss with notifications
+- [x] Leave + expenses to immediate boss with notifications
 - [ ] Payroll still Indonesia-statutory via existing engines
 - [ ] `pnpm typecheck`, lint, and unit tests for punch-hours + policy resolve green
 

@@ -9,7 +9,7 @@
 - [x] U3 Multi-punch day hours + live timer
 - [ ] U4 OSM punch / team map
 - [ ] U5 Policy engine by grade
-- [ ] U6 Leave + expense → immediate boss
+- [x] U6 Leave + expense → immediate boss
 - [ ] U7 Pay structure → statutory payroll
 - [ ] U8 Docs & seed
 

@@ -15,7 +15,10 @@
 3. `sessions`: Active authentication sessions.
 4. `audit_logs`: Audit trail for compliance and security events.
 5. `employees`: Indonesian employee 360 data including NIK, NPWP, BPJS numbers, PTKP status, worker category, salary, **grade (1–5)**, and **manager_employee_id** (immediate boss).
-6. `payroll_runs`: Monthly payroll runs tracking total gross, PPh 21 tax, BPJS contributions, and net payouts.
+6. `leave_requests`: includes **approver_employee_id** (immediate boss or HR fallback).
+7. `expense_claims`: reimbursement claims (`TRAVEL`/`MEAL`/`MEDICAL`/`OTHER`) with the same approver routing.
+8. `notifications`: in-app alerts for leave/expense submit and decide events.
+9. `payroll_runs`: Monthly payroll runs tracking total gross, PPh 21 tax, BPJS contributions, and net payouts.
 
 ---
 

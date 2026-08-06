@@ -30,8 +30,13 @@ export const leaveRequests = pgTable("leave_requests", {
   reason: text("reason"),
   attachmentUrl: text("attachment_url"),
   status: leaveStatusEnum("status").default("PENDING").notNull(),
+  /** Immediate boss (or HR fallback) who must decide. */
+  approverEmployeeId: uuid("approver_employee_id").references(() => employees.id, {
+    onDelete: "set null",
+  }),
   approvedBy: uuid("approved_by"),
   approvedAt: timestamp("approved_at"),
+  decisionNote: text("decision_note"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

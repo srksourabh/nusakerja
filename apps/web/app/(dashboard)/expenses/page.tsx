@@ -1,49 +1,42 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Calendar, CheckCircle2, Clock, Plus, XCircle } from "lucide-react";
+import { Briefcase, CheckCircle2, Plus, XCircle } from "lucide-react";
 import { trpcClient } from "../../../src/utils/trpc-client";
 import { useAuth } from "../../../src/context/auth-context";
 
-type LeaveRow = {
+type Claim = {
   id: string;
-  leaveType: string;
-  startDate: string;
-  endDate: string;
-  totalDays: number;
+  amountIdr: string;
+  category: string;
+  description: string;
   status: string;
-  reason: string | null;
-  approverEmployeeId: string | null;
 };
 
-export default function LeavePage() {
+export default function ExpensesPage() {
   const { isManager, isHrAdmin, isCompanyAdmin, shellMode } = useAuth();
   const canDecide = (isManager || isHrAdmin || isCompanyAdmin) && shellMode === "manage";
 
-  const [mine, setMine] = useState<LeaveRow[]>([]);
-  const [pending, setPending] = useState<LeaveRow[]>([]);
+  const [mine, setMine] = useState<Claim[]>([]);
+  const [pending, setPending] = useState<Claim[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [leaveType, setLeaveType] = useState("CUTI_TAHUNAN");
-  const [totalDays, setTotalDays] = useState(1);
-  const [startDate, setStartDate] = useState("2026-08-10");
-  const [endDate, setEndDate] = useState("2026-08-10");
-  const [reason, setReason] = useState("");
+  const [amount, setAmount] = useState(150000);
+  const [category, setCategory] = useState<"TRAVEL" | "MEAL" | "MEDICAL" | "OTHER">("TRAVEL");
+  const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
     try {
-      const my = await trpcClient.leave.myRequests.query();
-      setMine(my as LeaveRow[]);
+      setMine((await trpcClient.expenses.myClaims.query()) as Claim[]);
       if (canDecide) {
-        const p = await trpcClient.leave.pendingForMe.query();
-        setPending(p as LeaveRow[]);
+        setPending((await trpcClient.expenses.pendingForMe.query()) as Claim[]);
       } else {
         setPending([]);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load leave");
+      setError(e instanceof Error ? e.message : "Failed to load expenses");
     }
   }, [canDecide]);
 
@@ -56,15 +49,13 @@ export default function LeavePage() {
     setBusy(true);
     setError(null);
     try {
-      await trpcClient.leave.requestLeave.mutate({
-        leaveType: leaveType as "CUTI_TAHUNAN",
-        startDate,
-        endDate,
-        totalDays,
-        reason: reason || undefined,
+      await trpcClient.expenses.submit.mutate({
+        amountIdr: amount,
+        category,
+        description: description || `${category} claim`,
       });
       setShowForm(false);
-      setReason("");
+      setDescription("");
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Submit failed");
@@ -73,11 +64,11 @@ export default function LeavePage() {
     }
   };
 
-  const decide = async (requestId: string, decision: "APPROVED" | "REJECTED") => {
+  const decide = async (claimId: string, decision: "APPROVED" | "REJECTED") => {
     setBusy(true);
     setError(null);
     try {
-      await trpcClient.leave.decide.mutate({ requestId, decision });
+      await trpcClient.expenses.decide.mutate({ claimId, decision });
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Decision failed");
@@ -90,9 +81,11 @@ export default function LeavePage() {
     <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 900 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900 }}>Leave</h1>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900, display: "flex", alignItems: "center", gap: 8 }}>
+            <Briefcase style={{ width: 22, height: 22 }} /> Expenses
+          </h1>
           <p style={{ margin: "6px 0 0", color: "#64748B", fontSize: 14 }}>
-            Requests route to your immediate boss (manager). Status updates appear here and in Inbox.
+            Categories: TRAVEL, MEAL, MEDICAL, OTHER. Routed to your immediate boss.
           </p>
         </div>
         <button
@@ -102,7 +95,7 @@ export default function LeavePage() {
             display: "inline-flex",
             alignItems: "center",
             gap: 6,
-            background: "#7C3AED",
+            background: "#0284C7",
             color: "#fff",
             border: "none",
             borderRadius: 12,
@@ -112,7 +105,7 @@ export default function LeavePage() {
           }}
         >
           <Plus style={{ width: 16, height: 16 }} />
-          {showForm ? "Close" : "Request leave"}
+          {showForm ? "Close" : "New claim"}
         </button>
       </div>
 
@@ -127,55 +120,36 @@ export default function LeavePage() {
         >
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12 }}>
             <label style={{ fontSize: 12, fontWeight: 700 }}>
-              Type
+              Category
               <select
-                value={leaveType}
-                onChange={(e) => setLeaveType(e.target.value)}
+                value={category}
+                onChange={(e) => setCategory(e.target.value as typeof category)}
                 style={{ display: "block", width: "100%", marginTop: 4, padding: 8, borderRadius: 8, border: "1px solid #CBD5E1" }}
               >
-                <option value="CUTI_TAHUNAN">Annual</option>
-                <option value="CUTI_SAKIT">Sick</option>
-                <option value="CUTI_MELAHIRKAN">Maternity</option>
-                <option value="CUTI_HAID">Menstrual</option>
-                <option value="CUTI_PENTING">Important</option>
-                <option value="CUTI_UNPAID">Unpaid</option>
+                <option value="TRAVEL">TRAVEL</option>
+                <option value="MEAL">MEAL</option>
+                <option value="MEDICAL">MEDICAL</option>
+                <option value="OTHER">OTHER</option>
               </select>
             </label>
             <label style={{ fontSize: 12, fontWeight: 700 }}>
-              Days
+              Amount (IDR)
               <input
                 type="number"
                 min={1}
-                value={totalDays}
-                onChange={(e) => setTotalDays(Number(e.target.value) || 1)}
-                style={{ display: "block", width: "100%", marginTop: 4, padding: 8, borderRadius: 8, border: "1px solid #CBD5E1" }}
-              />
-            </label>
-            <label style={{ fontSize: 12, fontWeight: 700 }}>
-              Start
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                style={{ display: "block", width: "100%", marginTop: 4, padding: 8, borderRadius: 8, border: "1px solid #CBD5E1" }}
-              />
-            </label>
-            <label style={{ fontSize: 12, fontWeight: 700 }}>
-              End
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                value={amount}
+                onChange={(e) => setAmount(Number(e.target.value) || 0)}
                 style={{ display: "block", width: "100%", marginTop: 4, padding: 8, borderRadius: 8, border: "1px solid #CBD5E1" }}
               />
             </label>
           </div>
           <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginTop: 12 }}>
-            Reason
+            Description
             <textarea
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               rows={2}
+              required
               style={{ display: "block", width: "100%", marginTop: 4, padding: 8, borderRadius: 8, border: "1px solid #CBD5E1" }}
             />
           </label>
@@ -199,19 +173,16 @@ export default function LeavePage() {
       )}
 
       <section style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: 20 }}>
-        <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800, display: "flex", alignItems: "center", gap: 8 }}>
-          <Calendar style={{ width: 18, height: 18 }} /> My requests
-        </h2>
+        <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800 }}>My claims</h2>
         {mine.length === 0 ? (
-          <p style={{ color: "#64748B", fontSize: 13 }}>No leave requests yet.</p>
+          <p style={{ color: "#64748B", fontSize: 13 }}>No expense claims yet.</p>
         ) : (
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
-            {mine.map((r) => (
-              <li key={r.id} style={{ border: "1px solid #E2E8F0", borderRadius: 12, padding: 12, fontSize: 13 }}>
-                <strong>{r.leaveType}</strong> · {r.totalDays}d · {r.startDate} → {r.endDate}
-                <span style={{ float: "right", fontWeight: 800, color: r.status === "APPROVED" ? "#059669" : r.status === "REJECTED" ? "#DC2626" : "#D97706" }}>
-                  {r.status}
-                </span>
+            {mine.map((c) => (
+              <li key={c.id} style={{ border: "1px solid #E2E8F0", borderRadius: 12, padding: 12, fontSize: 13 }}>
+                <strong>{c.category}</strong> · Rp {Number(c.amountIdr).toLocaleString("id-ID")}
+                <span style={{ float: "right", fontWeight: 800 }}>{c.status}</span>
+                <p style={{ margin: "4px 0 0", color: "#64748B" }}>{c.description}</p>
               </li>
             ))}
           </ul>
@@ -220,29 +191,24 @@ export default function LeavePage() {
 
       {canDecide && (
         <section style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: 20 }}>
-          <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800, display: "flex", alignItems: "center", gap: 8 }}>
-            <Clock style={{ width: 18, height: 18 }} /> Pending for me
-          </h2>
+          <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800 }}>Pending for me</h2>
           {pending.length === 0 ? (
-            <p style={{ color: "#64748B", fontSize: 13 }}>No pending leave.</p>
+            <p style={{ color: "#64748B", fontSize: 13 }}>No pending expenses.</p>
           ) : (
             <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
-              {pending.map((r) => (
-                <li key={r.id} style={{ border: "1px solid #E2E8F0", borderRadius: 12, padding: 12, fontSize: 13 }}>
+              {pending.map((c) => (
+                <li key={c.id} style={{ border: "1px solid #E2E8F0", borderRadius: 12, padding: 12, fontSize: 13 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                     <div>
-                      <strong>{r.leaveType}</strong> · {r.totalDays}d · {r.startDate} → {r.endDate}
-                      {r.reason && <p style={{ margin: "4px 0 0", color: "#64748B" }}>{r.reason}</p>}
+                      <strong>{c.category}</strong> · Rp {Number(c.amountIdr).toLocaleString("id-ID")}
+                      <p style={{ margin: "4px 0 0", color: "#64748B" }}>{c.description}</p>
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
                       <button
                         type="button"
                         disabled={busy}
-                        onClick={() => void decide(r.id, "APPROVED")}
+                        onClick={() => void decide(c.id, "APPROVED")}
                         style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
                           background: "#059669",
                           color: "#fff",
                           border: "none",
@@ -250,6 +216,9 @@ export default function LeavePage() {
                           padding: "8px 10px",
                           fontWeight: 700,
                           cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
                         }}
                       >
                         <CheckCircle2 style={{ width: 14, height: 14 }} /> Approve
@@ -257,11 +226,8 @@ export default function LeavePage() {
                       <button
                         type="button"
                         disabled={busy}
-                        onClick={() => void decide(r.id, "REJECTED")}
+                        onClick={() => void decide(c.id, "REJECTED")}
                         style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
                           background: "#DC2626",
                           color: "#fff",
                           border: "none",
@@ -269,6 +235,9 @@ export default function LeavePage() {
                           padding: "8px 10px",
                           fontWeight: 700,
                           cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
                         }}
                       >
                         <XCircle style={{ width: 14, height: 14 }} /> Reject
