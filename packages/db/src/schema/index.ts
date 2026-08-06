@@ -11,3 +11,4 @@ export * from "./payroll_runs";
 export * from "./payroll_items";
 export * from "./document_vault";
 export * from "./hr_policies";
+export * from "./expense_claims";

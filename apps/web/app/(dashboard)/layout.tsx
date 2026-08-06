@@ -18,6 +18,7 @@ import {
   Globe,
   Briefcase,
   ClipboardList,
+  Bell,
 } from "lucide-react";
 import { useI18n } from "../../src/context/i18n-context";
 import { useAuth } from "../../src/context/auth-context";
@@ -194,6 +195,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Calendar style={{ width: 16, height: 16, color: "#C084FC", flexShrink: 0 }} />
                 <span>{t("nav.leave")}</span>
               </Link>
+              <Link href="/expenses" className="nav-pill" style={{ marginBottom: 2 }}>
+                <Briefcase style={{ width: 16, height: 16, color: "#0EA5E9", flexShrink: 0 }} />
+                <span>{t("nav.expenses")}</span>
+              </Link>
+              <Link href="/inbox" className="nav-pill" style={{ marginBottom: 2 }}>
+                <Bell style={{ width: 16, height: 16, color: "#F59E0B", flexShrink: 0 }} />
+                <span>Inbox</span>
+              </Link>
               <Link href="/portal" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Briefcase style={{ width: 16, height: 16, color: "#38BDF8", flexShrink: 0 }} />
                 <span>{t("nav.payslip")}</span>
@@ -216,6 +225,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link href="/leave" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Calendar style={{ width: 16, height: 16, color: "#C084FC", flexShrink: 0 }} />
                 <span>Team leave</span>
+              </Link>
+              <Link href="/expenses" className="nav-pill" style={{ marginBottom: 2 }}>
+                <Briefcase style={{ width: 16, height: 16, color: "#0EA5E9", flexShrink: 0 }} />
+                <span>Team expenses</span>
+              </Link>
+              <Link href="/inbox" className="nav-pill" style={{ marginBottom: 2 }}>
+                <Bell style={{ width: 16, height: 16, color: "#F59E0B", flexShrink: 0 }} />
+                <span>Inbox</span>
               </Link>
               <Link href="/attendance" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Clock style={{ width: 16, height: 16, color: "#FBBF24", flexShrink: 0 }} />
@@ -266,6 +283,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link href="/leave" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Calendar style={{ width: 16, height: 16, color: "#C084FC", flexShrink: 0 }} />
                 <span>{t("nav.leave")}</span>
+              </Link>
+              <Link href="/expenses" className="nav-pill" style={{ marginBottom: 2 }}>
+                <Briefcase style={{ width: 16, height: 16, color: "#0EA5E9", flexShrink: 0 }} />
+                <span>{t("nav.expenses")}</span>
+              </Link>
+              <Link href="/inbox" className="nav-pill" style={{ marginBottom: 2 }}>
+                <Bell style={{ width: 16, height: 16, color: "#F59E0B", flexShrink: 0 }} />
+                <span>Inbox</span>
               </Link>
               <Link href="/payroll" className="nav-pill" style={{ marginBottom: 2 }}>
                 <DollarSign style={{ width: 16, height: 16, color: "#34D399", flexShrink: 0 }} />
