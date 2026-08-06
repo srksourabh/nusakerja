@@ -5,6 +5,8 @@ import { Card, CardHeader, CardTitle, Badge } from "@nusakerja/ui";
 import { MapPin, Clock, FileText, Calendar, PlusCircle, Navigation, Radio } from "lucide-react";
 import { calculateOvertimePay } from "@nusakerja/config";
 import { PunchClockPanel } from "../../../src/components/punch-clock-panel";
+import { AttendanceMapPanel } from "../../../src/components/attendance-map-panel";
+import { useAuth } from "../../../src/context/auth-context";
 
 interface Session {
   id: string;
@@ -40,6 +42,9 @@ interface RectificationRequest {
 }
 
 export default function AttendancePage() {
+  const { isManager, isHrAdmin, shellMode } = useAuth();
+  const showTeamMap = (isManager || isHrAdmin) && shellMode === "manage";
+
   const [gpsLocation] = useState({
     lat: -6.2088,
     lng: 106.8456,
@@ -153,6 +158,8 @@ export default function AttendancePage() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       <PunchClockPanel />
+      <AttendanceMapPanel mode="self" />
+      {showTeamMap && <AttendanceMapPanel mode="team" />}
 
       {/* Header & Sync status banner */}
       <div className="p-5 rounded-2xl bg-slate-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">

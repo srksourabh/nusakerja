@@ -217,14 +217,18 @@ orphan OUT ignored/warned; trailing IN → live elapsed only
 
 ### U4 — OpenStreetMap punch map + manager team map
 
-**Files:** new `apps/web` map component (Leaflet), attendance + manager pages, attendance list with lat/lng.
+**Status:** Done (2026-08-06)
+
+**Files:** `packages/db/src/map-pins.ts`, `apps/web/src/components/osm-punch-map*.tsx`, `attendance-map-panel.tsx`, attendance router + page; Leaflet + react-leaflet@4.
 
 **Behavior:**
 - Employee map: own punches for selected day/range.
 - Manager map: latest punch (or today’s) for each report in subtree + org tree side panel.
+- HR/Company Admin: company-wide latest pins.
 - No Google key; OSM tile attribution required.
+- PunchClockPanel captures browser GPS on punch when available.
 
-**Tests:** Punch without coordinates omitted from map layer; manager does not see other teams’ pins.
+**Tests:** Punch without coordinates omitted from map layer; manager scope drops employees outside subtree.
 
 ### U5 — Policy engine by grade
 
@@ -311,7 +315,7 @@ U1 is a security/UX hotfix and should ship first (even alone). U3/U4 can paralle
 - [ ] Dual shell for Admin/HR/Manager
 - [ ] Grade 1–5 + manager tree
 - [x] Multi-punch hours + live timer
-- [ ] OSM maps (self + manager team)
+- [x] OSM maps (self + manager team)
 - [ ] Policies assignable by grade/person
 - [ ] Leave + expenses to immediate boss with notifications
 - [ ] Payroll still Indonesia-statutory via existing engines
