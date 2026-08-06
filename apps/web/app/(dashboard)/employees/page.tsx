@@ -27,6 +27,7 @@ interface EmployeeItem {
 
 export default function EmployeesPage() {
   const { isHrAdmin, isEmployee } = useAuth();
+  const canEditRoster = isHrAdmin && !isEmployee;
   const [employeesList, setEmployeesList] = useState<EmployeeItem[]>([
     {
       id: "emp-001",
@@ -182,7 +183,7 @@ export default function EmployeesPage() {
             Struktur hirarki 5 Karyawan Sampel: Admin, HR, Team Leader, dan Service Engineer under Team Leader dengan tarif PPh 21 TER PMK 168/2023.
           </p>
         </div>
-        {isHrAdmin && (
+        {canEditRoster && (
           <button
             onClick={() => setShowAddModal(true)}
             className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center space-x-2 shadow-lg transition-all"

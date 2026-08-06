@@ -4,7 +4,7 @@
 
 ## Planned next — HR ops role portals (not started)
 
-- [ ] U1 Kill Simulasi + English default + dual My Work / Manage shells
+- [x] U1 Kill Simulasi + English default + dual My Work / Manage shells
 - [ ] U2 Org tree manager + grade 1–5
 - [ ] U3 Multi-punch day hours + live timer
 - [ ] U4 OSM punch / team map

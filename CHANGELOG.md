@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Role entry clarity**: login explains SuperAdmin → Company Admin → HR ladder; one-click SuperAdmin / CA / Company Admin; SuperAdmin onboard requires Company Admin email; `/team` for appoint HR; CA portfolio wired to `ca.portfolio`.
 - **Temp Easy Login** on landing (`data-temp-easy-login`) — remove after testing.
 - **Company URL**: each tenant gets `https://{slug}.nusakerja.com` (preview path `/c/{slug}`) with middleware subdomain rewrite.
+- **U1 role shells**: removed Simulasi privilege switch; English default locale; My Work / Manage dual shell for Admin, HR, Manager.
 
 ## [1.0.0-GA] - 2026-07-23
 
