@@ -17,8 +17,14 @@ export const payrollRuns = pgTable("payroll_runs", {
   totalBpjsEmployerIdr: decimal("total_bpjs_employer_idr", { precision: 18, scale: 2 }).default("0").notNull(),
   totalBpjsEmployeeIdr: decimal("total_bpjs_employee_idr", { precision: 18, scale: 2 }).default("0").notNull(),
   totalNetPayoutIdr: decimal("total_net_payout_idr", { precision: 18, scale: 2 }).default("0").notNull(),
+  calculatedBy: uuid("calculated_by").references(() => users.id, { onDelete: "set null" }),
+  calculatedAt: timestamp("calculated_at"),
   approvedBy: uuid("approved_by").references(() => users.id, { onDelete: "set null" }),
   approvedAt: timestamp("approved_at"),
+  filingSignedOffBy: uuid("filing_signed_off_by").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  filingSignedOffAt: timestamp("filing_signed_off_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

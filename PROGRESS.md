@@ -1,6 +1,22 @@
 # PROGRESS.md — NusaKerja Master Task & Production Readiness Tracker
 
-> Status: **Full Production Launch (v1.0.0-GA)**. All core modules, 16 application routes, statutory PPh 21 TER / BPJS engines, multi-tenant DB seeding, i18n locale context, and automated deployment pipelines are operational and verified.
+> Status: **RBAC SaaS slice in progress** on branch `cursor/saas-rbac-architecture-a88a`. Core modules remain GA; multi-tenant RBAC capability model, CA assignment, and role POV login seed are landing.
+
+## Latest — SaaS RBAC (in progress)
+
+- [x] Capability foundation + Vitest (`packages/auth`)
+- [x] CA assignment / invite schema
+- [x] Session-backed tRPC context + login API
+- [x] Platform / CA / payroll / leave / attendance authz gates
+- [x] Demo seed users + login autofill personas
+- [x] Login hierarchy guide + one-click SuperAdmin / CA / Company Admin entry
+- [x] SuperAdmin create company + invite Company Admin + assign CA (wired UI)
+- [x] CA portfolio live query + Company Admin Tim & Peran (angkat HR)
+- [x] Easy Login (temp) on landing + company URL `https://{slug}.nusakerja.com` (path fallback `/c/{slug}`)
+- [ ] DB push of new tables to production (run `pnpm db:push` / migrate in deploy)
+- [ ] Full AE1–AE8 integration tests against live DB
+
+---
 
 ## Latest Verified Release — 2026-07-23 (v1.0.0-GA)
 

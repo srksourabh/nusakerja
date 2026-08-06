@@ -8,6 +8,10 @@ import { useAuth } from "../../src/context/auth-context";
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { locale, setLocale, t } = useI18n();
   const { role, user, isEmployee, isHrAdmin, setRole } = useAuth();
+  const isSuperAdmin = role === "super_admin";
+  const isCa = role === "reseller_admin";
+  const isCompanyAdmin = role === "client_admin";
+  const companyOps = !isSuperAdmin && !isCa;
 
   return (
     <div className="sidebar-layout">
@@ -25,13 +29,39 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span style={{ fontSize: 9, fontWeight: 900, background: "#DC2626", color: "#fff", padding: "2px 6px", borderRadius: 9999, textTransform: "uppercase", letterSpacing: "0.06em" }}>SaaS</span>
             </div>
             <p style={{ fontSize: 10, color: "#FCA5A5", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
-              HRMS & Statutory IDR
+              {isSuperAdmin ? "Platform Control" : isCa ? "CA Portfolio" : "HRMS & Statutory IDR"}
             </p>
           </div>
         </div>
 
         {/* Navigation */}
         <nav style={{ padding: "12px", flex: 1, overflowY: "auto" }}>
+          {isSuperAdmin && (
+            <>
+              <div className="section-label">Platform SuperAdmin</div>
+              <Link href="/super-admin" className="nav-pill" style={{ marginBottom: 2 }}>
+                <Building2 style={{ width: 16, height: 16, color: "#F87171", flexShrink: 0 }} />
+                <span>Buat Perusahaan</span>
+              </Link>
+            </>
+          )}
+
+          {isCa && (
+            <>
+              <div className="section-label">CA (Chartered Accountant)</div>
+              <Link href="/ca" className="nav-pill" style={{ marginBottom: 2 }}>
+                <Calculator style={{ width: 16, height: 16, color: "#34D399", flexShrink: 0 }} />
+                <span>Portofolio Klien</span>
+              </Link>
+              <Link href="/payroll" className="nav-pill" style={{ marginBottom: 2 }}>
+                <DollarSign style={{ width: 16, height: 16, color: "#FBBF24", flexShrink: 0 }} />
+                <span>Hitung Payroll</span>
+              </Link>
+            </>
+          )}
+
+          {companyOps && (
+            <>
           <div className="section-label">Konsol Utama</div>
 
           <Link href="/dashboard" className="nav-pill" style={{ marginBottom: 2 }}>
@@ -48,6 +78,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Network style={{ width: 16, height: 16, color: "#818CF8", flexShrink: 0 }} />
             <span>{t("nav.organogram")}</span>
           </Link>
+
+          {(isCompanyAdmin || isHrAdmin) && (
+            <Link href="/team" className="nav-pill" style={{ marginBottom: 2 }}>
+              <Users style={{ width: 16, height: 16, color: "#FBBF24", flexShrink: 0 }} />
+              <span>Tim & Peran {isCompanyAdmin ? "(angkat HR)" : ""}</span>
+            </Link>
+          )}
 
           {/* HR & Client Admin Only Links */}
           {isHrAdmin && (
@@ -104,6 +141,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
             </>
           )}
+            </>
+          )}
         </nav>
 
         {/* Gov Links Panel */}
@@ -152,7 +191,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span>{locale === "id-ID" ? "Bahasa Indonesia (id-ID)" : "English (en-US)"}</span>
             </button>
 
-            {/* Interactive Role Switcher Pill */}
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 11,
+                fontWeight: 800,
+                padding: "4px 12px",
+                borderRadius: 9999,
+                background: isSuperAdmin ? "#FEE2E2" : isCa ? "#D1FAE5" : isCompanyAdmin ? "#FEF3C7" : isEmployee ? "#E0F2FE" : "#F3E8FF",
+                color: isSuperAdmin ? "#991B1B" : isCa ? "#065F46" : isCompanyAdmin ? "#92400E" : isEmployee ? "#0369A1" : "#6B21A8",
+                border: "1px solid #E2E8F0",
+              }}
+            >
+              {isSuperAdmin
+                ? "Peran: Platform SuperAdmin"
+                : isCa
+                  ? "Peran: CA (hitung payroll)"
+                  : isCompanyAdmin
+                    ? "Peran: Company Admin"
+                    : isEmployee
+                      ? "Peran: Karyawan"
+                      : `Peran: ${role}`}
+            </span>
+
+            {companyOps && (
             <button
               onClick={() => setRole(isEmployee ? "hr_admin" : "employee")}
               style={{
@@ -171,8 +235,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               title="Klik untuk beralih mode simulasi Karyawan vs HR Admin"
             >
               <RefreshCw style={{ width: 12, height: 12 }} />
-              <span>{isEmployee ? "Akses: Karyawan (Self-Service)" : "Akses: HR & Client Admin"}</span>
+              <span>Simulasi</span>
             </button>
+            )}
 
             <span style={{ fontSize: 12, color: "#49454F" }} className="hidden md:inline">
               UMK DKI Jakarta 2026: <strong style={{ fontFamily: "var(--font-mono)" }}>Rp5.067.381</strong>

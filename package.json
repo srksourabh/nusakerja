@@ -5,7 +5,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "test": "pnpm check:routes",
+    "test": "pnpm check:routes && pnpm --filter @nusakerja/auth test",
     "check:routes": "node scripts/verify-app-routes.mjs",
     "typecheck": "turbo run typecheck",
     "db:push": "pnpm --filter @nusakerja/db db:push",

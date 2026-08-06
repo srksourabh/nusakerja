@@ -14,13 +14,20 @@
 
 ## 2. Role-Based Access Control (RBAC)
 
-1. `super_admin`: Full system infrastructure & tenant management.
-2. `reseller_admin`: Multi-tenant accounting firm managing client payrolls.
-3. `client_admin`: Client company executive.
-4. `hr_admin`: Employee onboarding, leave, and HR inbox.
-5. `payroll_admin`: Monthly PPh 21, BPJS, and disbursement execution.
-6. `manager`: Attendance and leave approvals.
-7. `employee`: Mobile attendance punch, leave requests, payslip view.
+Canonical product names with legacy DB enum aliases (see `docs/plans/2026-08-05-001-feat-saas-rbac-architecture-plan.md`):
+
+| Product role | DB `user_role` | Authority summary |
+|---|---|---|
+| Platform SuperAdmin | `super_admin` | Control plane only: create/suspend tenants, invite first Company Admin, assign/clear CA, hierarchy (no payroll PII) |
+| CA (Chartered Accountant) | `reseller_admin` | One user per firm; 0..1 assignment per company; payroll calculate finalize only |
+| Company Admin | `client_admin` | Full company ops; mints HR; disbursement + filing sign-off |
+| HR Admin | `hr_admin` | Full company ops except minting HR; org structure |
+| Manager | `manager` | Attendance & leave approvals |
+| Employee | `employee` | Self-service punch, leave, payslip |
+
+`payroll_admin` remains in the enum for compatibility but is not granted new seats.
+
+Authorization uses capability checks in `@nusakerja/auth` (`can()`), not numeric role rank alone. Tenant isolation for this release uses shared-table `tenant_id` filters (physical schema-per-tenant ADR deferred).
 
 ---
 

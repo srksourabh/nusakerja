@@ -1,15 +1,29 @@
 import { db } from "./index";
-import { tenants, employees, statutoryParameters, users } from "./schema";
+import {
+  tenants,
+  employees,
+  statutoryParameters,
+  users,
+  companyCaAssignments,
+  caFirms,
+} from "./schema";
+import { randomBytes, scryptSync } from "crypto";
+import { eq } from "drizzle-orm";
+
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${hash}`;
+}
 
 export async function seed() {
   console.log("🚀 Seeding NusaKerja production database schema & statutory parameters...");
 
-  // 1. Seed Enterprise Tenants
   const tenantValues = [
     {
       name: "PT Nusantara Utama",
       slug: "pt-nusantara-utama",
-      schemaName: "pt_nusantara_utama",
+      schema_name: "pt_nusantara_utama",
       npwp: "01.234.567.8-013.000",
       address: "Jl. Jend. Sudirman Kav 52-53, Jakarta Selatan, DKI Jakarta",
       isActive: true,
@@ -17,7 +31,7 @@ export async function seed() {
     {
       name: "CV Maju Bersama",
       slug: "cv-maju-bersama",
-      schemaName: "cv_maju_bersama",
+      schema_name: "cv_maju_bersama",
       npwp: "02.987.654.3-042.000",
       address: "Jl. Tunjungan No. 45, Surabaya, Jawa Timur",
       isActive: true,
@@ -26,17 +40,18 @@ export async function seed() {
 
   const insertedTenants = [];
   for (const t of tenantValues) {
-    const [row] = await db
-      .insert(tenants)
-      .values(t)
-      .onConflictDoNothing()
-      .returning();
+    const existing = await db.select().from(tenants).where(eq(tenants.slug, t.slug)).limit(1);
+    if (existing[0]) {
+      insertedTenants.push(existing[0]);
+      continue;
+    }
+    const [row] = await db.insert(tenants).values(t).returning();
     if (row) insertedTenants.push(row);
   }
 
   const defaultTenantId = insertedTenants[0]?.id;
+  const secondTenantId = insertedTenants[1]?.id;
 
-  // 2. Seed Statutory Parameters (PMK 168/2023 & BPJS March 2026)
   await db
     .insert(statutoryParameters)
     .values([
@@ -69,7 +84,6 @@ export async function seed() {
     ])
     .onConflictDoNothing();
 
-  // 3. Seed Sample Employees if tenant exists
   if (defaultTenantId) {
     const sampleEmployees = [
       {
@@ -120,7 +134,101 @@ export async function seed() {
     }
   }
 
+  // Role seed users (demo passwords — non-production only)
+  const seedUsers: Array<{
+    email: string;
+    name: string;
+    role: "super_admin" | "reseller_admin" | "client_admin" | "hr_admin" | "manager" | "employee";
+    tenantId?: string;
+    password: string;
+  }> = [
+    {
+      email: "srksourabh@gmail.com",
+      name: "Sourabh (Platform SuperAdmin)",
+      role: "super_admin",
+      password: "DemoSuperAdmin!2026",
+    },
+    {
+      email: "ca@nusakerja.id",
+      name: "CA Demo Operator",
+      role: "reseller_admin",
+      password: "DemoCA!2026",
+    },
+    {
+      email: "admin@nusantara.co.id",
+      name: "Administrator HR Master",
+      role: "client_admin",
+      tenantId: defaultTenantId,
+      password: "DemoAdmin!2026",
+    },
+    {
+      email: "bambang.hr@nusantara.co.id",
+      name: "Bambang Prasetyo, S.H.",
+      role: "hr_admin",
+      tenantId: defaultTenantId,
+      password: "DemoHR!2026",
+    },
+    {
+      email: "manager@nusantara.co.id",
+      name: "Rina Manager",
+      role: "manager",
+      tenantId: defaultTenantId,
+      password: "DemoManager!2026",
+    },
+    {
+      email: "budi.santoso@nusantara.co.id",
+      name: "Budi Santoso",
+      role: "employee",
+      tenantId: defaultTenantId,
+      password: "DemoEmployee!2026",
+    },
+  ];
+
+  let caUserId: string | undefined;
+  for (const u of seedUsers) {
+    const existing = await db.select().from(users).where(eq(users.email, u.email)).limit(1);
+    if (existing[0]) {
+      if (u.role === "reseller_admin") caUserId = existing[0].id;
+      continue;
+    }
+    const [created] = await db
+      .insert(users)
+      .values({
+        email: u.email,
+        name: u.name,
+        role: u.role,
+        tenantId: u.tenantId,
+        passwordHash: hashPassword(u.password),
+        locale: "id-ID",
+      })
+      .returning();
+    if (u.role === "reseller_admin") caUserId = created.id;
+  }
+
+  if (caUserId) {
+    const firmExisting = await db.select().from(caFirms).where(eq(caFirms.userId, caUserId)).limit(1);
+    if (!firmExisting[0]) {
+      await db.insert(caFirms).values({ name: "KAP Demo NusaKerja", userId: caUserId });
+    }
+    if (defaultTenantId) {
+      const asg = await db
+        .select()
+        .from(companyCaAssignments)
+        .where(eq(companyCaAssignments.tenantId, defaultTenantId))
+        .limit(1);
+      if (!asg[0]) {
+        await db.insert(companyCaAssignments).values({
+          tenantId: defaultTenantId,
+          caUserId,
+        });
+      }
+    }
+    // Second tenant intentionally unassigned for AE4 demos
+    void secondTenantId;
+  }
+
   console.log("✅ Database seeding completed successfully!");
+  console.log("   Demo SuperAdmin: srksourabh@gmail.com / DemoSuperAdmin!2026");
 }
 
 if (require.main === module) {

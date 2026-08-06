@@ -22,6 +22,7 @@
 - Root directory: `apps/web`
 - Include source files outside the root directory: enabled for workspace packages
 - Production URL: `https://nusakerja.vercel.app`
+- Company portals: `https://{slug}.nusakerja.com` (requires apex `nusakerja.com` + wildcard `*.nusakerja.com` on Vercel). Until DNS is live, use path fallback `/c/{slug}`.
 
 Before a production deployment, apply committed Drizzle migrations with `pnpm db:migrate`. The command is idempotent and records applied migrations in PostgreSQL's `drizzle.__drizzle_migrations` table.
 
