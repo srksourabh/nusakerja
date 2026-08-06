@@ -319,7 +319,7 @@ U1 is a security/UX hotfix and should ship first (even alone). U3/U4 can paralle
 - [x] OSM maps (self + manager team)
 - [x] Policies assignable by grade/person
 - [ ] Leave + expenses to immediate boss with notifications
-- [ ] Payroll still Indonesia-statutory via existing engines
+- [x] Payroll still Indonesia-statutory via existing engines
 - [ ] `pnpm typecheck`, lint, and unit tests for punch-hours + policy resolve green
 
 ---
