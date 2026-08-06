@@ -261,7 +261,14 @@ orphan OUT ignored/warned; trailing IN → live elapsed only
 
 ### U8 — Docs & seed
 
-**Files:** `REQUIREMENTS.md`, `PROGRESS.md`, `CHANGELOG.md`, `SECURITY.md`, seed personas with managers/grades.
+**Status:** Done (2026-08-06)
+
+**Files:** `REQUIREMENTS.md`, `PROGRESS.md`, `CHANGELOG.md`, `SECURITY.md`, `DATABASE.md`, `docs/demo-personas.md`, seed console polish.
+
+**Behavior:**
+- Document role portals, grade/manager, multi-punch, maps, policies, leave/expense routing, pay structure → statutory payroll.
+- Publish demo persona table + org tree for PT Nusantara Utama.
+- Seed logs full credentials and reporting hierarchy after `pnpm db:seed`.
 
 ---
 
@@ -306,16 +313,17 @@ U1 is a security/UX hotfix and should ship first (even alone). U3/U4 can paralle
 
 ## Definition of Done (program)
 
-- [ ] Simulasi gone; no client privilege elevation
-- [ ] English default; ID opt-in
-- [ ] Dual shell for Admin/HR/Manager
-- [ ] Grade 1–5 + manager tree
+- [x] Simulasi gone; no client privilege elevation
+- [x] English default; ID opt-in
+- [x] Dual shell for Admin/HR/Manager
+- [x] Grade 1–5 + manager tree
 - [x] Multi-punch hours + live timer
-- [ ] OSM maps (self + manager team)
-- [ ] Policies assignable by grade/person
-- [ ] Leave + expenses to immediate boss with notifications
-- [ ] Payroll still Indonesia-statutory via existing engines
-- [ ] `pnpm typecheck`, lint, and unit tests for punch-hours + policy resolve green
+- [ ] OSM maps (self + manager team) — PR #4
+- [ ] Policies assignable by grade/person — PR #5
+- [ ] Leave + expenses to immediate boss with notifications — PR #6
+- [ ] Payroll still Indonesia-statutory via existing engines — PR #7
+- [x] Docs & demo personas (U8)
+- [ ] `pnpm typecheck`, lint, and unit tests green across merged U4–U7
 
 ---
 

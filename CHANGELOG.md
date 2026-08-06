@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **U1 role shells**: removed Simulasi privilege switch; English default locale; My Work / Manage dual shell for Admin, HR, Manager.
 - **U2 org tree**: employee `grade` (1–5) + `managerEmployeeId`; orgTree / listTeamSubtree / updateOrg; organogram UI; seed hierarchy.
 - **U3 multi-punch clock**: `punch-hours` helper; `attendance.todayStatus` + pairing rules; live timer UI on Attendance and Portal; day hours = sum of closed IN/OUT segments.
+- **U8 docs & seed**: REQUIREMENTS / SECURITY / DATABASE updated for role portals; `docs/demo-personas.md`; seed console prints full persona + org tree table.
+
+### Pending merge (open PRs)
+- U4 OSM maps (#4), U5 grade policies (#5), U6 leave/expense boss (#6), U7 pay structure payroll (#7, stacked on U5).
 
 ## [1.0.0-GA] - 2026-07-23
 
