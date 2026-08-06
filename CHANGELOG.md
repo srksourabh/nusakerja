@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Production Hostinger DB**: applied migrations `0001`–`0003` + Drizzle push for CA tables; re-seeded demo personas and U5 grade policies so `/policies` works on production.
+
 ### Added
 - **SaaS RBAC three-layer model**: Platform SuperAdmin / CA (`reseller_admin`) / Company Admin–HR–Manager–Employee with capability checks (`@nusakerja/auth` `can()`).
 - **CA assignment tables** (`ca_firms`, `company_ca_assignments`, `invites`) and platform tRPC control-plane routers.
