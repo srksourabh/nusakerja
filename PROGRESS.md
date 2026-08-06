@@ -1,6 +1,6 @@
 # PROGRESS.md — NusaKerja Master Task & Production Readiness Tracker
 
-> Status: **Production** `main` includes SaaS RBAC + Easy Login + company URLs + HR ops **U1–U8**.
+> Status: **Production** `main` includes SaaS RBAC + Easy Login + company URLs + HR ops **U1–U8**. Hostinger Postgres has migrations `0001`–`0003` applied (`hr_policies`, `policy_assignments`, expenses, notifications).
 
 Plan: `docs/plans/2026-08-06-001-feat-hr-ops-role-portals-plan.md`  
 Personas: `docs/demo-personas.md`

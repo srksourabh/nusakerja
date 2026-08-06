@@ -330,16 +330,11 @@ U1 is a security/UX hotfix and should ship first (even alone). U3/U4 can paralle
 - [x] Grade 1–5 + manager tree
 - [x] Multi-punch hours + live timer
 - [x] OSM maps (self + manager team)
-- [x] Policies assignable by grade/person
-- [x] Leave + expenses to immediate boss with notifications
-- [x] Payroll still Indonesia-statutory via existing engines
-- [ ] `pnpm typecheck`, lint, and unit tests for punch-hours + policy resolve green
-- [ ] OSM maps (self + manager team) — PR #4
-- [ ] Policies assignable by grade/person — PR #5
-- [ ] Leave + expenses to immediate boss with notifications — PR #6
-- [ ] Payroll still Indonesia-statutory via existing engines — PR #7
-- [x] Docs & demo personas (U8)
-- [ ] `pnpm typecheck`, lint, and unit tests green across merged U4–U7
+- [x] Policies assignable by grade/person (U5 / PR #5 merged)
+- [x] Leave + expenses to immediate boss with notifications (U6 / PR #6 merged)
+- [x] Payroll still Indonesia-statutory via existing engines (U7 / PR #7 on main)
+- [x] Docs & demo personas (U8 / PR #8 merged)
+- [x] `pnpm typecheck`, lint, and unit tests green across merged U1–U8 (CI on `main`)
 
 ---
 
