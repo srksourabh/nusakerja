@@ -1,8 +1,19 @@
 # PROGRESS.md — NusaKerja Master Task & Production Readiness Tracker
 
-> Status: **RBAC SaaS slice in progress** on branch `cursor/saas-rbac-architecture-a88a`. Core modules remain GA; multi-tenant RBAC capability model, CA assignment, and role POV login seed are landing.
+> Status: **Production** on `main` includes SaaS RBAC + Easy Login + company URLs. Next program planned: role portals / attendance map / grade policies (`docs/plans/2026-08-06-001-feat-hr-ops-role-portals-plan.md`).
 
-## Latest — SaaS RBAC (in progress)
+## Planned next — HR ops role portals (not started)
+
+- [ ] U1 Kill Simulasi + English default + dual My Work / Manage shells
+- [ ] U2 Org tree manager + grade 1–5
+- [ ] U3 Multi-punch day hours + live timer
+- [ ] U4 OSM punch / team map
+- [ ] U5 Policy engine by grade
+- [ ] U6 Leave + expense → immediate boss
+- [ ] U7 Pay structure → statutory payroll
+- [ ] U8 Docs & seed
+
+## Latest — SaaS RBAC (merged to main)
 
 - [x] Capability foundation + Vitest (`packages/auth`)
 - [x] CA assignment / invite schema
