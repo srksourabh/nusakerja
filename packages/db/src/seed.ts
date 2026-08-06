@@ -187,7 +187,7 @@ export async function seed() {
     }
   }
 
-  // Role seed users (demo passwords — non-production only)
+  // Role seed users (demo passwords — non-production only; see docs/demo-personas.md)
   const seedUsers: Array<{
     email: string;
     name: string;
@@ -280,7 +280,9 @@ export async function seed() {
     void secondTenantId;
   }
 
-  // Link login users → employee rows and wire manager tree (U2)
+  // Link login users → employee rows and wire manager tree (U2).
+  // Tree: NK-ADM (G5) → NK-HR (G4), NK-MGR (G3) → NK-001/002/003 (G1–2).
+  // Documented in docs/demo-personas.md.
   if (defaultTenantId) {
     const byCode = async (code: string) => {
       const [row] = await db
@@ -446,7 +448,17 @@ export async function seed() {
   }
 
   console.log("✅ Database seeding completed successfully!");
-  console.log("   Demo SuperAdmin: srksourabh@gmail.com / DemoSuperAdmin!2026");
+  console.log("");
+  console.log("=== Demo personas (non-production) — see docs/demo-personas.md ===");
+  console.log("Tenant: PT Nusantara Utama (pt-nusantara-utama)");
+  console.log("Org: Admin G5 → HR G4 + Manager G3 → Budi/Siti G1, Jean G2");
+  console.log("  SuperAdmin     srksourabh@gmail.com          / DemoSuperAdmin!2026");
+  console.log("  CA             ca@nusakerja.id               / DemoCA!2026");
+  console.log("  Company Admin  admin@nusantara.co.id         / DemoAdmin!2026     (NK-ADM)");
+  console.log("  HR             bambang.hr@nusantara.co.id    / DemoHR!2026        (NK-HR)");
+  console.log("  Manager        manager@nusantara.co.id       / DemoManager!2026   (NK-MGR)");
+  console.log("  Employee       budi.santoso@nusantara.co.id  / DemoEmployee!2026  (NK-001)");
+  console.log("Company URL: https://pt-nusantara-utama.nusakerja.com  (fallback /c/pt-nusantara-utama)");
 }
 
 if (require.main === module) {
