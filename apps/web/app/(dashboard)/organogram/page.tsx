@@ -1,112 +1,287 @@
 "use client";
 
-import { Network, Users, User, Shield, ChevronDown, Sparkles, Wrench, ShieldCheck, UserCheck } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Network, RefreshCw, Users } from "lucide-react";
+import { trpcClient } from "../../../src/utils/trpc-client";
+import { useAuth } from "../../../src/context/auth-context";
 
-export default function OrganogramPage() {
-  const companyName = "PT Nusa Teknik Mandiri";
+type OrgNode = {
+  id: string;
+  fullName: string;
+  employeeCode: string;
+  grade: number;
+  managerEmployeeId: string | null;
+  children?: OrgNode[];
+};
+
+type FlatEmployee = {
+  id: string;
+  fullName: string;
+  employeeCode: string;
+  grade: number;
+  managerEmployeeId: string | null;
+  basicSalaryIdr?: string;
+};
+
+const GRADE_COLORS: Record<number, string> = {
+  1: "#059669",
+  2: "#0284C7",
+  3: "#D97706",
+  4: "#7C3AED",
+  5: "#BE123C",
+};
+
+function NodeCard({
+  node,
+  depth,
+  canEdit,
+  allEmployees,
+  onSave,
+}: {
+  node: OrgNode;
+  depth: number;
+  canEdit: boolean;
+  allEmployees: FlatEmployee[];
+  onSave: (id: string, grade: number, managerEmployeeId: string | null) => Promise<void>;
+}) {
+  const [grade, setGrade] = useState(node.grade);
+  const [managerId, setManagerId] = useState(node.managerEmployeeId ?? "");
+  const [busy, setBusy] = useState(false);
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      {/* Banner */}
-      <div className="rounded-3xl p-8 bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#334155] text-white relative overflow-hidden shadow-xl">
-        <div className="relative z-10 flex items-center justify-between">
+    <div style={{ marginLeft: depth * 20 }}>
+      <div
+        style={{
+          background: "#fff",
+          border: "1px solid #E2E8F0",
+          borderRadius: 16,
+          padding: 14,
+          marginBottom: 10,
+          boxShadow: "0 1px 2px rgba(15,23,42,0.04)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-bold mb-3 border border-white/10">
-              <Network className="w-3.5 h-3.5 text-amber-300" />
-              <span>Struktur Organisasi & Operational Hierarchy</span>
-            </div>
-            <h1 className="text-3xl font-extrabold tracking-tight">Bagan Organogram — {companyName}</h1>
-            <p className="text-xs sm:text-sm text-slate-300 mt-2 max-w-2xl">
-              Hirarki 5 Karyawan Sampel: Admin → HR & Team Leader → Service Engineers (Di bawah Team Leader).
+            <span
+              style={{
+                display: "inline-block",
+                fontSize: 10,
+                fontWeight: 800,
+                padding: "2px 8px",
+                borderRadius: 999,
+                background: GRADE_COLORS[node.grade] ?? "#64748B",
+                color: "#fff",
+                marginBottom: 6,
+              }}
+            >
+              Grade {node.grade}
+            </span>
+            <p style={{ margin: 0, fontWeight: 800, fontSize: 15 }}>{node.fullName}</p>
+            <p style={{ margin: "2px 0 0", fontSize: 11, fontFamily: "var(--font-mono)", color: "#64748B" }}>
+              {node.employeeCode}
             </p>
           </div>
-          <div className="hidden md:flex items-center space-x-3">
-            <span className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-xs font-bold">
-              5 Anggota Tim Terdaftar
-            </span>
-          </div>
+          {canEdit && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 200 }}>
+              <label style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "#64748B" }}>
+                Grade
+                <select
+                  className="select"
+                  style={{ marginTop: 4, fontSize: 12 }}
+                  value={grade}
+                  onChange={(e) => setGrade(Number(e.target.value))}
+                >
+                  {[1, 2, 3, 4, 5].map((g) => (
+                    <option key={g} value={g}>
+                      {g} {g === 1 ? "(lowest)" : g === 5 ? "(highest)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "#64748B" }}>
+                Immediate boss
+                <select
+                  className="select"
+                  style={{ marginTop: 4, fontSize: 12 }}
+                  value={managerId}
+                  onChange={(e) => setManagerId(e.target.value)}
+                >
+                  <option value="">— None (top) —</option>
+                  {allEmployees
+                    .filter((e) => e.id !== node.id)
+                    .map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.fullName} (G{e.grade})
+                      </option>
+                    ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={busy}
+                style={{ fontSize: 12 }}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await onSave(node.id, grade, managerId || null);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                {busy ? "Saving..." : "Save"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
+      {(node.children ?? []).map((child) => (
+        <NodeCard
+          key={child.id}
+          node={child}
+          depth={depth + 1}
+          canEdit={canEdit}
+          allEmployees={allEmployees}
+          onSave={onSave}
+        />
+      ))}
+    </div>
+  );
+}
 
-      {/* Visual Hierarchy Tree */}
-      <div className="bg-white rounded-3xl p-8 border border-slate-200 space-y-12 shadow-sm">
-        {/* 1. Admin Level */}
-        <div className="flex flex-col items-center">
-          <div className="bg-purple-900 text-white p-6 rounded-2xl text-center max-w-md w-full shadow-lg border border-purple-700/50">
-            <span className="px-3 py-1 bg-purple-800 text-purple-200 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 inline-block">
-              [ADMIN] Executive Administration
-            </span>
-            <h3 className="text-xl font-black">Ir. Aris Pratama, M.T.</h3>
-            <p className="text-xs text-purple-200 mt-1 font-semibold">General Admin & Operational Director</p>
-            <div className="mt-3 pt-3 border-t border-purple-800 flex justify-center items-center gap-2 text-xs text-purple-100 font-mono">
-              <Shield className="w-3.5 h-3.5 text-amber-300" />
-              <span>Gaji: Rp 22.000.000 / Bulan</span>
-            </div>
-          </div>
+export default function OrganogramPage() {
+  const { isHrAdmin, isCompanyAdmin, isManager, isEmployee, roleLabel } = useAuth();
+  const canEdit = (isHrAdmin || isCompanyAdmin) && !isEmployee;
+  const [roots, setRoots] = useState<OrgNode[]>([]);
+  const [flat, setFlat] = useState<FlatEmployee[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-          <div className="w-0.5 h-10 bg-slate-300 my-2"></div>
+  const load = useCallback(async () => {
+    setError(null);
+    try {
+      const data = await trpcClient.employees.orgTree.query();
+      setRoots((data.roots as OrgNode[]) ?? []);
+      setFlat((data.employees as FlatEmployee[]) ?? []);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load org tree");
+      // Demo fallback when DB unavailable
+      const demo: OrgNode[] = [
+        {
+          id: "adm",
+          fullName: "Administrator HR Master",
+          employeeCode: "NK-ADM",
+          grade: 5,
+          managerEmployeeId: null,
+          children: [
+            {
+              id: "hr",
+              fullName: "Bambang Prasetyo, S.H.",
+              employeeCode: "NK-HR",
+              grade: 4,
+              managerEmployeeId: "adm",
+              children: [],
+            },
+            {
+              id: "mgr",
+              fullName: "Rina Manager",
+              employeeCode: "NK-MGR",
+              grade: 3,
+              managerEmployeeId: "adm",
+              children: [
+                {
+                  id: "e1",
+                  fullName: "Budi Santoso",
+                  employeeCode: "NK-001",
+                  grade: 1,
+                  managerEmployeeId: "mgr",
+                  children: [],
+                },
+                {
+                  id: "e2",
+                  fullName: "Siti Nurhaliza",
+                  employeeCode: "NK-002",
+                  grade: 1,
+                  managerEmployeeId: "mgr",
+                  children: [],
+                },
+              ],
+            },
+          ],
+        },
+      ];
+      setRoots(demo);
+      const flatten = (nodes: OrgNode[]): FlatEmployee[] =>
+        nodes.flatMap((n) => [{ ...n }, ...flatten(n.children ?? [])]);
+      setFlat(flatten(demo));
+    }
+  }, []);
 
-          {/* 2. Middle Level: HR & Team Leader */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-            {/* HR Branch */}
-            <div className="flex flex-col items-center">
-              <div className="bg-sky-900 text-white p-5 rounded-2xl text-center w-full shadow-md border border-sky-700/50">
-                <span className="px-3 py-1 bg-sky-800 text-sky-200 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 inline-block">
-                  [HR] Human Resources Head
-                </span>
-                <h4 className="text-lg font-black">Bambang Prasetyo, S.H.</h4>
-                <p className="text-xs text-sky-200 mt-0.5 font-semibold">Head of HR & Industrial Relations</p>
-                <div className="mt-2 pt-2 border-t border-sky-800 text-xs text-sky-100 font-mono">
-                  Gaji: Rp 18.500.000 / Bulan
-                </div>
-              </div>
-            </div>
+  useEffect(() => {
+    void load();
+  }, [load]);
 
-            {/* Team Leader Branch */}
-            <div className="flex flex-col items-center">
-              <div className="bg-amber-900 text-white p-5 rounded-2xl text-center w-full shadow-md border border-amber-700/50">
-                <span className="px-3 py-1 bg-amber-800 text-amber-200 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 inline-block">
-                  [TEAM LEADER] Field Operations
-                </span>
-                <h4 className="text-lg font-black">Hendra Wijaya</h4>
-                <p className="text-xs text-amber-200 mt-0.5 font-semibold">Field Operations Team Leader</p>
-                <div className="mt-2 pt-2 border-t border-amber-800 text-xs text-amber-100 font-mono">
-                  Gaji: Rp 14.000.000 / Bulan
-                </div>
-              </div>
+  const onSave = async (id: string, grade: number, managerEmployeeId: string | null) => {
+    setSuccess(null);
+    setError(null);
+    try {
+      await trpcClient.employees.updateOrg.mutate({ employeeId: id, grade, managerEmployeeId });
+      setSuccess("Org assignment saved.");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    }
+  };
 
-              {/* Connector line to Service Engineers */}
-              <div className="w-0.5 h-8 bg-slate-300 my-1"></div>
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 900 }}>
+      <div
+        style={{
+          borderRadius: 24,
+          padding: 28,
+          background: "linear-gradient(135deg,#0F172A,#1E293B)",
+          color: "#fff",
+        }}
+      >
+        <p style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: "#FCD34D", margin: 0 }}>
+          {isManager ? "Manager team tree" : "Company organogram"} · {roleLabel}
+        </p>
+        <h1 style={{ fontSize: 24, fontWeight: 900, margin: "8px 0 0", display: "flex", alignItems: "center", gap: 10 }}>
+          <Network style={{ width: 26, height: 26 }} />
+          Reporting tree & grades
+        </h1>
+        <p style={{ fontSize: 13, opacity: 0.85, marginTop: 8, maxWidth: 560 }}>
+          Grade 1 is lowest, grade 5 is highest. Leave, HR, and pay policies will attach to grade (and optional
+          person overrides). Managers only see their subtree.
+        </p>
+      </div>
 
-              {/* 3. Service Engineers (Under Team Leader) */}
-              <div className="space-y-3 w-full">
-                <div className="bg-emerald-50 border border-emerald-300 p-4 rounded-xl text-emerald-950">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-[10px] font-black bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded uppercase">
-                      Service Engineer #1
-                    </span>
-                    <Wrench className="w-3.5 h-3.5 text-emerald-700" />
-                  </div>
-                  <p className="text-sm font-extrabold">Rian Kurniawan, S.T.</p>
-                  <p className="text-xs text-emerald-800">Senior Field Service Engineer</p>
-                  <p className="text-[11px] font-mono text-emerald-700 font-bold mt-1">Gaji: Rp 9.500.000 / Bulan</p>
-                </div>
+      {error && (
+        <div style={{ padding: 12, borderRadius: 12, background: "#FEF3C7", color: "#92400E", fontSize: 13 }}>{error}</div>
+      )}
+      {success && (
+        <div style={{ padding: 12, borderRadius: 12, background: "#ECFDF5", color: "#065F46", fontSize: 13 }}>{success}</div>
+      )}
 
-                <div className="bg-emerald-50 border border-emerald-300 p-4 rounded-xl text-emerald-950">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-[10px] font-black bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded uppercase">
-                      Service Engineer #2
-                    </span>
-                    <Wrench className="w-3.5 h-3.5 text-emerald-700" />
-                  </div>
-                  <p className="text-sm font-extrabold">Budi Santoso</p>
-                  <p className="text-xs text-emerald-800">Junior Field Service Technician</p>
-                  <p className="text-[11px] font-mono text-emerald-700 font-bold mt-1">Gaji: Rp 7.200.000 / Bulan</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <p style={{ margin: 0, fontSize: 13, color: "#64748B", display: "flex", alignItems: "center", gap: 6 }}>
+          <Users style={{ width: 14, height: 14 }} />
+          {flat.length} people in view
+        </p>
+        <button type="button" className="btn btn-ghost" onClick={() => void load()}>
+          <RefreshCw style={{ width: 14, height: 14 }} />
+        </button>
+      </div>
+
+      <div>
+        {roots.length === 0 ? (
+          <p style={{ color: "#64748B", fontSize: 14 }}>No employees in this company yet.</p>
+        ) : (
+          roots.map((r) => (
+            <NodeCard key={r.id} node={r} depth={0} canEdit={canEdit} allEmployees={flat} onSave={onSave} />
+          ))
+        )}
       </div>
     </div>
   );

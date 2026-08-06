@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Temp Easy Login** on landing (`data-temp-easy-login`) — remove after testing.
 - **Company URL**: each tenant gets `https://{slug}.nusakerja.com` (preview path `/c/{slug}`) with middleware subdomain rewrite.
 - **U1 role shells**: removed Simulasi privilege switch; English default locale; My Work / Manage dual shell for Admin, HR, Manager.
+- **U2 org tree**: employee `grade` (1–5) + `managerEmployeeId`; orgTree / listTeamSubtree / updateOrg; organogram UI; seed hierarchy.
 
 ## [1.0.0-GA] - 2026-07-23
 

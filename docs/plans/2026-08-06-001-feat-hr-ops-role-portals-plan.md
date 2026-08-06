@@ -187,6 +187,8 @@ orphan OUT ignored/warned; trailing IN → live elapsed only
 
 ### U2 — Org tree: manager + grade
 
+**Status:** Done (2026-08-06)
+
 **Files:** `packages/db/src/schema/employees.ts`, migration/seed, `apps/web/trpc/routers/employees.ts`, organogram / team pages.
 
 **Behavior:**
