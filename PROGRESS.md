@@ -12,6 +12,7 @@
 - [x] Login hierarchy guide + one-click SuperAdmin / CA / Company Admin entry
 - [x] SuperAdmin create company + invite Company Admin + assign CA (wired UI)
 - [x] CA portfolio live query + Company Admin Tim & Peran (angkat HR)
+- [x] Easy Login (temp) on landing + company URL `https://{slug}.nusakerja.com` (path fallback `/c/{slug}`)
 - [ ] DB push of new tables to production (run `pnpm db:push` / migrate in deploy)
 - [ ] Full AE1–AE8 integration tests against live DB
 

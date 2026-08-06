@@ -120,7 +120,7 @@ export default function Home() {
         </div>
 
         {/* Navigation & Language Toggle */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3 sm:space-x-4">
           {/* Dual Language Selector Button */}
           <div className="bg-slate-800 p-1 rounded-full border border-slate-700 flex items-center space-x-1">
             <button
@@ -141,18 +141,37 @@ export default function Home() {
             </button>
           </div>
 
-          <Link href="/portal">
+          {/* TEMP: Easy Login — remove from landing after testing */}
+          <Link href="/login" data-temp-easy-login="true">
+            <button className="px-4 py-2.5 rounded-full text-xs font-black bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-all shadow-lg border-2 border-emerald-300 flex items-center gap-1.5">
+              <UserCheck className="w-3.5 h-3.5" />
+              <span>{lang === "ID" ? "Easy Login" : "Easy Login"}</span>
+              <span className="hidden sm:inline text-[9px] font-bold bg-slate-900 text-emerald-300 px-1.5 py-0.5 rounded-full uppercase">
+                Temp
+              </span>
+            </button>
+          </Link>
+
+          <Link href="/portal" className="hidden md:inline-flex">
             <button className="px-4 py-2 rounded-full text-xs font-bold bg-slate-800 text-white border border-slate-700 hover:bg-slate-700 transition-all">
               {t.portalCard.btn}
             </button>
           </Link>
-          <Link href="/super-admin">
+          <Link href="/super-admin" className="hidden sm:inline-flex">
             <button className="px-5 py-2.5 rounded-full text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-all shadow-md">
               {t.superAdminCard.btn}
             </button>
           </Link>
         </div>
       </header>
+
+      {/* TEMP banner: remove after testing */}
+      <div className="relative z-40 bg-emerald-600 text-slate-950 text-center text-xs sm:text-sm font-bold py-2 px-4 flex flex-wrap items-center justify-center gap-2" data-temp-easy-login="true">
+        <span>{lang === "ID" ? "Mode uji — tombol Easy Login sementara di landing." : "Test mode — temporary Easy Login on landing."}</span>
+        <Link href="/login" className="underline underline-offset-2 font-black">
+          {lang === "ID" ? "Buka login SuperAdmin / CA / Company Admin →" : "Open SuperAdmin / CA / Company Admin login →"}
+        </Link>
+      </div>
 
       {/* Main Hero Section */}
       <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-12 text-center flex flex-col items-center justify-center relative z-10">
@@ -301,6 +320,14 @@ export default function Home() {
 
         {/* Action Buttons Row */}
         <div className="mt-10 flex flex-wrap justify-center gap-4">
+          {/* TEMP: Easy Login hero CTA — remove after testing */}
+          <Link href="/login" data-temp-easy-login="true">
+            <button className="px-8 py-4 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm shadow-xl hover:shadow-2xl transition-all flex items-center space-x-2 border-2 border-emerald-300">
+              <UserCheck className="w-4 h-4" />
+              <span>Easy Login (Temp)</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </Link>
           <Link href="/super-admin">
             <button className="px-8 py-4 rounded-full bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm shadow-xl hover:shadow-2xl transition-all flex items-center space-x-2">
               <span>{t.ctaSuperAdmin}</span>

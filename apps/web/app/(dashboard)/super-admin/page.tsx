@@ -19,6 +19,8 @@ interface TenantRow {
   name: string;
   slug: string;
   isActive: boolean;
+  companyUrl?: string;
+  companyPath?: string;
 }
 
 interface CaUser {
@@ -116,11 +118,13 @@ export default function SuperAdminPage() {
         caUserId: caUserId || undefined,
       });
       setSuccess(
-        `Perusahaan dibuat. Company Admin: ${adminEmail}` +
+        `Perusahaan dibuat. URL: ${result.companyUrl}` +
+          ` (pratinjau: ${result.companyPath})` +
+          ` · Company Admin: ${adminEmail}` +
           (result.provisionalPassword
             ? ` · kata sandi sementara: ${result.provisionalPassword}`
             : " (akun sudah ada)") +
-          `. Minta mereka login lalu buka Tim & Peran untuk mengangkat HR.`
+          `. Buka URL perusahaan → login → Tim & Peran untuk mengangkat HR.`
       );
       setCompanyName("");
       setSlug("");
@@ -242,15 +246,20 @@ export default function SuperAdminPage() {
                 />
               </label>
               <label style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#475569" }}>
-                Slug (opsional)
+                URL subdomain (opsional) — menjadi {"{slug}"}.nusakerja.com
                 <input
                   className="input font-mono"
                   style={{ marginTop: 6 }}
                   value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  placeholder="otomatis dari nama"
+                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                  placeholder="contoh: sinar-nusantara"
                 />
               </label>
+              {slug ? (
+                <p style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "#047857", margin: "-4px 0 0" }}>
+                  https://{slug}.nusakerja.com
+                </p>
+              ) : null}
               <label style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#475569" }}>
                 <UserPlus style={{ width: 12, height: 12, display: "inline", marginRight: 4 }} />
                 Email Company Admin (wajib)
@@ -343,7 +352,7 @@ export default function SuperAdminPage() {
               <thead>
                 <tr>
                   <th>Nama</th>
-                  <th>Slug</th>
+                  <th>URL perusahaan</th>
                   <th>Status</th>
                   <th>CA</th>
                 </tr>
@@ -359,7 +368,16 @@ export default function SuperAdminPage() {
                     }}
                   >
                     <td style={{ fontWeight: 700 }}>{t.name}</td>
-                    <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{t.slug}</td>
+                    <td style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>
+                      <a
+                        href={t.companyPath || `/c/${t.slug}`}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ color: "#047857", fontWeight: 700 }}
+                        title={t.companyUrl}
+                      >
+                        {(t.companyUrl || `${t.slug}.nusakerja.com`).replace(/^https?:\/\//, "")}
+                      </a>
+                    </td>
                     <td>
                       <span className={`badge ${t.isActive ? "badge-success" : "badge-danger"}`}>
                         {t.isActive ? "Aktif" : "Suspend"}

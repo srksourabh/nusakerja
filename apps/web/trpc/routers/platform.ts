@@ -12,7 +12,12 @@ import {
   invites,
   auditLogs,
 } from "@nusakerja/db";
-import { platformProcedure, router } from "../trpc";
+import { platformProcedure, publicProcedure, router } from "../trpc";
+import {
+  buildCompanyPath,
+  buildCompanyUrl,
+  isReservedTenantSlug,
+} from "../../src/utils/tenant-url";
 
 async function writeAudit(opts: {
   userId?: string | null;
@@ -41,6 +46,30 @@ function slugify(name: string): string {
 }
 
 export const platformRouter = router({
+  /** Public: resolve company portal by slug (name only — no PII). */
+  resolveBySlug: publicProcedure
+    .input(z.object({ slug: z.string().min(2).max(48) }))
+    .query(async ({ input }) => {
+      const slug = input.slug.toLowerCase();
+      if (isReservedTenantSlug(slug)) return null;
+      const [row] = await db
+        .select({
+          id: tenants.id,
+          name: tenants.name,
+          slug: tenants.slug,
+          isActive: tenants.isActive,
+        })
+        .from(tenants)
+        .where(eq(tenants.slug, slug))
+        .limit(1);
+      if (!row || !row.isActive) return null;
+      return {
+        ...row,
+        companyUrl: buildCompanyUrl(row.slug),
+        companyPath: buildCompanyPath(row.slug),
+      };
+    }),
+
   listTenants: platformProcedure.query(async () => {
     const rows = await db
       .select({
@@ -51,21 +80,44 @@ export const platformRouter = router({
         createdAt: tenants.createdAt,
       })
       .from(tenants);
-    return rows;
+    return rows.map((t) => ({
+      ...t,
+      companyUrl: buildCompanyUrl(t.slug),
+      companyPath: buildCompanyPath(t.slug),
+    }));
   }),
 
   createTenant: platformProcedure
     .input(
       z.object({
         name: z.string().min(2),
-        slug: z.string().min(2).optional(),
+        slug: z
+          .string()
+          .min(2)
+          .max(48)
+          .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug: huruf kecil, angka, dan tanda hubung")
+          .optional(),
         companyAdminEmail: z.string().email(),
         companyAdminName: z.string().min(2).default("Company Admin"),
         caUserId: z.string().uuid().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const slug = input.slug || slugify(input.name);
+      const slug = (input.slug || slugify(input.name)).toLowerCase();
+      if (isReservedTenantSlug(slug)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Slug "${slug}" cadangan sistem. Pilih nama URL lain.`,
+        });
+      }
+      const [existing] = await db.select({ id: tenants.id }).from(tenants).where(eq(tenants.slug, slug)).limit(1);
+      if (existing) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `URL ${buildCompanyUrl(slug)} sudah dipakai. Ganti slug.`,
+        });
+      }
+
       const schema_name = `tenant_${slug.replace(/-/g, "_")}`;
 
       const [tenant] = await db
@@ -112,17 +164,22 @@ export const platformRouter = router({
         });
       }
 
+      const companyUrl = buildCompanyUrl(slug);
+      const companyPath = buildCompanyPath(slug);
+
       await writeAudit({
         userId: ctx.user.id,
         tenantId: tenant.id,
         action: "tenant.create",
         resource: "tenant",
         resourceId: tenant.id,
-        details: { companyAdminEmail: input.companyAdminEmail },
+        details: { companyAdminEmail: input.companyAdminEmail, companyUrl },
       });
 
       return {
         tenant,
+        companyUrl,
+        companyPath,
         inviteToken: token,
         inviteExpiresAt: expiresAt,
         provisionalPassword: admin ? tempPassword : undefined,
