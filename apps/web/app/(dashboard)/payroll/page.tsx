@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { DollarSign, Play, Download, CheckCircle2, Calculator, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 import { calculateBpjsContribution, calculatePph21Ter } from "@nusakerja/config";
+import { trpcClient } from "../../../src/utils/trpc-client";
 
 const TER_TABLE = [
   { cat: "A", range: "s.d. Rp5.400.000",         tarif: "0%  →  0.25%  →  0.50%" },
@@ -24,6 +25,20 @@ export default function PayrollPage() {
     jhtER: number; jpER: number; jkkER: number; jkmER: number; kesER: number;
   } | null>(null);
 
+  const [year, setYear] = useState(2026);
+  const [month, setMonth] = useState(8);
+  const [includeThr, setIncludeThr] = useState(false);
+  const [runBusy, setRunBusy] = useState(false);
+  const [runError, setRunError] = useState<string | null>(null);
+  const [runResult, setRunResult] = useState<{
+    runId: string;
+    employeeCount: number;
+    employeesFromPayStructure: number;
+    totalGrossIdr: number;
+    totalPph21TaxIdr: number;
+    totalNetPayoutIdr: number;
+  } | null>(null);
+
   const fmt = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 
   const calculate = () => {
@@ -41,6 +56,23 @@ export default function PayrollPage() {
     });
   };
 
+  const runCompanyPayroll = async () => {
+    setRunBusy(true);
+    setRunError(null);
+    try {
+      const data = await trpcClient.payroll.calculatePayrollRun.mutate({
+        year,
+        month,
+        includeThr,
+      });
+      setRunResult(data);
+    } catch (e) {
+      setRunError(e instanceof Error ? e.message : "Payroll run failed");
+    } finally {
+      setRunBusy(false);
+    }
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
 
@@ -55,6 +87,93 @@ export default function PayrollPage() {
           <h1 style={{ fontSize: 26, fontWeight: 900, margin: 0 }}>Payroll Engine & PPh 21 Calculator</h1>
           <p style={{ fontSize: 13, margin: "6px 0 0", opacity: 0.85 }}>Kalkulator PPh 21 TER (Kategori A/B/C), BPJS Ketenagakerjaan & Kesehatan, dan THP Netto karyawan.</p>
         </div>
+      </div>
+
+      <div
+        className="card-white"
+        style={{ padding: 24, border: "1px solid #E2E8F0", borderRadius: 16, background: "#fff" }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+          <Play style={{ width: 18, height: 18, color: "#0F766E" }} />
+          <div>
+            <p style={{ margin: 0, fontSize: 15, fontWeight: 800 }}>Company payroll run</p>
+            <p style={{ margin: 0, fontSize: 12, color: "#64748B" }}>
+              Resolves each employee&apos;s pay_structure policy (person → grade → tenant), then runs existing PPh 21 TER +
+              BPJS engines. CA may calculate; Company Admin/HR disburse separately.
+            </p>
+          </div>
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "end" }}>
+          <label style={{ fontSize: 12, fontWeight: 700 }}>
+            Year
+            <input
+              type="number"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value) || 2026)}
+              style={{ display: "block", marginTop: 4, padding: 8, borderRadius: 8, border: "1px solid #CBD5E1" }}
+            />
+          </label>
+          <label style={{ fontSize: 12, fontWeight: 700 }}>
+            Month
+            <input
+              type="number"
+              min={1}
+              max={12}
+              value={month}
+              onChange={(e) => setMonth(Number(e.target.value) || 1)}
+              style={{ display: "block", marginTop: 4, padding: 8, borderRadius: 8, border: "1px solid #CBD5E1" }}
+            />
+          </label>
+          <label style={{ fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 8, paddingBottom: 8 }}>
+            <input type="checkbox" checked={includeThr} onChange={(e) => setIncludeThr(e.target.checked)} />
+            Include THR
+          </label>
+          <button
+            type="button"
+            disabled={runBusy}
+            onClick={() => void runCompanyPayroll()}
+            style={{
+              background: "#0F766E",
+              color: "#fff",
+              border: "none",
+              borderRadius: 10,
+              padding: "10px 14px",
+              fontWeight: 800,
+              cursor: "pointer",
+            }}
+          >
+            {runBusy ? "Calculating…" : "Calculate run"}
+          </button>
+        </div>
+        {runError && (
+          <p style={{ marginTop: 12, background: "#FEF3C7", color: "#92400E", padding: 10, borderRadius: 10, fontSize: 13 }}>
+            {runError}
+          </p>
+        )}
+        {runResult && (
+          <div style={{ marginTop: 12, fontSize: 13, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 10 }}>
+            <div>
+              <span style={{ color: "#64748B" }}>Employees</span>
+              <p style={{ margin: 0, fontWeight: 800 }}>{runResult.employeeCount}</p>
+            </div>
+            <div>
+              <span style={{ color: "#64748B" }}>From pay structure</span>
+              <p style={{ margin: 0, fontWeight: 800 }}>{runResult.employeesFromPayStructure}</p>
+            </div>
+            <div>
+              <span style={{ color: "#64748B" }}>Gross</span>
+              <p style={{ margin: 0, fontWeight: 800 }}>{fmt(runResult.totalGrossIdr)}</p>
+            </div>
+            <div>
+              <span style={{ color: "#64748B" }}>PPh 21</span>
+              <p style={{ margin: 0, fontWeight: 800 }}>{fmt(runResult.totalPph21TaxIdr)}</p>
+            </div>
+            <div>
+              <span style={{ color: "#64748B" }}>Net</span>
+              <p style={{ margin: 0, fontWeight: 800 }}>{fmt(runResult.totalNetPayoutIdr)}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: 24, alignItems: "start" }}>

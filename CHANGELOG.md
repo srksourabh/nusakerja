@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **U4 OSM maps**: Leaflet + OpenStreetMap punch map (self day pins) and manager/HR team map (latest pin per person in subtree/company); punches without coords omitted; GPS attached on punch when available.
 - **U5 grade policies**: `hr_policies` + `policy_assignments`; resolve person → grade → tenant; policies tRPC + `/policies` HR UI; seed leave examples.
 - **U6 leave/expense to boss**: `approverEmployeeId` routing (manager → HR fallback), expense claims (TRAVEL/MEAL/MEDICAL/OTHER), notifications inbox, approve/reject with audit.
+- **U7 pay structure → payroll**: parse pay_structure components into basic/allowances; `computeStatutoryPayrollLine` wraps existing TER/BPJS; payroll run + preview use resolved policies; grade-2 golden fixture test.
 
 ## [1.0.0-GA] - 2026-07-23
 

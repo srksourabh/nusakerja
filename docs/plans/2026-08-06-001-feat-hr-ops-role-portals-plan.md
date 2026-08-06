@@ -259,11 +259,14 @@ orphan OUT ignored/warned; trailing IN → live elapsed only
 
 ### U7 — Pay structure → statutory payroll
 
-**Files:** payroll router/UI; policy payload shape for components; wire into existing TER/BPJS calculators.
+**Status:** Done (2026-08-06)
+
+**Files:** `packages/config/src/pay-structure-payroll.ts`, payroll router/UI, seed grade-2 pay_structure.
 
 **Behavior:**
 - Resolved pay structure supplies base + allowances; statutory engines unchanged.
 - Company Admin/HR run payroll as today; CA calculate-only still applies.
+- `previewEmployee` + calculate run drilldown records policy id/source.
 
 **Tests:** Fixture employee grade-2 structure → PPh/BPJS match golden fixture within 1 IDR.
 
@@ -322,7 +325,7 @@ U1 is a security/UX hotfix and should ship first (even alone). U3/U4 can paralle
 - [x] OSM maps (self + manager team)
 - [x] Policies assignable by grade/person
 - [x] Leave + expenses to immediate boss with notifications
-- [ ] Payroll still Indonesia-statutory via existing engines
+- [x] Payroll still Indonesia-statutory via existing engines
 - [ ] `pnpm typecheck`, lint, and unit tests for punch-hours + policy resolve green
 
 ---

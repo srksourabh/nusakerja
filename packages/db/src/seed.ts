@@ -387,6 +387,62 @@ export async function seed() {
         });
       }
     }
+
+    // U7 sample pay structures: tenant default + grade-2 fixture (8M + 800k allowances)
+    const existingPay = await db
+      .select()
+      .from(hrPolicies)
+      .where(and(eq(hrPolicies.tenantId, defaultTenantId), eq(hrPolicies.kind, "pay_structure")))
+      .limit(1);
+    if (!existingPay[0]) {
+      const [payDefault] = await db
+        .insert(hrPolicies)
+        .values({
+          tenantId: defaultTenantId,
+          name: "Default pay structure",
+          kind: "pay_structure",
+          payload: {
+            components: [
+              { code: "BASIC", label: "Basic salary", amountIdr: 5_000_000 },
+              { code: "TRANSPORT", label: "Transport", amountIdr: 500_000 },
+            ],
+          },
+          effectiveFrom: "2026-01-01",
+        })
+        .returning();
+      const [payG2] = await db
+        .insert(hrPolicies)
+        .values({
+          tenantId: defaultTenantId,
+          name: "Grade 2 pay structure",
+          kind: "pay_structure",
+          payload: {
+            components: [
+              { code: "BASIC", label: "Basic salary", amountIdr: 8_000_000 },
+              { code: "TRANSPORT", label: "Transport", amountIdr: 500_000 },
+              { code: "MEAL", label: "Meal", amountIdr: 300_000 },
+            ],
+          },
+          effectiveFrom: "2026-01-01",
+        })
+        .returning();
+      if (payDefault) {
+        await db.insert(policyAssignments).values({
+          tenantId: defaultTenantId,
+          policyId: payDefault.id,
+          grade: null,
+          employeeId: null,
+        });
+      }
+      if (payG2) {
+        await db.insert(policyAssignments).values({
+          tenantId: defaultTenantId,
+          policyId: payG2.id,
+          grade: 2,
+          employeeId: null,
+        });
+      }
+    }
   }
 
   console.log("✅ Database seeding completed successfully!");
