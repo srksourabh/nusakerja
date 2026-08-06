@@ -1,6 +1,6 @@
 # PROGRESS.md — NusaKerja Master Task & Production Readiness Tracker
 
-> Status: **Production** `main` includes SaaS RBAC + Easy Login + company URLs + HR ops **U1–U3**. Units **U4–U7** ship via open PRs; **U8** (this docs/seed pass) documents the full program.
+> Status: **Production** `main` includes SaaS RBAC + Easy Login + company URLs + HR ops **U1–U8**.
 
 Plan: `docs/plans/2026-08-06-001-feat-hr-ops-role-portals-plan.md`  
 Personas: `docs/demo-personas.md`
@@ -12,7 +12,7 @@ Personas: `docs/demo-personas.md`
 - [x] U5 Policy engine by grade
 - [x] U6 Leave + expense → immediate boss
 - [x] U7 Pay structure → statutory payroll
-- [ ] U8 Docs & seed
+- [x] U8 Docs & seed
 ## HR ops role portals (U1–U8)
 
 | Unit | Status | Notes |
@@ -20,11 +20,11 @@ Personas: `docs/demo-personas.md`
 | U1 Kill Simulasi + English default + dual My Work / Manage | Done on `main` | |
 | U2 Org tree manager + grade 1–5 | Done on `main` | Migration `0001_…` |
 | U3 Multi-punch day hours + live timer | Done on `main` | |
-| U4 OSM punch / team map | PR #4 | `cursor/hr-ops-u4-osm-maps-a88a` |
-| U5 Policy engine by grade | PR #5 | `cursor/hr-ops-u5-grade-policies-a88a` |
-| U6 Leave + expense → immediate boss | PR #6 | `cursor/hr-ops-u6-leave-expense-boss-a88a` |
-| U7 Pay structure → statutory payroll | PR #7 | Stacked on U5 |
-| U8 Docs & seed | Done (this branch) | REQUIREMENTS / SECURITY / DATABASE / demo-personas |
+| U4 OSM punch / team map | Done on `main` | |
+| U5 Policy engine by grade | Done on `main` | Migration `0002_…` |
+| U6 Leave + expense → immediate boss | Done on `main` | Migration `0003_…` |
+| U7 Pay structure → statutory payroll | Done on `main` | |
+| U8 Docs & seed | Done on `main` | `docs/demo-personas.md` |
 
 ## Latest — SaaS RBAC (merged to main)
 
