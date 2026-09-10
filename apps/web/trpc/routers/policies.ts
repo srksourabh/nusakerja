@@ -16,6 +16,16 @@ import {
 import { router, protectedProcedure } from "../trpc";
 
 const kindSchema = z.enum(["leave", "hr_general", "pay_structure"]);
+const payloadSchema = z.record(z.string(), z.any());
+
+function toDateKey(value: string | Date | null | undefined): string | null {
+  if (value == null) return null;
+  if (typeof value === "string") return value.slice(0, 10);
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10);
+  }
+  return String(value).slice(0, 10);
+}
 
 function assertHrOps(ctx: {
   user: { role: Parameters<typeof can>[0]["role"]; assignedTenantIds?: string[] };
@@ -67,8 +77,19 @@ export const policiesRouter = router({
         .where(eq(policyAssignments.tenantId, tenantId));
 
       return rows.map((p) => ({
-        ...p,
-        assignments: assignments.filter((a) => a.policyId === p.id),
+        id: p.id,
+        name: p.name,
+        kind: p.kind,
+        payload: (p.payload ?? {}) as Record<string, unknown>,
+        effectiveFrom: toDateKey(p.effectiveFrom) ?? "",
+        effectiveTo: toDateKey(p.effectiveTo),
+        assignments: assignments
+          .filter((a) => a.policyId === p.id)
+          .map((a) => ({
+            id: a.id,
+            grade: a.grade,
+            employeeId: a.employeeId,
+          })),
       }));
     }),
 
@@ -77,13 +98,12 @@ export const policiesRouter = router({
       z.object({
         name: z.string().min(2).max(120),
         kind: kindSchema,
-        payload: z.record(z.unknown()),
+        payload: payloadSchema,
         effectiveFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
         effectiveTo: z
           .string()
           .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .nullable()
-          .optional(),
+          .nullish(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -94,11 +114,15 @@ export const policiesRouter = router({
           tenantId: ctx.tenantId!,
           name: input.name,
           kind: input.kind,
-          payload: input.payload,
+          payload: input.payload as Record<string, unknown>,
           effectiveFrom: input.effectiveFrom,
           effectiveTo: input.effectiveTo ?? null,
         })
         .returning();
+
+      if (!row) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create policy." });
+      }
 
       await writeAudit({
         userId: ctx.user.id,
@@ -108,21 +132,30 @@ export const policiesRouter = router({
         details: { name: row.name, kind: row.kind },
       });
 
-      return row;
+      return {
+        id: row.id,
+        name: row.name,
+        kind: row.kind,
+        payload: (row.payload ?? {}) as Record<string, unknown>,
+        effectiveFrom: toDateKey(row.effectiveFrom) ?? input.effectiveFrom,
+        effectiveTo: toDateKey(row.effectiveTo),
+      };
     }),
 
   assign: protectedProcedure
     .input(
       z.object({
         policyId: z.string().uuid(),
-        grade: z.number().int().min(1).max(5).nullable(),
-        employeeId: z.string().uuid().nullable(),
+        grade: z.number().int().min(1).max(5).nullish(),
+        employeeId: z.string().uuid().nullish(),
       })
     )
     .mutation(async ({ input, ctx }) => {
       assertHrOps(ctx);
+      const grade = input.grade ?? null;
+      const employeeId = input.employeeId ?? null;
       try {
-        assertAssignmentTarget(input.grade, input.employeeId);
+        assertAssignmentTarget(grade, employeeId);
       } catch (e) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -139,11 +172,11 @@ export const policiesRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Policy not found." });
       }
 
-      if (input.employeeId) {
+      if (employeeId) {
         const [emp] = await db
           .select()
           .from(employees)
-          .where(and(eq(employees.id, input.employeeId), eq(employees.tenantId, ctx.tenantId!)))
+          .where(and(eq(employees.id, employeeId), eq(employees.tenantId, ctx.tenantId!)))
           .limit(1);
         if (!emp) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Employee not in this company." });
@@ -155,8 +188,8 @@ export const policiesRouter = router({
         .values({
           tenantId: ctx.tenantId!,
           policyId: input.policyId,
-          grade: input.grade,
-          employeeId: input.employeeId,
+          grade,
+          employeeId,
         })
         .returning();
 
@@ -165,10 +198,10 @@ export const policiesRouter = router({
         tenantId: ctx.tenantId,
         action: "policy.assign",
         resourceId: policy.id,
-        details: { grade: input.grade, employeeId: input.employeeId },
+        details: { grade, employeeId },
       });
 
-      return row;
+      return { id: row.id, policyId: row.policyId, grade: row.grade, employeeId: row.employeeId };
     }),
 
   removeAssignment: protectedProcedure
@@ -250,8 +283,8 @@ export const policiesRouter = router({
           name: p.name,
           kind: p.kind as PolicyKind,
           payload: (p.payload ?? {}) as Record<string, unknown>,
-          effectiveFrom: p.effectiveFrom,
-          effectiveTo: p.effectiveTo,
+          effectiveFrom: toDateKey(p.effectiveFrom) ?? "",
+          effectiveTo: toDateKey(p.effectiveTo),
         })),
         assignments: assignments.map((a) => ({
           policyId: a.policyId,

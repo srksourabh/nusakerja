@@ -25,6 +25,16 @@ type Policy = {
 
 type Emp = { id: string; fullName: string; grade: number };
 
+function trpcMessage(e: unknown, fallback: string): string {
+  if (e && typeof e === "object") {
+    const o = e as { message?: unknown; data?: { zodError?: unknown }; shape?: { message?: unknown } };
+    if (o.data?.zodError) return JSON.stringify(o.data.zodError);
+    if (typeof o.message === "string" && o.message) return o.message;
+    if (typeof o.shape?.message === "string" && o.shape.message) return o.shape.message;
+  }
+  return fallback;
+}
+
 const KIND_LABEL: Record<PolicyKind, string> = {
   leave: "Leave",
   hr_general: "HR general",
@@ -66,12 +76,13 @@ export default function PoliciesPage() {
   const [resolveEmployeeId, setResolveEmployeeId] = useState("");
   const [resolveKind, setResolveKind] = useState<PolicyKind>("leave");
   const [resolved, setResolved] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
     try {
       const [list, emps] = await Promise.all([
-        trpcClient.policies.list.query({}),
+        trpcClient.policies.list.query(),
         trpcClient.employees.list.query(),
       ]);
       setPolicies(list as Policy[]);
@@ -85,7 +96,7 @@ export default function PoliciesPage() {
       if (!assignPolicyId && list[0]) setAssignPolicyId(list[0].id);
       if (!resolveEmployeeId && emps[0]) setResolveEmployeeId((emps as Emp[])[0].id);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load policies");
+      setError(trpcMessage(e, "Failed to load policies"));
     }
   }, [assignPolicyId, resolveEmployeeId]);
 
@@ -96,6 +107,7 @@ export default function PoliciesPage() {
   const createPolicy = async () => {
     setBusy(true);
     setError(null);
+    setSuccess(null);
     try {
       const payload =
         kind === "leave"
@@ -108,44 +120,59 @@ export default function PoliciesPage() {
         effectiveFrom,
         effectiveTo: null,
       });
+      setSuccess(`Created "${name}".`);
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Create failed");
+      setError(trpcMessage(e, "Create failed"));
     } finally {
       setBusy(false);
     }
   };
 
   const assign = async () => {
-    if (!assignPolicyId) return;
+    if (!assignPolicyId) {
+      setError("Select a policy to assign.");
+      return;
+    }
+    if (assignMode === "employee" && !assignEmployeeId) {
+      setError("Select an employee for the person override.");
+      return;
+    }
     setBusy(true);
     setError(null);
+    setSuccess(null);
     try {
       await trpcClient.policies.assign.mutate({
         policyId: assignPolicyId,
         grade: assignMode === "grade" ? assignGrade : null,
-        employeeId: assignMode === "employee" ? assignEmployeeId || null : null,
+        employeeId: assignMode === "employee" ? assignEmployeeId : null,
       });
+      setSuccess("Assignment saved.");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Assign failed");
+      setError(trpcMessage(e, "Assign failed"));
     } finally {
       setBusy(false);
     }
   };
 
   const runResolve = async () => {
-    if (!resolveEmployeeId) return;
+    if (!resolveEmployeeId) {
+      setError("Select an employee to resolve.");
+      return;
+    }
     setBusy(true);
     setError(null);
+    setSuccess(null);
     try {
       const result = await trpcClient.policies.resolve.query({
         employeeId: resolveEmployeeId,
         kind: resolveKind,
       });
       setResolved(result ? JSON.stringify(result, null, 2) : "No policy resolved");
+      setSuccess(result ? `Resolved via ${result.source}.` : "No matching policy for that employee.");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Resolve failed");
+      setError(trpcMessage(e, "Resolve failed"));
     } finally {
       setBusy(false);
     }
@@ -187,6 +214,11 @@ export default function PoliciesPage() {
       {error && (
         <p style={{ background: "#FEF3C7", color: "#92400E", padding: "10px 12px", borderRadius: 12, fontSize: 13 }}>
           {error}
+        </p>
+      )}
+      {success && (
+        <p style={{ background: "#DCFCE7", color: "#14532D", padding: "10px 12px", borderRadius: 12, fontSize: 13 }}>
+          {success}
         </p>
       )}
 

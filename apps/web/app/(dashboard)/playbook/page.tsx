@@ -219,7 +219,10 @@ export default function PlaybookPage() {
             </div>
             <div style={{ marginTop: 20, paddingTop: 12, borderTop: "1px solid #F1F5F9", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: 11, color: "#64748B", fontWeight: 600 }}>Tervalidasi Konsultan Pajak & HR</span>
-              <a href="#" style={{ fontSize: 11, color: s.color, fontWeight: 800, textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
+              <a
+                href={s.id === "severance-pp35" ? "/severance" : "#"}
+                style={{ fontSize: 11, color: s.color, fontWeight: 800, textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}
+              >
                 Pelajari Detail <ChevronRight style={{ width: 12, height: 12 }} />
               </a>
             </div>

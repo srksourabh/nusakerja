@@ -1,6 +1,7 @@
 "use client";
 
-import { ShieldCheck, Building2, CreditCard, Award, ExternalLink, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ShieldCheck, Building2, CreditCard, Award, ExternalLink, CheckCircle2, AlertTriangle, Calculator } from "lucide-react";
+import { SeveranceCalculator } from "../../../src/components/severance-calculator";
 
 const params = [
   { key: "NPWP Perusahaan",      value: "01.234.567.8-012.000",   status: "verified" },
@@ -61,6 +62,20 @@ export default function ClientAdminPage() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* PP 35 Severance */}
+      <div className="card-white" style={{ padding: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid #E7E0EC" }}>
+          <div style={{ width: 40, height: 40, borderRadius: 14, background: "#FEE2E2", color: "#991B1B", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Calculator style={{ width: 18, height: 18 }} />
+          </div>
+          <div>
+            <p style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>PP 35 Severance</p>
+            <p style={{ fontSize: 12, margin: 0, color: "#625B71" }}>Kalkulator pesangon, UPMK, UPH, dan PPh 21 Final sesuai PP 35/2021</p>
+          </div>
+        </div>
+        <SeveranceCalculator />
       </div>
 
       {/* BPJS Rates Table */}
