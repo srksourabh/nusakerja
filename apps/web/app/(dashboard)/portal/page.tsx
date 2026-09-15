@@ -3,6 +3,27 @@
 import { UserCheck, Calendar, Download, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { PunchClockPanel } from "../../../src/components/punch-clock-panel";
 
+function escapePdfText(value: string) {
+  return value.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+}
+
+function downloadPayslipPdf(month: string) {
+  const lines = ["NusaKerja", "Payslip", `Period: ${month}`, "Employee: Budi Santoso", "This document is generated from My Work."];
+  const stream = `BT /F1 18 Tf 72 760 Td (${escapePdfText(lines[0])}) Tj 0 -36 Td /F1 14 Tf (${escapePdfText(lines[1])}) Tj 0 -28 Td /F1 11 Tf ${lines.slice(2).map((line, index) => `${index ? "0 -20 Td " : ""}(${escapePdfText(line)}) Tj`).join(" ")} ET`;
+  const objects = ["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>", "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>", "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>", `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`];
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+  objects.forEach((object, index) => { offsets.push(pdf.length); pdf += `${index + 1} 0 obj\n${object}\nendobj\n`; });
+  const xref = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${offsets.slice(1).map((offset) => `${String(offset).padStart(10, "0")} 00000 n \n`).join("")}trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  const url = URL.createObjectURL(new Blob([pdf], { type: "application/pdf" }));
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `payslip-${month.toLowerCase().replace(/\s+/g, "-")}.pdf`;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
 const leaveData = [
   { type: "Annual leave", used: 5, total: 12, color: "#6750A4" },
   { type: "Sick leave", used: 2, total: 14, color: "#DC2626" },
@@ -135,7 +156,7 @@ export default function EmployeePortalPage() {
                   <CheckCircle2 style={{ width: 14, height: 14, color: "#16A34A" }} />
                   <span style={{ fontSize: 13, fontWeight: 700 }}>Payslip {m}</span>
                 </div>
-                <button type="button" className="btn btn-secondary btn-sm" style={{ fontSize: 11 }}>
+                <button type="button" onClick={() => downloadPayslipPdf(m)} className="btn btn-secondary btn-sm" style={{ fontSize: 11 }}>
                   PDF
                 </button>
               </div>

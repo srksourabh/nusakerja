@@ -38,6 +38,9 @@
 - **RP-4**: Leave and expense claims route to `managerEmployeeId` (HR employee fallback); only the assigned boss may decide (HR/Company Admin may escalate).
 - **RP-5**: Expense categories: `TRAVEL`, `MEAL`, `MEDICAL`, `OTHER`.
 - **RP-6**: In-app notifications on leave/expense submit and decide.
+- **RP-7**: Leave submission validates the selected inclusive calendar range on the server and rejects a range longer than the requested duration.
+- **RP-8**: Leave and expense decisions show an in-progress state while saving, preventing duplicate submissions.
+- **RP-9**: My Work payslip controls download a PDF document, and regulatory portal links use current login endpoints.
 
 ### M7: SaaS Control Plane
 - **SAAS-1**: Platform SuperAdmin creates companies and invites the first Company Admin (no payroll PII).

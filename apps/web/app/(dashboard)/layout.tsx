@@ -337,9 +337,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </span>
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {[
-                { href: "https://coretax.pajak.go.id", label: "DJP Coretax PPh 21", color: "#F87171" },
+                { href: "https://coretaxdjp.pajak.go.id/", label: "DJP Coretax PPh 21", color: "#F87171" },
                 { href: "https://sipp.bpjsketenagakerjaan.go.id", label: "BPJS TK SIPP", color: "#34D399" },
-                { href: "https://edabu.bpjs-kesehatan.go.id", label: "BPJS Kesehatan e-Dabu", color: "#38BDF8" },
+                { href: "https://edabu.bpjs-kesehatan.go.id/Edabu/Home/Login", label: "BPJS Kesehatan e-Dabu", color: "#38BDF8" },
               ].map((link) => (
                 <a
                   key={link.href}

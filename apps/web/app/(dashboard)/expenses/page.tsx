@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Briefcase, CheckCircle2, Plus, XCircle } from "lucide-react";
+import { Briefcase, CheckCircle2, LoaderCircle, Plus, XCircle } from "lucide-react";
 import { trpcClient } from "../../../src/utils/trpc-client";
 import { useAuth } from "../../../src/context/auth-context";
 
@@ -25,6 +25,7 @@ export default function ExpensesPage() {
   const [category, setCategory] = useState<"TRAVEL" | "MEAL" | "MEDICAL" | "OTHER">("TRAVEL");
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
+  const [decidingId, setDecidingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
@@ -46,7 +47,7 @@ export default function ExpensesPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setBusy(true);
+    setDecidingId(claimId);
     setError(null);
     try {
       await trpcClient.expenses.submit.mutate({
@@ -60,7 +61,7 @@ export default function ExpensesPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Submit failed");
     } finally {
-      setBusy(false);
+      setDecidingId(null);
     }
   };
 
@@ -206,7 +207,7 @@ export default function ExpensesPage() {
                     <div style={{ display: "flex", gap: 8 }}>
                       <button
                         type="button"
-                        disabled={busy}
+                        disabled={decidingId !== null}
                         onClick={() => void decide(c.id, "APPROVED")}
                         style={{
                           background: "#059669",
@@ -221,11 +222,12 @@ export default function ExpensesPage() {
                           gap: 4,
                         }}
                       >
-                        <CheckCircle2 style={{ width: 14, height: 14 }} /> Approve
+                        {decidingId === c.id ? <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} /> : <CheckCircle2 style={{ width: 14, height: 14 }} />}
+                        Approve
                       </button>
                       <button
                         type="button"
-                        disabled={busy}
+                        disabled={decidingId !== null}
                         onClick={() => void decide(c.id, "REJECTED")}
                         style={{
                           background: "#DC2626",
@@ -240,7 +242,8 @@ export default function ExpensesPage() {
                           gap: 4,
                         }}
                       >
-                        <XCircle style={{ width: 14, height: 14 }} /> Reject
+                        {decidingId === c.id ? <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} /> : <XCircle style={{ width: 14, height: 14 }} />}
+                        Reject
                       </button>
                     </div>
                   </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Calendar, CheckCircle2, Clock, Plus, XCircle } from "lucide-react";
+import { Calendar, CheckCircle2, Clock, LoaderCircle, Plus, XCircle } from "lucide-react";
 import { trpcClient } from "../../../src/utils/trpc-client";
 import { useAuth } from "../../../src/context/auth-context";
 
@@ -30,6 +30,13 @@ export default function LeavePage() {
   const [endDate, setEndDate] = useState("2026-08-10");
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
+  const [decidingId, setDecidingId] = useState<string | null>(null);
+
+  const maxEndDate = (() => {
+    const [year, month, day] = startDate.split("-").map(Number);
+    const value = new Date(Date.UTC(year, month - 1, day + totalDays - 1));
+    return value.toISOString().slice(0, 10);
+  })();
 
   const load = useCallback(async () => {
     setError(null);
@@ -74,7 +81,7 @@ export default function LeavePage() {
   };
 
   const decide = async (requestId: string, decision: "APPROVED" | "REJECTED") => {
-    setBusy(true);
+    setDecidingId(requestId);
     setError(null);
     try {
       await trpcClient.leave.decide.mutate({ requestId, decision });
@@ -82,7 +89,7 @@ export default function LeavePage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Decision failed");
     } finally {
-      setBusy(false);
+      setDecidingId(null);
     }
   };
 
@@ -165,6 +172,8 @@ export default function LeavePage() {
               <input
                 type="date"
                 value={endDate}
+                min={startDate}
+                max={maxEndDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 style={{ display: "block", width: "100%", marginTop: 4, padding: 8, borderRadius: 8, border: "1px solid #CBD5E1" }}
               />
@@ -237,7 +246,7 @@ export default function LeavePage() {
                     <div style={{ display: "flex", gap: 8 }}>
                       <button
                         type="button"
-                        disabled={busy}
+                        disabled={decidingId !== null}
                         onClick={() => void decide(r.id, "APPROVED")}
                         style={{
                           display: "inline-flex",
@@ -252,11 +261,12 @@ export default function LeavePage() {
                           cursor: "pointer",
                         }}
                       >
-                        <CheckCircle2 style={{ width: 14, height: 14 }} /> Approve
+                        {decidingId === r.id ? <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} /> : <CheckCircle2 style={{ width: 14, height: 14 }} />}
+                        Approve
                       </button>
                       <button
                         type="button"
-                        disabled={busy}
+                        disabled={decidingId !== null}
                         onClick={() => void decide(r.id, "REJECTED")}
                         style={{
                           display: "inline-flex",
@@ -271,7 +281,8 @@ export default function LeavePage() {
                           cursor: "pointer",
                         }}
                       >
-                        <XCircle style={{ width: 14, height: 14 }} /> Reject
+                        {decidingId === r.id ? <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} /> : <XCircle style={{ width: 14, height: 14 }} />}
+                        Reject
                       </button>
                     </div>
                   </div>

@@ -109,7 +109,7 @@ export default function PlaybookPage() {
           category: "PPh 21 TER",
           effectiveDate: "01 Januari 2026",
           summary: "Skema pemotongan PPh 21 TER Kategori A, B, C dan penyesuaian non-NPWP surcharge +20%.",
-          officialDocUrl: "https://coretax.pajak.go.id",
+          officialDocUrl: "https://coretaxdjp.pajak.go.id/",
           isUrgent: true,
         },
         {
@@ -243,9 +243,9 @@ export default function PlaybookPage() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }}>
           {[
-            { name: "DJP Coretax Pajak", desc: "Pelaporan PPh 21 TER", url: "https://coretax.pajak.go.id" },
+            { name: "DJP Coretax Pajak", desc: "Pelaporan PPh 21 TER", url: "https://coretaxdjp.pajak.go.id/" },
             { name: "BPJS TK SIPP Online", desc: "Mutasi Tenaga Kerja", url: "https://sipp.bpjsketenagakerjaan.go.id" },
-            { name: "BPJS Health e-Dabu", desc: "Badan Usaha Kesehatan", url: "https://edabu.bpjs-kesehatan.go.id" },
+            { name: "BPJS Health e-Dabu", desc: "Badan Usaha Kesehatan", url: "https://edabu.bpjs-kesehatan.go.id/Edabu/Home/Login" },
             { name: "SIAPkerja Kemnaker", desc: "Pelaporan Wajib Lapor WLKP", url: "https://siapkerja.kemnaker.go.id" },
           ].map((gov) => (
             <a

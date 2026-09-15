@@ -16,6 +16,16 @@ import {
 } from "@nusakerja/db";
 import { router, protectedProcedure } from "../trpc";
 
+function calendarDaysInclusive(startDate: string, endDate: string): number | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) return null;
+  const [startYear, startMonth, startDay] = startDate.split("-").map(Number);
+  const [endYear, endMonth, endDay] = endDate.split("-").map(Number);
+  const start = Date.UTC(startYear, startMonth - 1, startDay);
+  const end = Date.UTC(endYear, endMonth - 1, endDay);
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return null;
+  return Math.floor((end - start) / 86_400_000) + 1;
+}
+
 async function writeAudit(opts: {
   userId?: string | null;
   tenantId?: string | null;
@@ -213,6 +223,17 @@ export const leaveRouter = router({
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "No employee profile linked to this login.",
+        });
+      }
+
+      const selectedDays = calendarDaysInclusive(input.startDate, input.endDate);
+      if (selectedDays == null) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Enter a valid leave date range." });
+      }
+      if (selectedDays > input.totalDays) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `The selected date range is ${selectedDays} days, which exceeds the requested ${input.totalDays} days.`,
         });
       }
 
