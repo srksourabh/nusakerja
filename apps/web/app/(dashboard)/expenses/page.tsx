@@ -47,7 +47,7 @@ export default function ExpensesPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setDecidingId(claimId);
+    setBusy(true);
     setError(null);
     try {
       await trpcClient.expenses.submit.mutate({
@@ -61,12 +61,12 @@ export default function ExpensesPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Submit failed");
     } finally {
-      setDecidingId(null);
+      setBusy(false);
     }
   };
 
   const decide = async (claimId: string, decision: "APPROVED" | "REJECTED") => {
-    setBusy(true);
+    setDecidingId(claimId);
     setError(null);
     try {
       await trpcClient.expenses.decide.mutate({ claimId, decision });
@@ -74,7 +74,7 @@ export default function ExpensesPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Decision failed");
     } finally {
-      setBusy(false);
+      setDecidingId(null);
     }
   };
 
