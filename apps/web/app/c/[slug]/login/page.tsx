@@ -7,12 +7,15 @@ import { Building2, Mail, Lock, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useAuth, UserRole } from "../../../../src/context/auth-context";
 import { trpcClient } from "../../../../src/utils/trpc-client";
 import { buildCompanyUrl } from "../../../../src/utils/tenant-url";
+import { useI18n } from "../../../../src/context/i18n-context";
+import { LanguageToggle } from "../../../../src/components/language-toggle";
 
 export default function CompanyLoginPage() {
   const params = useParams();
   const slug = String(params.slug || "").toLowerCase();
   const router = useRouter();
   const { loginAs } = useAuth();
+  const { tx } = useI18n();
   const [companyName, setCompanyName] = useState(slug);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -68,21 +71,24 @@ export default function CompanyLoginPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
       <div className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900/90 p-8">
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center">
             <Building2 className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Login perusahaan</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">{tx("Company login", "Login perusahaan")}</p>
             <h1 className="text-lg font-black leading-tight">{companyName}</h1>
             <p className="text-[10px] font-mono text-slate-500">{companyUrl.replace(/^https?:\/\//, "")}</p>
           </div>
+        </div>
+        <LanguageToggle variant="segmented" />
         </div>
 
         {logged ? (
           <div className="text-center py-6">
             <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-            <p className="font-bold">Berhasil masuk</p>
+            <p className="font-bold">{tx("Signed in", "Berhasil masuk")}</p>
             {error && <p className="text-[11px] text-amber-300 mt-2">{error}</p>}
           </div>
         ) : (
@@ -102,7 +108,7 @@ export default function CompanyLoginPage() {
               </div>
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase">Kata sandi</label>
+              <label className="text-xs font-bold text-slate-400 uppercase">{tx("Password", "Kata sandi")}</label>
               <div className="relative mt-1">
                 <Lock className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
                 <input
@@ -120,7 +126,7 @@ export default function CompanyLoginPage() {
               disabled={loading}
               className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 font-bold text-sm flex items-center justify-center gap-2"
             >
-              {loading ? "..." : "Masuk"}
+              {loading ? "..." : tx("Sign in", "Masuk")}
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
@@ -128,11 +134,11 @@ export default function CompanyLoginPage() {
 
         <p className="text-center text-[11px] text-slate-500 mt-6">
           <Link href={`/c/${slug}`} className="underline">
-            Kembali ke portal
+            {tx("Back to portal", "Kembali ke portal")}
           </Link>
           {" · "}
           <Link href="/login" className="underline">
-            Login platform / CA
+            {tx("Platform / CA login", "Login platform / CA")}
           </Link>
         </p>
       </div>

@@ -15,16 +15,16 @@ import {
   UserCheck,
   Building2,
   BookOpen,
-  Globe,
   Briefcase,
   ClipboardList,
   Bell,
 } from "lucide-react";
 import { useI18n } from "../../src/context/i18n-context";
 import { useAuth } from "../../src/context/auth-context";
+import { LanguageToggle } from "../../src/components/language-toggle";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { locale, setLocale, t } = useI18n();
+  const { t } = useI18n();
   const {
     user,
     isEmployee,
@@ -110,24 +110,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <nav style={{ padding: "12px", flex: 1, overflowY: "auto" }}>
           {isSuperAdmin && (
             <>
-              <div className="section-label">Platform SuperAdmin</div>
+              <div className="section-label">{t("nav.platformSuperAdmin")}</div>
               <Link href="/super-admin" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Building2 style={{ width: 16, height: 16, color: "#F87171", flexShrink: 0 }} />
-                <span>Create company</span>
+                <span>{t("nav.createCompany")}</span>
               </Link>
             </>
           )}
 
           {isCa && (
             <>
-              <div className="section-label">CA (Chartered Accountant)</div>
+              <div className="section-label">{t("nav.caSection")}</div>
               <Link href="/ca" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Calculator style={{ width: 16, height: 16, color: "#34D399", flexShrink: 0 }} />
-                <span>Client portfolio</span>
+                <span>{t("nav.clientPortfolio")}</span>
               </Link>
               <Link href="/payroll" className="nav-pill" style={{ marginBottom: 2 }}>
                 <DollarSign style={{ width: 16, height: 16, color: "#FBBF24", flexShrink: 0 }} />
-                <span>Calculate payroll</span>
+                <span>{t("nav.calculatePayroll")}</span>
               </Link>
             </>
           )}
@@ -201,7 +201,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
               <Link href="/inbox" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Bell style={{ width: 16, height: 16, color: "#F59E0B", flexShrink: 0 }} />
-                <span>Inbox</span>
+                <span>{t("nav.inbox")}</span>
               </Link>
               <Link href="/portal" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Briefcase style={{ width: 16, height: 16, color: "#38BDF8", flexShrink: 0 }} />
@@ -213,30 +213,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Manage portal — role-specific */}
           {showManageNav && isManager && (
             <>
-              <div className="section-label">Manager view</div>
+              <div className="section-label">{t("nav.managerView")}</div>
               <Link href="/dashboard" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Clock style={{ width: 16, height: 16, color: "#F87171", flexShrink: 0 }} />
                 <span>{t("nav.dashboard")}</span>
               </Link>
               <Link href="/organogram" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Network style={{ width: 16, height: 16, color: "#818CF8", flexShrink: 0 }} />
-                <span>My team</span>
+                <span>{t("nav.myTeam")}</span>
               </Link>
               <Link href="/leave" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Calendar style={{ width: 16, height: 16, color: "#C084FC", flexShrink: 0 }} />
-                <span>Team leave</span>
+                <span>{t("nav.teamLeave")}</span>
               </Link>
               <Link href="/expenses" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Briefcase style={{ width: 16, height: 16, color: "#0EA5E9", flexShrink: 0 }} />
-                <span>Team expenses</span>
+                <span>{t("nav.teamExpenses")}</span>
               </Link>
               <Link href="/inbox" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Bell style={{ width: 16, height: 16, color: "#F59E0B", flexShrink: 0 }} />
-                <span>Inbox</span>
+                <span>{t("nav.inbox")}</span>
               </Link>
               <Link href="/attendance" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Clock style={{ width: 16, height: 16, color: "#FBBF24", flexShrink: 0 }} />
-                <span>Team attendance</span>
+                <span>{t("nav.teamAttendance")}</span>
               </Link>
             </>
           )}
@@ -244,7 +244,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {showManageNav && (isHrAdmin || isCompanyAdmin) && (
             <>
               <div className="section-label">
-                {isCompanyAdmin ? "Company Admin view" : "HR view"}
+                {isCompanyAdmin ? t("nav.companyAdminView") : t("nav.hrView")}
               </div>
               <Link href="/dashboard" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Clock style={{ width: 16, height: 16, color: "#F87171", flexShrink: 0 }} />
@@ -266,7 +266,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
               <Link href="/policies" className="nav-pill" style={{ marginBottom: 2 }}>
                 <ClipboardList style={{ width: 16, height: 16, color: "#14B8A6", flexShrink: 0 }} />
-                <span>Policies</span>
+                <span>{t("nav.policies")}</span>
               </Link>
               <Link href="/employees" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Users style={{ width: 16, height: 16, color: "#38BDF8", flexShrink: 0 }} />
@@ -290,7 +290,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
               <Link href="/inbox" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Bell style={{ width: 16, height: 16, color: "#F59E0B", flexShrink: 0 }} />
-                <span>Inbox</span>
+                <span>{t("nav.inbox")}</span>
               </Link>
               <Link href="/payroll" className="nav-pill" style={{ marginBottom: 2 }}>
                 <DollarSign style={{ width: 16, height: 16, color: "#34D399", flexShrink: 0 }} />
@@ -333,7 +333,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 marginBottom: 8,
               }}
             >
-              Indonesian regulatory portals
+              {t("nav.regulatoryPortals")}
             </span>
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {[
@@ -400,27 +400,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="sidebar-content">
         <header className="topbar">
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-            <button
-              type="button"
-              onClick={() => setLocale(locale === "id-ID" ? "en-US" : "id-ID")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: 12,
-                fontWeight: 700,
-                padding: "4px 12px",
-                borderRadius: 9999,
-                background: locale === "en-US" ? "#E0F2FE" : "#FEE2E2",
-                color: locale === "en-US" ? "#075985" : "#991B1B",
-                border: "1px solid #E2E8F0",
-                cursor: "pointer",
-              }}
-              title="Language — English by default; choose Indonesian when needed"
-            >
-              <Globe style={{ width: 13, height: 13 }} />
-              <span>{locale === "id-ID" ? "Bahasa Indonesia" : "English"}</span>
-            </button>
+            <LanguageToggle />
 
             <span
               style={{
@@ -453,7 +433,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               }}
             >
               {roleLabel}
-              {canManage ? ` · ${shellMode === "manage" ? "Manage" : "My Work"}` : ""}
+              {canManage ? ` · ${shellMode === "manage" ? t("nav.manage") : t("nav.mywork")}` : ""}
             </span>
           </div>
 

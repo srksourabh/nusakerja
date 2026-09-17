@@ -2,6 +2,7 @@
 
 import { ShieldCheck, Building2, CreditCard, Award, ExternalLink, CheckCircle2, AlertTriangle, Calculator } from "lucide-react";
 import { SeveranceCalculator } from "../../../src/components/severance-calculator";
+import { useI18n } from "../../../src/context/i18n-context";
 
 const params = [
   { key: "NPWP Perusahaan",      value: "01.234.567.8-012.000",   status: "verified" },
@@ -21,6 +22,7 @@ const bpjsRates = [
 ];
 
 export default function ClientAdminPage() {
+  const { tx } = useI18n();
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
 
@@ -30,10 +32,10 @@ export default function ClientAdminPage() {
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 9999, background: "rgba(255,255,255,0.15)", fontSize: 11, fontWeight: 700, marginBottom: 8 }}>
             <ShieldCheck style={{ width: 13, height: 13, color: "#6EE7B7" }} />
-            <span>Company Master Configuration Console</span>
+            <span>{tx("Company Master Configuration Console", "Konsol Konfigurasi Master Perusahaan")}</span>
           </div>
-          <h1 style={{ fontSize: 26, fontWeight: 900, margin: 0, letterSpacing: "-0.02em" }}>Konsol Client Admin — PT Nusantara Utama</h1>
-          <p style={{ fontSize: 13, margin: "6px 0 0", opacity: 0.85 }}>Pengaturan NPWP, NPP BPJS, UMK wilayah, tarif statutory, dan cabang operasional.</p>
+          <h1 style={{ fontSize: 26, fontWeight: 900, margin: 0, letterSpacing: "-0.02em" }}>{tx("Company Admin Console — PT Nusantara Utama", "Konsol Client Admin — PT Nusantara Utama")}</h1>
+          <p style={{ fontSize: 13, margin: "6px 0 0", opacity: 0.85 }}>{tx("Configure NPWP, BPJS NPP, regional UMK, statutory rates, and operating branches.", "Pengaturan NPWP, NPP BPJS, UMK wilayah, tarif statutory, dan cabang operasional.")}</p>
         </div>
       </div>
 
@@ -44,8 +46,8 @@ export default function ClientAdminPage() {
             <Building2 style={{ width: 18, height: 18 }} />
           </div>
           <div>
-            <p style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>Parameter Perusahaan</p>
-            <p style={{ fontSize: 12, margin: 0, color: "#625B71" }}>Master data statutory & identitas legal perusahaan</p>
+            <p style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>{tx("Company parameters", "Parameter Perusahaan")}</p>
+            <p style={{ fontSize: 12, margin: 0, color: "#625B71" }}>{tx("Statutory master data and legal identity", "Master data statutory & identitas legal perusahaan")}</p>
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -57,7 +59,7 @@ export default function ClientAdminPage() {
               </div>
               <span className={p.status === "verified" ? "badge badge-success" : "badge badge-info"}>
                 <CheckCircle2 style={{ width: 11, height: 11 }} />
-                {p.status === "verified" ? "Terverifikasi" : "Aktif"}
+                {p.status === "verified" ? tx("Verified", "Terverifikasi") : tx("Active", "Aktif")}
               </span>
             </div>
           ))}
@@ -71,8 +73,8 @@ export default function ClientAdminPage() {
             <Calculator style={{ width: 18, height: 18 }} />
           </div>
           <div>
-            <p style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>PP 35 Severance</p>
-            <p style={{ fontSize: 12, margin: 0, color: "#625B71" }}>Kalkulator pesangon, UPMK, UPH, dan PPh 21 Final sesuai PP 35/2021</p>
+            <p style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>{tx("PP 35 severance", "PP 35 Severance")}</p>
+            <p style={{ fontSize: 12, margin: 0, color: "#625B71" }}>{tx("Severance, UPMK, UPH, and Final PPh 21 calculator per PP 35/2021", "Kalkulator pesangon, UPMK, UPH, dan PPh 21 Final sesuai PP 35/2021")}</p>
           </div>
         </div>
         <SeveranceCalculator />
@@ -85,22 +87,22 @@ export default function ClientAdminPage() {
             <CreditCard style={{ width: 18, height: 18 }} />
           </div>
           <div>
-            <p style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>Tarif Iuran BPJS — Maret 2026</p>
-            <p style={{ fontSize: 12, margin: 0, color: "#625B71" }}>Konfigurasi tarif employee (EE) & employer (ER) contribution</p>
+            <p style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>{tx("BPJS contribution rates — March 2026", "Tarif Iuran BPJS — Maret 2026")}</p>
+            <p style={{ fontSize: 12, margin: 0, color: "#625B71" }}>{tx("Employee (EE) and employer (ER) contribution rate configuration", "Konfigurasi tarif employee (EE) & employer (ER) contribution")}</p>
           </div>
           <a href="https://www.bpjsketenagakerjaan.go.id" target="_blank" rel="noreferrer" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#6750A4", textDecoration: "none", fontWeight: 700 }}>
-            Situs Resmi <ExternalLink style={{ width: 12, height: 12 }} />
+            {tx("Official site", "Situs Resmi")} <ExternalLink style={{ width: 12, height: 12 }} />
           </a>
         </div>
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Program BPJS</th>
-                <th>Iuran Karyawan (EE)</th>
-                <th>Iuran Perusahaan (ER)</th>
-                <th>Batas Upah (Cap)</th>
-                <th>Referensi Hukum</th>
+                <th>{tx("BPJS program", "Program BPJS")}</th>
+                <th>{tx("Employee contribution (EE)", "Iuran Karyawan (EE)")}</th>
+                <th>{tx("Employer contribution (ER)", "Iuran Perusahaan (ER)")}</th>
+                <th>{tx("Wage cap", "Batas Upah (Cap)")}</th>
+                <th>{tx("Legal reference", "Referensi Hukum")}</th>
               </tr>
             </thead>
             <tbody>
@@ -119,7 +121,7 @@ export default function ClientAdminPage() {
         <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 12, background: "#FFFBEB", border: "1px solid #FDE68A", display: "flex", alignItems: "center", gap: 8 }}>
           <AlertTriangle style={{ width: 14, height: 14, color: "#D97706", flexShrink: 0 }} />
           <p style={{ fontSize: 11, margin: 0, color: "#92400E" }}>
-            <strong>Catatan:</strong> Batas upah JP (Jaminan Pensiun) berlaku Rp9.559.600/bulan per Maret 2026. BPJS Kesehatan cap keluarga maks. 5 jiwa, plafon upah Rp12.000.000.
+            <strong>{tx("Note:", "Catatan:")}</strong> {tx("JP wage cap is Rp9,559,600/month as of March 2026. BPJS Kesehatan family cap is 5 people, wage ceiling Rp12,000,000.", "Batas upah JP (Jaminan Pensiun) berlaku Rp9.559.600/bulan per Maret 2026. BPJS Kesehatan cap keluarga maks. 5 jiwa, plafon upah Rp12.000.000.")}
           </p>
         </div>
       </div>
@@ -130,7 +132,7 @@ export default function ClientAdminPage() {
           <div style={{ width: 40, height: 40, borderRadius: 14, background: "#EDE9FE", color: "#4C1D95", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Award style={{ width: 18, height: 18 }} />
           </div>
-          <p style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>Modul Lisensi NusaKerja</p>
+          <p style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>{tx("NusaKerja license modules", "Modul Lisensi NusaKerja")}</p>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
           {[

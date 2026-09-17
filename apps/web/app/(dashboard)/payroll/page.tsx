@@ -4,6 +4,7 @@ import { useState } from "react";
 import { DollarSign, Play, Download, CheckCircle2, Calculator, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 import { calculateBpjsContribution, calculatePph21Ter } from "@nusakerja/config";
 import { trpcClient } from "../../../src/utils/trpc-client";
+import { useI18n } from "../../../src/context/i18n-context";
 
 const TER_TABLE = [
   { cat: "A", range: "s.d. Rp5.400.000",         tarif: "0%  →  0.25%  →  0.50%" },
@@ -15,6 +16,7 @@ const TER_TABLE = [
 ];
 
 export default function PayrollPage() {
+  const { tx } = useI18n();
   const [gaji, setGaji]         = useState("10000000");
   const [ptkp, setPtkp]         = useState("TK0");
   const [hasNpwp, setHasNpwp]   = useState(true);
@@ -84,8 +86,8 @@ export default function PayrollPage() {
             <Calculator style={{ width: 13, height: 13, color: "#FCD34D" }} />
             <span>PMK 168/2023 — TER Method Engine</span>
           </div>
-          <h1 style={{ fontSize: 26, fontWeight: 900, margin: 0 }}>Payroll Engine & PPh 21 Calculator</h1>
-          <p style={{ fontSize: 13, margin: "6px 0 0", opacity: 0.85 }}>Kalkulator PPh 21 TER (Kategori A/B/C), BPJS Ketenagakerjaan & Kesehatan, dan THP Netto karyawan.</p>
+          <h1 style={{ fontSize: 26, fontWeight: 900, margin: 0 }}>{tx("Payroll Engine & PPh 21 Calculator", "Mesin Payroll & Kalkulator PPh 21")}</h1>
+          <p style={{ fontSize: 13, margin: "6px 0 0", opacity: 0.85 }}>{tx("PPh 21 TER calculator (Category A/B/C), BPJS TK & Kesehatan, and net take-home pay.", "Kalkulator PPh 21 TER (Kategori A/B/C), BPJS Ketenagakerjaan & Kesehatan, dan THP Netto karyawan.")}</p>
         </div>
       </div>
 
@@ -96,16 +98,18 @@ export default function PayrollPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
           <Play style={{ width: 18, height: 18, color: "#0F766E" }} />
           <div>
-            <p style={{ margin: 0, fontSize: 15, fontWeight: 800 }}>Company payroll run</p>
+            <p style={{ margin: 0, fontSize: 15, fontWeight: 800 }}>{tx("Company payroll run", "Jalankan payroll perusahaan")}</p>
             <p style={{ margin: 0, fontSize: 12, color: "#64748B" }}>
-              Resolves each employee&apos;s pay_structure policy (person → grade → tenant), then runs existing PPh 21 TER +
-              BPJS engines. CA may calculate; Company Admin/HR disburse separately.
+              {tx(
+                "Resolves each employee's pay_structure policy (person → grade → tenant), then runs existing PPh 21 TER + BPJS engines. CA may calculate; Company Admin/HR disburse separately.",
+                "Menyelesaikan kebijakan pay_structure setiap karyawan (orang → grade → tenant), lalu menjalankan mesin PPh 21 TER + BPJS. CA boleh menghitung; Company Admin/HR yang mencairkan."
+              )}
             </p>
           </div>
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "end" }}>
           <label style={{ fontSize: 12, fontWeight: 700 }}>
-            Year
+            {tx("Year", "Tahun")}
             <input
               type="number"
               value={year}
@@ -114,7 +118,7 @@ export default function PayrollPage() {
             />
           </label>
           <label style={{ fontSize: 12, fontWeight: 700 }}>
-            Month
+            {tx("Month", "Bulan")}
             <input
               type="number"
               min={1}
@@ -126,7 +130,7 @@ export default function PayrollPage() {
           </label>
           <label style={{ fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 8, paddingBottom: 8 }}>
             <input type="checkbox" checked={includeThr} onChange={(e) => setIncludeThr(e.target.checked)} />
-            Include THR
+            {tx("Include THR", "Sertakan THR")}
           </label>
           <button
             type="button"
@@ -142,7 +146,7 @@ export default function PayrollPage() {
               cursor: "pointer",
             }}
           >
-            {runBusy ? "Calculating…" : "Calculate run"}
+            {runBusy ? tx("Calculating…", "Menghitung…") : tx("Calculate run", "Hitung payroll")}
           </button>
         </div>
         {runError && (
@@ -153,11 +157,11 @@ export default function PayrollPage() {
         {runResult && (
           <div style={{ marginTop: 12, fontSize: 13, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 10 }}>
             <div>
-              <span style={{ color: "#64748B" }}>Employees</span>
+              <span style={{ color: "#64748B" }}>{tx("Employees", "Karyawan")}</span>
               <p style={{ margin: 0, fontWeight: 800 }}>{runResult.employeeCount}</p>
             </div>
             <div>
-              <span style={{ color: "#64748B" }}>From pay structure</span>
+              <span style={{ color: "#64748B" }}>{tx("From pay structure", "Dari struktur gaji")}</span>
               <p style={{ margin: 0, fontWeight: 800 }}>{runResult.employeesFromPayStructure}</p>
             </div>
             <div>
@@ -185,21 +189,21 @@ export default function PayrollPage() {
               <DollarSign style={{ width: 18, height: 18 }} />
             </div>
             <div>
-              <p style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>Input Penggajian</p>
-              <p style={{ fontSize: 11, margin: 0, color: "#625B71" }}>Hitung THP, PPh 21 TER & BPJS</p>
+              <p style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>{tx("Payroll input", "Input Penggajian")}</p>
+              <p style={{ fontSize: 11, margin: 0, color: "#625B71" }}>{tx("Calculate net pay, PPh 21 TER & BPJS", "Hitung THP, PPh 21 TER & BPJS")}</p>
             </div>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#49454F", marginBottom: 6 }}>Gaji Pokok + Tunjangan (Gross)</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#49454F", marginBottom: 6 }}>{tx("Basic salary + allowances (gross)", "Gaji Pokok + Tunjangan (Gross)")}</label>
               <div style={{ position: "relative" }}>
                 <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 13, fontWeight: 700, color: "#625B71", fontFamily: "var(--font-mono)" }}>Rp</span>
                 <input type="text" value={gaji} onChange={e => setGaji(e.target.value)} placeholder="10.000.000" className="input-rounded" style={{ paddingLeft: 40, fontFamily: "var(--font-mono)", fontWeight: 700 }} />
               </div>
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#49454F", marginBottom: 6 }}>Status PTKP</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#49454F", marginBottom: 6 }}>{tx("PTKP status", "Status PTKP")}</label>
               <select value={ptkp} onChange={e => setPtkp(e.target.value)} className="input-rounded">
                 <option value="TK0">TK/0 — Lajang tanpa tanggungan (Rp54 jt/thn)</option>
                 <option value="TK1">TK/1 — Lajang 1 tanggungan (Rp58,5 jt/thn)</option>
@@ -214,12 +218,12 @@ export default function PayrollPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 12, background: "#F7F2FA", border: "1px solid #E7E0EC" }}>
               <input type="checkbox" id="npwp" checked={hasNpwp} onChange={e => setHasNpwp(e.target.checked)} style={{ width: 18, height: 18, accentColor: "#6750A4", cursor: "pointer" }} />
               <label htmlFor="npwp" style={{ fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                Memiliki NPWP (tanpa surcharge 1.2×)
+                {tx("Has NPWP (no 1.2× surcharge)", "Memiliki NPWP (tanpa surcharge 1.2×)")}
               </label>
             </div>
             <button onClick={calculate} className="btn btn-navy btn-xl" style={{ width: "100%", marginTop: 4 }}>
               <Play style={{ width: 16, height: 16 }} />
-              <span>Hitung Payroll & PPh 21 TER</span>
+              <span>{tx("Calculate payroll & PPh 21 TER", "Hitung Payroll & PPh 21 TER")}</span>
             </button>
           </div>
         </div>
@@ -230,16 +234,16 @@ export default function PayrollPage() {
             <>
               {/* THP Highlight */}
               <div style={{ borderRadius: 24, padding: "24px 28px", background: "linear-gradient(135deg,#047857 0%,#065F46 100%)", color: "#fff", boxShadow: "0 6px 24px rgba(4,120,87,0.3)" }}>
-                <p style={{ fontSize: 12, fontWeight: 700, margin: 0, opacity: 0.8, textTransform: "uppercase", letterSpacing: "0.06em" }}>Take Home Pay (THP) Netto</p>
+                <p style={{ fontSize: 12, fontWeight: 700, margin: 0, opacity: 0.8, textTransform: "uppercase", letterSpacing: "0.06em" }}>{tx("Net take-home pay (THP)", "Take Home Pay (THP) Netto")}</p>
                 <p style={{ fontSize: 32, fontWeight: 900, margin: "6px 0 0", fontFamily: "var(--font-mono)" }}>{fmt(result.thp)}</p>
                 <p style={{ fontSize: 11, margin: "8px 0 0", opacity: 0.75 }}>Gaji Bruto: {fmt(result.gross)} • Bulan: {new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" })}</p>
               </div>
 
               {/* Breakdown */}
               <div className="card-white" style={{ padding: 20 }}>
-                <p style={{ fontSize: 13, fontWeight: 800, margin: "0 0 14px", color: "#1C1B1F" }}>Rincian Potongan Karyawan (EE)</p>
+                <p style={{ fontSize: 13, fontWeight: 800, margin: "0 0 14px", color: "#1C1B1F" }}>{tx("Employee deductions (EE)", "Rincian Potongan Karyawan (EE)")}</p>
                 {[
-                  { label: "Gaji Bruto", value: result.gross, positive: true },
+                  { label: tx("Gross salary", "Gaji Bruto"), value: result.gross, positive: true },
                   { label: "BPJS JHT (2.00% EE)", value: -result.jhtEE },
                   { label: "BPJS JP (1.00% EE)",  value: -result.jpEE },
                   { label: "BPJS Kesehatan (1% EE)", value: -result.kesEE },
@@ -260,7 +264,7 @@ export default function PayrollPage() {
 
               {/* Employer Cost */}
               <div className="card-white" style={{ padding: 20 }}>
-                <p style={{ fontSize: 13, fontWeight: 800, margin: "0 0 14px", color: "#1C1B1F" }}>Beban Perusahaan (ER) / Bulan</p>
+                <p style={{ fontSize: 13, fontWeight: 800, margin: "0 0 14px", color: "#1C1B1F" }}>{tx("Employer cost (ER) / month", "Beban Perusahaan (ER) / Bulan")}</p>
                 {[
                   { label: "BPJS JHT (2.00% ER)",  value: result.jhtER },
                   { label: "BPJS JP (2.00% ER)",   value: result.jpER },
@@ -274,21 +278,21 @@ export default function PayrollPage() {
                   </div>
                 ))}
                 <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0 0", marginTop: 4, borderTop: "2px solid #E7E0EC" }}>
-                  <span style={{ fontSize: 14, fontWeight: 800 }}>Total Biaya Perusahaan</span>
+                  <span style={{ fontSize: 14, fontWeight: 800 }}>{tx("Total company cost", "Total Biaya Perusahaan")}</span>
                   <span style={{ fontSize: 14, fontWeight: 900, fontFamily: "var(--font-mono)", color: "#D97706" }}>{fmt(result.gross + result.bpjsER)}</span>
                 </div>
               </div>
 
               <button className="btn btn-secondary btn-md" style={{ alignSelf: "flex-start" }}>
                 <Download style={{ width: 14, height: 14 }} />
-                <span>Export Slip Gaji PDF</span>
+                <span>{tx("Export payslip PDF", "Export Slip Gaji PDF")}</span>
               </button>
             </>
           ) : (
             <div className="card-white" style={{ padding: 40, textAlign: "center", color: "#625B71" }}>
               <Calculator style={{ width: 40, height: 40, margin: "0 auto 12px", opacity: 0.4 }} />
-              <p style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>Masukkan data gaji dan klik Hitung</p>
-              <p style={{ fontSize: 12, margin: "6px 0 0" }}>Hasil PPh 21 TER, BPJS, dan THP akan tampil di sini.</p>
+              <p style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>{tx("Enter salary data and click Calculate", "Masukkan data gaji dan klik Hitung")}</p>
+              <p style={{ fontSize: 12, margin: "6px 0 0" }}>{tx("PPh 21 TER, BPJS, and net pay will appear here.", "Hasil PPh 21 TER, BPJS, dan THP akan tampil di sini.")}</p>
             </div>
           )}
         </div>
@@ -298,8 +302,8 @@ export default function PayrollPage() {
       <div className="card-white" style={{ padding: 24 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid #E2E8F0" }}>
           <div>
-            <h3 style={{ fontSize: 16, fontWeight: 900, color: "#0F172A", margin: 0 }}>Ringkasan Penggajian PT Nusa Teknik Mandiri (5 Karyawan Sampel)</h3>
-            <p style={{ fontSize: 12, color: "#64748B", margin: 0 }}>Perhitungan Otomatis PPh 21 TER PMK 168/2023 & BPJS Ketenagakerjaan/Kesehatan Maret 2026</p>
+            <h3 style={{ fontSize: 16, fontWeight: 900, color: "#0F172A", margin: 0 }}>{tx("Payroll summary — PT Nusa Teknik Mandiri (5 sample employees)", "Ringkasan Penggajian PT Nusa Teknik Mandiri (5 Karyawan Sampel)")}</h3>
+            <p style={{ fontSize: 12, color: "#64748B", margin: 0 }}>{tx("Automatic PPh 21 TER PMK 168/2023 & BPJS TK/KS March 2026", "Perhitungan Otomatis PPh 21 TER PMK 168/2023 & BPJS Ketenagakerjaan/Kesehatan Maret 2026")}</p>
           </div>
           <span className="badge badge-success" style={{ fontSize: 11, fontWeight: 800 }}>✓ Periode Juli 2026</span>
         </div>
@@ -309,9 +313,9 @@ export default function PayrollPage() {
             <thead>
               <tr style={{ background: "#F8FAFC", textTransform: "uppercase", fontSize: 11 }}>
                 <th>NIK & Nama</th>
-                <th>Kategori Peran</th>
-                <th>Gaji Pokok (Bruto)</th>
-                <th>BPJS Karyawan (3%)</th>
+                <th>{tx("Role category", "Kategori Peran")}</th>
+                <th>{tx("Basic salary (gross)", "Gaji Pokok (Bruto)")}</th>
+                <th>{tx("Employee BPJS (3%)", "BPJS Karyawan (3%)")}</th>
                 <th>PPh 21 TER</th>
                 <th>Take Home Pay (THP)</th>
               </tr>
@@ -373,7 +377,7 @@ export default function PayrollPage() {
         <button onClick={() => setShowTer(v => !v)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <AlertTriangle style={{ width: 16, height: 16, color: "#D97706" }} />
-            <p style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>Tabel TER PMK 168/2023 — Referensi Tarif Bulanan</p>
+            <p style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>{tx("TER table PMK 168/2023 — monthly rate reference", "Tabel TER PMK 168/2023 — Referensi Tarif Bulanan")}</p>
           </div>
           {showTer ? <ChevronUp style={{ width: 18, height: 18, color: "#625B71" }} /> : <ChevronDown style={{ width: 18, height: 18, color: "#625B71" }} />}
         </button>
@@ -381,7 +385,7 @@ export default function PayrollPage() {
           <div style={{ marginTop: 16 }}>
             <div className="table-wrap">
               <table className="table">
-                <thead><tr><th>Kategori</th><th>Rentang Penghasilan Bruto/Bulan</th><th>Tarif TER Efektif</th></tr></thead>
+                <thead><tr><th>{tx("Category", "Kategori")}</th><th>{tx("Monthly gross income range", "Rentang Penghasilan Bruto/Bulan")}</th><th>{tx("Effective TER rate", "Tarif TER Efektif")}</th></tr></thead>
                 <tbody>
                   {TER_TABLE.map((r, i) => (
                     <tr key={i}>
@@ -394,7 +398,7 @@ export default function PayrollPage() {
               </table>
             </div>
             <p style={{ fontSize: 11, color: "#625B71", marginTop: 10, padding: "8px 12px", background: "#FFFBEB", borderRadius: 10, border: "1px solid #FDE68A" }}>
-              <strong>Catatan PMK 168/2023:</strong> TER Kategori A = TK/0 & TK/1; Kat B = TK/2, TK/3, K/0; Kat C = K/1, K/2, K/3. Tidak ber-NPWP dikenakan surcharge 1.2× dari tarif TER.
+              <strong>{tx("PMK 168/2023 note:", "Catatan PMK 168/2023:")}</strong> {tx("TER Category A = TK/0 & TK/1; Cat B = TK/2, TK/3, K/0; Cat C = K/1, K/2, K/3. No NPWP incurs a 1.2x TER surcharge.", "TER Kategori A = TK/0 & TK/1; Kat B = TK/2, TK/3, K/0; Kat C = K/1, K/2, K/3. Tidak ber-NPWP dikenakan surcharge 1.2x dari tarif TER.")}
             </p>
           </div>
         )}

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ClipboardList, Plus, RefreshCw, Link2 } from "lucide-react";
 import { trpcClient } from "../../../src/utils/trpc-client";
 import { useAuth } from "../../../src/context/auth-context";
+import { useI18n } from "../../../src/context/i18n-context";
 
 type PolicyKind = "leave" | "hr_general" | "pay_structure";
 
@@ -56,6 +57,7 @@ function defaultPayload(kind: PolicyKind): Record<string, unknown> {
 
 export default function PoliciesPage() {
   const { isHrAdmin, isCompanyAdmin } = useAuth();
+  const { tx } = useI18n();
   const canEdit = isHrAdmin || isCompanyAdmin;
 
   const [policies, setPolicies] = useState<Policy[]>([]);
@@ -181,7 +183,7 @@ export default function PoliciesPage() {
   if (!canEdit) {
     return (
       <div style={{ padding: 24 }}>
-        <p style={{ fontWeight: 700 }}>Policies are managed by HR or Company Admin.</p>
+        <p style={{ fontWeight: 700 }}>{tx("Policies are managed by HR or Company Admin.", "Kebijakan dikelola oleh HR atau Company Admin.")}</p>
       </div>
     );
   }
@@ -199,15 +201,17 @@ export default function PoliciesPage() {
             color: "#64748B",
           }}
         >
-          HR · Grade policies
+          {tx("HR · Grade policies", "HR · Kebijakan grade")}
         </p>
         <h1 style={{ margin: "6px 0 0", fontSize: 26, fontWeight: 900, display: "flex", alignItems: "center", gap: 10 }}>
           <ClipboardList style={{ width: 26, height: 26 }} />
-          Policies
+          {tx("Policies", "Kebijakan")}
         </h1>
         <p style={{ margin: "8px 0 0", color: "#64748B", fontSize: 14 }}>
-          Create leave, HR, and pay-structure policies. Assign by grade or person (person wins). Tenant default =
-          assignment with no grade and no employee.
+          {tx(
+            "Create leave, HR, and pay-structure policies. Assign by grade or person (person wins). Tenant default = assignment with no grade and no employee.",
+            "Buat kebijakan cuti, HR, dan struktur gaji. Tetapkan per grade atau per orang (orang menang). Default tenant = penugasan tanpa grade dan tanpa karyawan."
+          )}
         </p>
       </div>
 
@@ -244,7 +248,7 @@ export default function PoliciesPage() {
       </div>
 
       <section style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: 20 }}>
-        <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800 }}>Create policy</h2>
+        <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800 }}>{tx("Create policy", "Buat kebijakan")}</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12 }}>
           <label style={{ fontSize: 12, fontWeight: 700 }}>
             Name
@@ -311,7 +315,7 @@ export default function PoliciesPage() {
       </section>
 
       <section style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: 20 }}>
-        <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800 }}>Assign</h2>
+        <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800 }}>{tx("Assign", "Tetapkan")}</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12 }}>
           <label style={{ fontSize: 12, fontWeight: 700 }}>
             Policy
@@ -397,7 +401,7 @@ export default function PoliciesPage() {
       </section>
 
       <section style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: 20 }}>
-        <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800 }}>Resolve (preview)</h2>
+        <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800 }}>{tx("Resolve (preview)", "Terapkan (pratinjau)")}</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12 }}>
           <label style={{ fontSize: 12, fontWeight: 700 }}>
             Employee
@@ -461,9 +465,9 @@ export default function PoliciesPage() {
       </section>
 
       <section style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: 20 }}>
-        <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800 }}>Existing ({policies.length})</h2>
+        <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800 }}>{tx("Existing ({n})", "Yang ada ({n})", { n: policies.length })}</h2>
         {policies.length === 0 ? (
-          <p style={{ color: "#64748B", fontSize: 13 }}>No policies yet. Create one or run seed.</p>
+          <p style={{ color: "#64748B", fontSize: 13 }}>{tx("No policies yet. Create one or run seed.", "Belum ada kebijakan. Buat baru atau jalankan seed.")}</p>
         ) : (
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
             {policies.map((p) => (

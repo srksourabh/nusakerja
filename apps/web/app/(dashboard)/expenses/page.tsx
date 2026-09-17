@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Briefcase, CheckCircle2, LoaderCircle, Plus, XCircle } from "lucide-react";
 import { trpcClient } from "../../../src/utils/trpc-client";
 import { useAuth } from "../../../src/context/auth-context";
+import { useI18n } from "../../../src/context/i18n-context";
 
 type Claim = {
   id: string;
@@ -15,6 +16,7 @@ type Claim = {
 
 export default function ExpensesPage() {
   const { isManager, isHrAdmin, isCompanyAdmin, shellMode } = useAuth();
+  const { tx } = useI18n();
   const canDecide = (isManager || isHrAdmin || isCompanyAdmin) && shellMode === "manage";
 
   const [mine, setMine] = useState<Claim[]>([]);
@@ -83,10 +85,13 @@ export default function ExpensesPage() {
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900, display: "flex", alignItems: "center", gap: 8 }}>
-            <Briefcase style={{ width: 22, height: 22 }} /> Expenses
+            <Briefcase style={{ width: 22, height: 22 }} /> {tx("Expenses", "Klaim biaya")}
           </h1>
           <p style={{ margin: "6px 0 0", color: "#64748B", fontSize: 14 }}>
-            Categories: TRAVEL, MEAL, MEDICAL, OTHER. Routed to your immediate boss.
+            {tx(
+              "Categories: TRAVEL, MEAL, MEDICAL, OTHER. Routed to your immediate boss.",
+              "Kategori: TRAVEL, MEAL, MEDICAL, OTHER. Dikirim ke atasan langsung."
+            )}
           </p>
         </div>
         <button
@@ -106,7 +111,7 @@ export default function ExpensesPage() {
           }}
         >
           <Plus style={{ width: 16, height: 16 }} />
-          {showForm ? "Close" : "New claim"}
+          {showForm ? tx("Close", "Tutup") : tx("New claim", "Klaim baru")}
         </button>
       </div>
 
@@ -174,9 +179,9 @@ export default function ExpensesPage() {
       )}
 
       <section style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: 20 }}>
-        <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800 }}>My claims</h2>
+        <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800 }}>{tx("My claims", "Klaim saya")}</h2>
         {mine.length === 0 ? (
-          <p style={{ color: "#64748B", fontSize: 13 }}>No expense claims yet.</p>
+          <p style={{ color: "#64748B", fontSize: 13 }}>{tx("No expense claims yet.", "Belum ada klaim biaya.")}</p>
         ) : (
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
             {mine.map((c) => (
@@ -192,9 +197,9 @@ export default function ExpensesPage() {
 
       {canDecide && (
         <section style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: 20 }}>
-          <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800 }}>Pending for me</h2>
+          <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800 }}>{tx("Pending for me", "Menunggu keputusan saya")}</h2>
           {pending.length === 0 ? (
-            <p style={{ color: "#64748B", fontSize: 13 }}>No pending expenses.</p>
+            <p style={{ color: "#64748B", fontSize: 13 }}>{tx("No pending expenses.", "Tidak ada klaim tertunda.")}</p>
           ) : (
             <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
               {pending.map((c) => (
@@ -223,7 +228,7 @@ export default function ExpensesPage() {
                         }}
                       >
                         {decidingId === c.id ? <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} /> : <CheckCircle2 style={{ width: 14, height: 14 }} />}
-                        Approve
+                        {tx("Approve", "Setujui")}
                       </button>
                       <button
                         type="button"
@@ -243,7 +248,7 @@ export default function ExpensesPage() {
                         }}
                       >
                         {decidingId === c.id ? <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} /> : <XCircle style={{ width: 14, height: 14 }} />}
-                        Reject
+                        {tx("Reject", "Tolak")}
                       </button>
                     </div>
                   </div>

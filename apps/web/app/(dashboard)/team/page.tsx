@@ -5,6 +5,7 @@ import { UserPlus, Users, ShieldCheck, RefreshCw } from "lucide-react";
 import { trpcClient } from "../../../src/utils/trpc-client";
 import { useAuth } from "../../../src/context/auth-context";
 import { ROLE_DISPLAY_NAME } from "@nusakerja/auth";
+import { useI18n } from "../../../src/context/i18n-context";
 
 interface TeamMember {
   id: string;
@@ -15,6 +16,7 @@ interface TeamMember {
 
 export default function TeamPage() {
   const { role } = useAuth();
+  const { tx } = useI18n();
   const isCompanyAdmin = role === "client_admin";
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -73,13 +75,14 @@ export default function TeamPage() {
     <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 800 }}>
       <div>
         <p style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: "#B45309", margin: 0 }}>
-          Perusahaan · Tim & Peran
+          {tx("Company · Team & Roles", "Perusahaan · Tim & Peran")}
         </p>
-        <h1 style={{ fontSize: 24, fontWeight: 900, margin: "6px 0" }}>Angkat HR & lihat hierarki</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 900, margin: "6px 0" }}>{tx("Appoint HR & view hierarchy", "Angkat HR & lihat hierarki")}</h1>
         <p style={{ fontSize: 14, color: "#475569", margin: 0, lineHeight: 1.5 }}>
-          SuperAdmin sudah membuat perusahaan dan menunjuk <strong>Company Admin</strong> Anda.
-          Langkah berikutnya: Company Admin mengangkat <strong>HR</strong>. HR lalu merekrut karyawan dan
-          menjalankan cuti, absensi, serta payroll operasional.
+          {tx(
+            "SuperAdmin already created the company and appointed you as Company Admin. Next: appoint HR. HR then hires employees and runs leave, attendance, and payroll.",
+            "SuperAdmin sudah membuat perusahaan dan menunjuk Company Admin Anda. Langkah berikutnya: Company Admin mengangkat HR. HR lalu merekrut karyawan dan menjalankan cuti, absensi, serta payroll operasional."
+          )}
         </p>
       </div>
 
@@ -105,11 +108,11 @@ export default function TeamPage() {
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <UserPlus style={{ width: 20, height: 20, color: "#B45309" }} />
-            <p style={{ fontWeight: 800, margin: 0 }}>Angkat HR Admin (hanya Company Admin)</p>
+            <p style={{ fontWeight: 800, margin: 0 }}>{tx("Appoint HR Admin (Company Admin only)", "Angkat HR Admin (hanya Company Admin)")}</p>
           </div>
           <input
             className="input"
-            placeholder="Nama lengkap HR"
+            placeholder={tx("HR full name", "Nama lengkap HR")}
             value={hrName}
             onChange={(e) => setHrName(e.target.value)}
             required
@@ -124,14 +127,18 @@ export default function TeamPage() {
           />
           <button type="submit" disabled={busy} className="btn btn-primary" style={{ alignSelf: "flex-start" }}>
             <ShieldCheck style={{ width: 16, height: 16 }} />
-            {busy ? "Menyimpan..." : "Angkat sebagai HR"}
+            {busy ? tx("Saving...", "Menyimpan...") : tx("Appoint as HR", "Angkat sebagai HR")}
           </button>
         </form>
       )}
 
       {!isCompanyAdmin && (
         <p style={{ fontSize: 13, color: "#64748B", background: "#F8FAFC", padding: 14, borderRadius: 12 }}>
-          Anda login sebagai {ROLE_DISPLAY_NAME[role] ?? role}. Form angkat HR hanya muncul untuk Company Admin.
+          {tx(
+            "You are signed in as {role}. The appoint-HR form is shown only to Company Admin.",
+            "Anda login sebagai {role}. Form angkat HR hanya muncul untuk Company Admin.",
+            { role: ROLE_DISPLAY_NAME[role] ?? role ?? "" }
+          )}
         </p>
       )}
 
@@ -139,21 +146,21 @@ export default function TeamPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Users style={{ width: 18, height: 18 }} />
-            <p style={{ fontWeight: 800, margin: 0 }}>Anggota peran di perusahaan ini</p>
+            <p style={{ fontWeight: 800, margin: 0 }}>{tx("Role members in this company", "Anggota peran di perusahaan ini")}</p>
           </div>
           <button type="button" className="btn btn-ghost" onClick={() => void load()}>
             <RefreshCw style={{ width: 14, height: 14 }} />
           </button>
         </div>
         {members.length === 0 ? (
-          <p style={{ fontSize: 13, color: "#64748B" }}>Belum ada data / sesi belum terhubung ke DB.</p>
+          <p style={{ fontSize: 13, color: "#64748B" }}>{tx("No data yet / session is not connected to the database.", "Belum ada data / sesi belum terhubung ke DB.")}</p>
         ) : (
           <table className="table">
             <thead>
               <tr>
-                <th>Nama</th>
+                <th>{tx("Name", "Nama")}</th>
                 <th>Email</th>
-                <th>Peran</th>
+                <th>{tx("Role", "Peran")}</th>
               </tr>
             </thead>
             <tbody>

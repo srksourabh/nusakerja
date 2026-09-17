@@ -2,6 +2,7 @@
 
 import { UserCheck, Calendar, Download, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { PunchClockPanel } from "../../../src/components/punch-clock-panel";
+import { useI18n } from "../../../src/context/i18n-context";
 
 function escapePdfText(value: string) {
   return value.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
@@ -24,22 +25,26 @@ function downloadPayslipPdf(month: string) {
   URL.revokeObjectURL(url);
 }
 
-const leaveData = [
-  { type: "Annual leave", used: 5, total: 12, color: "#6750A4" },
-  { type: "Sick leave", used: 2, total: 14, color: "#DC2626" },
-  { type: "Maternity leave", used: 0, total: 90, color: "#047857" },
-  { type: "Collective leave", used: 3, total: 8, color: "#D97706" },
-];
-
-const attendance = [
-  { date: "Mon, 21 Jul", in: "08:02", out: "17:05", status: "Present" },
-  { date: "Tue, 22 Jul", in: "08:15", out: "17:00", status: "Present" },
-  { date: "Wed, 23 Jul", in: "08:00", out: "-", status: "In office" },
-  { date: "Thu, 17 Jul", in: "08:30", out: "17:30", status: "Present" },
-  { date: "Fri, 18 Jul", in: "-", out: "-", status: "Leave" },
-];
-
 export default function EmployeePortalPage() {
+  const { tx } = useI18n();
+  const leaveData = [
+    { type: tx("Annual leave", "Cuti tahunan"), used: 5, total: 12, color: "#6750A4" },
+    { type: tx("Sick leave", "Cuti sakit"), used: 2, total: 14, color: "#DC2626" },
+    { type: tx("Maternity leave", "Cuti melahirkan"), used: 0, total: 90, color: "#047857" },
+    { type: tx("Collective leave", "Cuti bersama"), used: 3, total: 8, color: "#D97706" },
+  ];
+  const attendance = [
+    { date: tx("Mon, 21 Jul", "Sen, 21 Jul"), in: "08:02", out: "17:05", status: "Present" },
+    { date: tx("Tue, 22 Jul", "Sel, 22 Jul"), in: "08:15", out: "17:00", status: "Present" },
+    { date: tx("Wed, 23 Jul", "Rab, 23 Jul"), in: "08:00", out: "-", status: "In office" },
+    { date: tx("Thu, 17 Jul", "Kam, 17 Jul"), in: "08:30", out: "17:30", status: "Present" },
+    { date: tx("Fri, 18 Jul", "Jum, 18 Jul"), in: "-", out: "-", status: "Leave" },
+  ];
+  const statusLabel = (status: string) => {
+    if (status === "Present") return tx("Present", "Hadir");
+    if (status === "Leave") return tx("Leave", "Cuti");
+    return tx("In office", "Di kantor");
+  };
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
       <div
@@ -80,11 +85,14 @@ export default function EmployeePortalPage() {
             }}
           >
             <UserCheck style={{ width: 13, height: 13 }} />
-            <span>Employee self-service</span>
+            <span>{tx("Employee self-service", "Layanan mandiri karyawan")}</span>
           </div>
-          <h1 style={{ fontSize: 26, fontWeight: 900, margin: 0 }}>My Work</h1>
+          <h1 style={{ fontSize: 26, fontWeight: 900, margin: 0 }}>{tx("My Work", "Kerja Saya")}</h1>
           <p style={{ fontSize: 13, margin: "6px 0 0", opacity: 0.85 }}>
-            Punch, leave balance, and payslips — multiple IN/OUT per day with a live timer
+            {tx(
+              "Punch, leave balance, and payslips — multiple IN/OUT per day with a live timer",
+              "Presensi, sisa cuti, dan slip gaji — IN/OUT berulang per hari dengan timer live"
+            )}
           </p>
         </div>
       </div>
@@ -105,7 +113,7 @@ export default function EmployeePortalPage() {
               }}
             >
               <Calendar style={{ width: 18, height: 18, color: "#6750A4" }} />
-              <p style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>Leave balance 2026</p>
+              <p style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>{tx("Leave balance 2026", "Sisa cuti 2026")}</p>
             </div>
             {leaveData.map((l) => {
               const pct = Math.round(((l.total - l.used) / l.total) * 100);
@@ -114,7 +122,7 @@ export default function EmployeePortalPage() {
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
                     <span style={{ fontSize: 12, fontWeight: 700, color: "#1C1B1F" }}>{l.type}</span>
                     <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: l.color, fontWeight: 800 }}>
-                      {l.total - l.used} / {l.total} days
+                      {l.total - l.used} / {l.total} {tx("days", "hari")}
                     </span>
                   </div>
                   <div style={{ height: 8, borderRadius: 9999, background: "#E7E0EC", overflow: "hidden" }}>
@@ -136,7 +144,7 @@ export default function EmployeePortalPage() {
           <div className="card-white" style={{ padding: 20 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
               <Download style={{ width: 16, height: 16, color: "#6750A4" }} />
-              <p style={{ fontSize: 14, fontWeight: 800, margin: 0 }}>Payslips</p>
+              <p style={{ fontSize: 14, fontWeight: 800, margin: 0 }}>{tx("Payslips", "Slip gaji")}</p>
             </div>
             {["July 2026", "June 2026", "May 2026"].map((m) => (
               <div
@@ -154,7 +162,7 @@ export default function EmployeePortalPage() {
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <CheckCircle2 style={{ width: 14, height: 14, color: "#16A34A" }} />
-                  <span style={{ fontSize: 13, fontWeight: 700 }}>Payslip {m}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700 }}>{tx("Payslip", "Slip gaji")} {m}</span>
                 </div>
                 <button type="button" onClick={() => downloadPayslipPdf(m)} className="btn btn-secondary btn-sm" style={{ fontSize: 11 }}>
                   PDF
@@ -177,16 +185,16 @@ export default function EmployeePortalPage() {
           }}
         >
           <Clock style={{ width: 18, height: 18, color: "#D97706" }} />
-          <p style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>This week (sample log)</p>
+              <p style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>{tx("This week (sample log)", "Minggu ini (contoh log)")}</p>
         </div>
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>In</th>
-                <th>Out</th>
-                <th style={{ textAlign: "center" }}>Status</th>
+                <th>{tx("Date", "Tanggal")}</th>
+                <th>{tx("In", "Masuk")}</th>
+                <th>{tx("Out", "Pulang")}</th>
+                <th style={{ textAlign: "center" }}>{tx("Status", "Status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -210,7 +218,7 @@ export default function EmployeePortalPage() {
                       ) : (
                         <AlertCircle style={{ width: 11, height: 11 }} />
                       )}
-                      {a.status}
+                      {statusLabel(a.status)}
                     </span>
                   </td>
                 </tr>

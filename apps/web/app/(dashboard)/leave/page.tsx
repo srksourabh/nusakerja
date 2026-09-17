@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Calendar, CheckCircle2, Clock, LoaderCircle, Plus, XCircle } from "lucide-react";
 import { trpcClient } from "../../../src/utils/trpc-client";
 import { useAuth } from "../../../src/context/auth-context";
+import { useI18n } from "../../../src/context/i18n-context";
 
 type LeaveRow = {
   id: string;
@@ -18,6 +19,7 @@ type LeaveRow = {
 
 export default function LeavePage() {
   const { isManager, isHrAdmin, isCompanyAdmin, shellMode } = useAuth();
+  const { tx } = useI18n();
   const canDecide = (isManager || isHrAdmin || isCompanyAdmin) && shellMode === "manage";
 
   const [mine, setMine] = useState<LeaveRow[]>([]);
@@ -97,9 +99,12 @@ export default function LeavePage() {
     <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 900 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900 }}>Leave</h1>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900 }}>{tx("Leave", "Cuti")}</h1>
           <p style={{ margin: "6px 0 0", color: "#64748B", fontSize: 14 }}>
-            Requests route to your immediate boss (manager). Status updates appear here and in Inbox.
+            {tx(
+              "Requests route to your immediate boss (manager). Status updates appear here and in Inbox.",
+              "Pengajuan dikirim ke atasan langsung. Status tampil di sini dan di Kotak Masuk."
+            )}
           </p>
         </div>
         <button
@@ -119,7 +124,7 @@ export default function LeavePage() {
           }}
         >
           <Plus style={{ width: 16, height: 16 }} />
-          {showForm ? "Close" : "Request leave"}
+          {showForm ? tx("Close", "Tutup") : tx("Request leave", "Ajukan cuti")}
         </button>
       </div>
 
@@ -134,22 +139,22 @@ export default function LeavePage() {
         >
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12 }}>
             <label style={{ fontSize: 12, fontWeight: 700 }}>
-              Type
+              {tx("Type", "Jenis")}
               <select
                 value={leaveType}
                 onChange={(e) => setLeaveType(e.target.value)}
                 style={{ display: "block", width: "100%", marginTop: 4, padding: 8, borderRadius: 8, border: "1px solid #CBD5E1" }}
               >
-                <option value="CUTI_TAHUNAN">Annual</option>
-                <option value="CUTI_SAKIT">Sick</option>
-                <option value="CUTI_MELAHIRKAN">Maternity</option>
-                <option value="CUTI_HAID">Menstrual</option>
-                <option value="CUTI_PENTING">Important</option>
-                <option value="CUTI_UNPAID">Unpaid</option>
+                <option value="CUTI_TAHUNAN">{tx("Annual", "Tahunan")}</option>
+                <option value="CUTI_SAKIT">{tx("Sick", "Sakit")}</option>
+                <option value="CUTI_MELAHIRKAN">{tx("Maternity", "Melahirkan")}</option>
+                <option value="CUTI_HAID">{tx("Menstrual", "Haid")}</option>
+                <option value="CUTI_PENTING">{tx("Important", "Penting")}</option>
+                <option value="CUTI_UNPAID">{tx("Unpaid", "Tanpa gaji")}</option>
               </select>
             </label>
             <label style={{ fontSize: 12, fontWeight: 700 }}>
-              Days
+              {tx("Days", "Hari")}
               <input
                 type="number"
                 min={1}
@@ -159,7 +164,7 @@ export default function LeavePage() {
               />
             </label>
             <label style={{ fontSize: 12, fontWeight: 700 }}>
-              Start
+              {tx("Start", "Mulai")}
               <input
                 type="date"
                 value={startDate}
@@ -168,7 +173,7 @@ export default function LeavePage() {
               />
             </label>
             <label style={{ fontSize: 12, fontWeight: 700 }}>
-              End
+              {tx("End", "Selesai")}
               <input
                 type="date"
                 value={endDate}
@@ -180,7 +185,7 @@ export default function LeavePage() {
             </label>
           </div>
           <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginTop: 12 }}>
-            Reason
+            {tx("Reason", "Alasan")}
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
@@ -202,17 +207,17 @@ export default function LeavePage() {
               cursor: "pointer",
             }}
           >
-            Submit to boss
+            {tx("Submit to boss", "Kirim ke atasan")}
           </button>
         </form>
       )}
 
       <section style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: 20 }}>
         <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800, display: "flex", alignItems: "center", gap: 8 }}>
-          <Calendar style={{ width: 18, height: 18 }} /> My requests
+          <Calendar style={{ width: 18, height: 18 }} /> {tx("My requests", "Pengajuan saya")}
         </h2>
         {mine.length === 0 ? (
-          <p style={{ color: "#64748B", fontSize: 13 }}>No leave requests yet.</p>
+          <p style={{ color: "#64748B", fontSize: 13 }}>{tx("No leave requests yet.", "Belum ada pengajuan cuti.")}</p>
         ) : (
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
             {mine.map((r) => (
@@ -230,10 +235,10 @@ export default function LeavePage() {
       {canDecide && (
         <section style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: 20 }}>
           <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800, display: "flex", alignItems: "center", gap: 8 }}>
-            <Clock style={{ width: 18, height: 18 }} /> Pending for me
+            <Clock style={{ width: 18, height: 18 }} /> {tx("Pending for me", "Menunggu keputusan saya")}
           </h2>
           {pending.length === 0 ? (
-            <p style={{ color: "#64748B", fontSize: 13 }}>No pending leave.</p>
+            <p style={{ color: "#64748B", fontSize: 13 }}>{tx("No pending leave.", "Tidak ada cuti menunggu.")}</p>
           ) : (
             <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
               {pending.map((r) => (
@@ -262,7 +267,7 @@ export default function LeavePage() {
                         }}
                       >
                         {decidingId === r.id ? <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} /> : <CheckCircle2 style={{ width: 14, height: 14 }} />}
-                        Approve
+                        {tx("Approve", "Setujui")}
                       </button>
                       <button
                         type="button"
@@ -282,7 +287,7 @@ export default function LeavePage() {
                         }}
                       >
                         {decidingId === r.id ? <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} /> : <XCircle style={{ width: 14, height: 14 }} />}
-                        Reject
+                        {tx("Reject", "Tolak")}
                       </button>
                     </div>
                   </div>

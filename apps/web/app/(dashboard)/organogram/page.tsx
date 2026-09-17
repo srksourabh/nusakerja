@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Network, RefreshCw, Users } from "lucide-react";
 import { trpcClient } from "../../../src/utils/trpc-client";
 import { useAuth } from "../../../src/context/auth-context";
+import { useI18n } from "../../../src/context/i18n-context";
 
 type OrgNode = {
   id: string;
@@ -152,6 +153,7 @@ function NodeCard({
 
 export default function OrganogramPage() {
   const { isHrAdmin, isCompanyAdmin, isManager, isEmployee, roleLabel } = useAuth();
+  const { tx } = useI18n();
   const canEdit = (isHrAdmin || isCompanyAdmin) && !isEmployee;
   const [roots, setRoots] = useState<OrgNode[]>([]);
   const [flat, setFlat] = useState<FlatEmployee[]>([]);
@@ -245,15 +247,17 @@ export default function OrganogramPage() {
         }}
       >
         <p style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: "#FCD34D", margin: 0 }}>
-          {isManager ? "Manager team tree" : "Company organogram"} · {roleLabel}
+          {isManager ? tx("Manager team tree", "Pohon tim Manager") : tx("Company organogram", "Organogram perusahaan")} · {roleLabel}
         </p>
         <h1 style={{ fontSize: 24, fontWeight: 900, margin: "8px 0 0", display: "flex", alignItems: "center", gap: 10 }}>
           <Network style={{ width: 26, height: 26 }} />
-          Reporting tree & grades
+          {tx("Reporting tree & grades", "Pohon pelaporan & grade")}
         </h1>
         <p style={{ fontSize: 13, opacity: 0.85, marginTop: 8, maxWidth: 560 }}>
-          Grade 1 is lowest, grade 5 is highest. Leave, HR, and pay policies will attach to grade (and optional
-          person overrides). Managers only see their subtree.
+          {tx(
+            "Grade 1 is lowest, grade 5 is highest. Leave, HR, and pay policies attach to grade (and optional person overrides). Managers only see their subtree.",
+            "Grade 1 terendah, grade 5 tertinggi. Kebijakan cuti, HR, dan gaji menempel ke grade (plus override per orang). Manager hanya melihat subtree-nya."
+          )}
         </p>
       </div>
 
@@ -276,7 +280,7 @@ export default function OrganogramPage() {
 
       <div>
         {roots.length === 0 ? (
-          <p style={{ color: "#64748B", fontSize: 14 }}>No employees in this company yet.</p>
+          <p style={{ color: "#64748B", fontSize: 14 }}>{tx("No employees in this company yet.", "Belum ada karyawan di perusahaan ini.")}</p>
         ) : (
           roots.map((r) => (
             <NodeCard key={r.id} node={r} depth={0} canEdit={canEdit} allEmployees={flat} onSave={onSave} />

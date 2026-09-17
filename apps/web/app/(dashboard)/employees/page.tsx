@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, Badge, Button } from "@nusakerja/ui";
 import { Users, FileText, Search, UserPlus, Upload, Download, CheckCircle2, AlertCircle, FileSpreadsheet, Briefcase, MapPin, ShieldCheck, ChevronRight, UserCheck } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "../../../src/context/auth-context";
+import { useI18n } from "../../../src/context/i18n-context";
 
 interface EmployeeItem {
   id: string;
@@ -27,6 +28,7 @@ interface EmployeeItem {
 
 export default function EmployeesPage() {
   const { isHrAdmin, isEmployee } = useAuth();
+  const { tx } = useI18n();
   const canEditRoster = isHrAdmin && !isEmployee;
   const [employeesList, setEmployeesList] = useState<EmployeeItem[]>([
     {
@@ -176,11 +178,14 @@ export default function EmployeesPage() {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-bold mb-3 text-sky-300">
             <Users className="w-3.5 h-3.5" />
-            <span>Master Data Karyawan PT Nusa Teknik Mandiri</span>
+            <span>{tx("Employee master data — PT Nusa Teknik Mandiri", "Master Data Karyawan PT Nusa Teknik Mandiri")}</span>
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Direktori Karyawan & Gaji Perusahaan</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">{tx("Employee directory & company payroll", "Direktori Karyawan & Gaji Perusahaan")}</h1>
           <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
-            Struktur hirarki 5 Karyawan Sampel: Admin, HR, Team Leader, dan Service Engineer under Team Leader dengan tarif PPh 21 TER PMK 168/2023.
+            {tx(
+              "Sample hierarchy of 5 employees: Admin, HR, Team Leader, and Service Engineer under Team Leader with PPh 21 TER PMK 168/2023 rates.",
+              "Struktur hirarki 5 Karyawan Sampel: Admin, HR, Team Leader, dan Service Engineer under Team Leader dengan tarif PPh 21 TER PMK 168/2023."
+            )}
           </p>
         </div>
         {canEditRoster && (
@@ -189,7 +194,7 @@ export default function EmployeesPage() {
             className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center space-x-2 shadow-lg transition-all"
           >
             <UserPlus className="w-4 h-4" />
-            <span>Tambah Karyawan Baru</span>
+            <span>{tx("Add new employee", "Tambah Karyawan Baru")}</span>
           </button>
         )}
       </div>
@@ -203,12 +208,12 @@ export default function EmployeesPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cari NIK, Nama, atau Jabatan..."
+              placeholder={tx("Search NIK, name, or title...", "Cari NIK, Nama, atau Jabatan...")}
               className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-red-500"
             />
           </div>
           <div className="flex items-center gap-2 text-xs text-slate-500">
-            <span>Total: <strong className="text-slate-900">{filteredEmployees.length} Karyawan</strong></span>
+            <span>{tx("Total:", "Total:")} <strong className="text-slate-900">{filteredEmployees.length} {tx("employees", "Karyawan")}</strong></span>
           </div>
         </div>
 
@@ -217,12 +222,12 @@ export default function EmployeesPage() {
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="bg-slate-50 text-slate-600 border-b border-slate-200 uppercase tracking-wider font-bold">
-                <th className="p-3.5">NIK & Karyawan</th>
-                <th className="p-3.5">Kategori Peran</th>
-                <th className="p-3.5">Jabatan & Atasan</th>
+                <th className="p-3.5">{tx("NIK & employee", "NIK & Karyawan")}</th>
+                <th className="p-3.5">{tx("Role category", "Kategori Peran")}</th>
+                <th className="p-3.5">{tx("Title & supervisor", "Jabatan & Atasan")}</th>
                 <th className="p-3.5">PTKP / TER</th>
-                <th className="p-3.5 text-right">Gaji Pokok (IDR)</th>
-                <th className="p-3.5 text-center">Status Presensi</th>
+                <th className="p-3.5 text-right">{tx("Basic salary (IDR)", "Gaji Pokok (IDR)")}</th>
+                <th className="p-3.5 text-center">{tx("Attendance status", "Status Presensi")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
@@ -249,7 +254,7 @@ export default function EmployeesPage() {
                   </td>
                   <td className="p-3.5">
                     <div className="text-slate-800 font-semibold">{emp.designation}</div>
-                    <div className="text-[11px] text-slate-500">Atasan: <span className="text-slate-700 font-bold">{emp.supervisor}</span></div>
+                    <div className="text-[11px] text-slate-500">{tx("Supervisor:", "Atasan:")} <span className="text-slate-700 font-bold">{emp.supervisor}</span></div>
                   </td>
                   <td className="p-3.5 font-mono">
                     <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-bold text-slate-700">{emp.ptkp}</span>
@@ -274,10 +279,10 @@ export default function EmployeesPage() {
       {showAddModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 space-y-4">
-            <h3 className="text-lg font-extrabold text-slate-900">Tambah Karyawan Baru</h3>
+            <h3 className="text-lg font-extrabold text-slate-900">{tx("Add new employee", "Tambah Karyawan Baru")}</h3>
             <form onSubmit={handleAddEmployee} className="space-y-3 text-xs">
               <div>
-                <label className="font-bold text-slate-700">NIK Karyawan</label>
+                <label className="font-bold text-slate-700">{tx("Employee NIK", "NIK Karyawan")}</label>
                 <input
                   type="text"
                   value={newCode}
@@ -287,7 +292,7 @@ export default function EmployeesPage() {
                 />
               </div>
               <div>
-                <label className="font-bold text-slate-700">Nama Lengkap</label>
+                <label className="font-bold text-slate-700">{tx("Full name", "Nama Lengkap")}</label>
                 <input
                   type="text"
                   value={newName}
@@ -299,7 +304,7 @@ export default function EmployeesPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-slate-700">Kategori Peran</label>
+                  <label className="font-bold text-slate-700">{tx("Role category", "Kategori Peran")}</label>
                   <select
                     value={newRoleCat}
                     onChange={(e) => setNewRoleCat(e.target.value as any)}
@@ -312,7 +317,7 @@ export default function EmployeesPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="font-bold text-slate-700">Gaji Pokok (Rp)</label>
+                  <label className="font-bold text-slate-700">{tx("Basic salary (Rp)", "Gaji Pokok (Rp)")}</label>
                   <input
                     type="number"
                     value={newSalary}
@@ -323,7 +328,7 @@ export default function EmployeesPage() {
                 </div>
               </div>
               <div>
-                <label className="font-bold text-slate-700">Atasan Langsung (Supervisor)</label>
+                <label className="font-bold text-slate-700">{tx("Direct supervisor", "Atasan Langsung (Supervisor)")}</label>
                 <input
                   type="text"
                   value={newSupervisor}
@@ -334,10 +339,10 @@ export default function EmployeesPage() {
               </div>
               <div className="flex gap-2 pt-2">
                 <Button type="button" variant="outline" className="w-1/2" onClick={() => setShowAddModal(false)}>
-                  Batal
+                  {tx("Cancel", "Batal")}
                 </Button>
                 <Button type="submit" variant="primary" className="w-1/2 bg-red-600 hover:bg-red-700">
-                  Simpan Karyawan
+                  {tx("Save employee", "Simpan Karyawan")}
                 </Button>
               </div>
             </form>

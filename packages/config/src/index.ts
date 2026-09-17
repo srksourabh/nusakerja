@@ -4,3 +4,4 @@ export * from "./logger";
 export * from "./indonesian_payroll_engine";
 export * from "./pay-structure-payroll";
 export * from "./severance";
+export * from "./locale-copy";

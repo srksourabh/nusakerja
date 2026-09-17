@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Building2, ArrowRight, Globe, LogIn } from "lucide-react";
+import { Building2, ArrowRight, LogIn } from "lucide-react";
 import { trpcClient } from "../../../src/utils/trpc-client";
 import { buildCompanyUrl } from "../../../src/utils/tenant-url";
+import { useI18n } from "../../../src/context/i18n-context";
+import { LanguageToggle } from "../../../src/components/language-toggle";
 
 interface TenantInfo {
   id: string;
@@ -19,8 +21,9 @@ interface TenantInfo {
 export default function CompanyPortalPage() {
   const params = useParams();
   const slug = String(params.slug || "").toLowerCase();
+  const { tx } = useI18n();
   const [tenant, setTenant] = useState<TenantInfo | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [errorKind, setErrorKind] = useState<"not_found" | "preview" | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,7 +32,7 @@ export default function CompanyPortalPage() {
       try {
         const row = await trpcClient.platform.resolveBySlug.query({ slug });
         if (!cancelled) {
-          if (!row) setError("Perusahaan tidak ditemukan atau nonaktif.");
+          if (!row) setErrorKind("not_found");
           else setTenant(row as TenantInfo);
         }
       } catch {
@@ -43,7 +46,7 @@ export default function CompanyPortalPage() {
             companyUrl: buildCompanyUrl(slug),
             companyPath: `/c/${slug}`,
           });
-          setError("Mode pratinjau — hubungkan DB untuk data perusahaan nyata.");
+          setErrorKind("preview");
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -63,34 +66,33 @@ export default function CompanyPortalPage() {
           <img src="/logo.png" alt="" className="w-8 h-8 rounded-lg bg-white p-0.5" />
           NusaKerja
         </Link>
-        <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1.5">
-          <Globe className="w-3.5 h-3.5" />
-          {canonical.replace(/^https?:\/\//, "")}
-        </span>
+        <LanguageToggle variant="segmented" />
       </header>
 
       <main className="flex-1 flex items-center justify-center p-6">
         <div className="max-w-md w-full rounded-3xl border border-slate-800 bg-slate-900/80 p-8 shadow-2xl">
           {loading ? (
-            <p className="text-slate-400 text-sm">Memuat portal perusahaan...</p>
+            <p className="text-slate-400 text-sm">{tx("Loading company portal...", "Memuat portal perusahaan...")}</p>
           ) : (
             <>
               <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center mb-4">
                 <Building2 className="w-6 h-6" />
               </div>
-              <p className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1">Portal perusahaan</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1">{tx("Company portal", "Portal perusahaan")}</p>
               <h1 className="text-2xl font-black tracking-tight mb-2">
-                {tenant?.name ?? "Perusahaan"}
+                {tenant?.name ?? tx("Company", "Perusahaan")}
               </h1>
               <p className="text-sm text-slate-400 mb-6">
-                URL resmi:{" "}
+                {tx("Official URL:", "URL resmi:")}{" "}
                 <a href={canonical} className="text-emerald-400 font-mono text-xs underline">
                   {canonical}
                 </a>
               </p>
-              {error && (
+              {errorKind && (
                 <p className="text-xs text-amber-300 mb-4 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2">
-                  {error}
+                  {errorKind === "not_found"
+                    ? tx("Company not found or inactive.", "Perusahaan tidak ditemukan atau nonaktif.")
+                    : tx("Preview mode — connect the database for live company data.", "Mode pratinjau — hubungkan DB untuk data perusahaan nyata.")}
                 </p>
               )}
               <Link
@@ -98,11 +100,14 @@ export default function CompanyPortalPage() {
                 className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 font-bold text-sm flex items-center justify-center gap-2"
               >
                 <LogIn className="w-4 h-4" />
-                Masuk ke perusahaan ini
+                {tx("Sign in to this company", "Masuk ke perusahaan ini")}
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <p className="text-[11px] text-slate-500 mt-4 text-center">
-                Company Admin, HR, Manager, atau Karyawan memakai akun yang diundang ke perusahaan ini.
+                {tx(
+                  "Company Admin, HR, Manager, or Employee use the account invited to this company.",
+                  "Company Admin, HR, Manager, atau Karyawan memakai akun yang diundang ke perusahaan ini."
+                )}
               </p>
             </>
           )}

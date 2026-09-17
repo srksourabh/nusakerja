@@ -15,62 +15,78 @@ import {
   Users,
 } from "lucide-react";
 import { useAuth, UserRole } from "../../src/context/auth-context";
+import { useI18n } from "../../src/context/i18n-context";
+import { LanguageToggle } from "../../src/components/language-toggle";
 
 const DEMO_PERSONAS: Array<{
   key: UserRole;
   email: string;
   password: string;
-  label: string;
+  labelEn: string;
+  labelId: string;
   home: string;
-  blurb: string;
+  blurbEn: string;
+  blurbId: string;
 }> = [
   {
     key: "super_admin",
     email: "srksourabh@gmail.com",
     password: "DemoSuperAdmin!2026",
-    label: "Platform SuperAdmin",
+    labelEn: "Platform SuperAdmin",
+    labelId: "Platform SuperAdmin",
     home: "/super-admin",
-    blurb: "Buat perusahaan + undang Company Admin pertama (+ opsional CA)",
+    blurbEn: "Create a company + invite the first Company Admin (+ optional CA)",
+    blurbId: "Buat perusahaan + undang Company Admin pertama (+ opsional CA)",
   },
   {
     key: "reseller_admin",
     email: "ca@nusakerja.id",
     password: "DemoCA!2026",
-    label: "CA (Chartered Accountant)",
+    labelEn: "CA (Chartered Accountant)",
+    labelId: "CA (Akuntan)",
     home: "/ca",
-    blurb: "Portofolio klien yang ditugaskan — hitung payroll saja",
+    blurbEn: "Assigned client portfolio — payroll calculation only",
+    blurbId: "Portofolio klien yang ditugaskan — hitung payroll saja",
   },
   {
     key: "client_admin",
     email: "admin@nusantara.co.id",
     password: "DemoAdmin!2026",
-    label: "Company Admin",
+    labelEn: "Company Admin",
+    labelId: "Company Admin",
     home: "/team",
-    blurb: "Kelola perusahaan & angkat HR",
+    blurbEn: "Run the company and appoint HR",
+    blurbId: "Kelola perusahaan & angkat HR",
   },
   {
     key: "hr_admin",
     email: "bambang.hr@nusantara.co.id",
     password: "DemoHR!2026",
-    label: "HR Admin",
+    labelEn: "HR Admin",
+    labelId: "HR Admin",
     home: "/dashboard",
-    blurb: "Operasional HR, cuti, absensi, payroll",
+    blurbEn: "HR ops, leave, attendance, payroll",
+    blurbId: "Operasional HR, cuti, absensi, payroll",
   },
   {
     key: "manager",
     email: "manager@nusantara.co.id",
     password: "DemoManager!2026",
-    label: "Manager",
+    labelEn: "Manager",
+    labelId: "Manager",
     home: "/dashboard",
-    blurb: "Persetujuan cuti & absensi tim",
+    blurbEn: "Team leave and attendance approvals",
+    blurbId: "Persetujuan cuti & absensi tim",
   },
   {
     key: "employee",
     email: "budi.santoso@nusantara.co.id",
     password: "DemoEmployee!2026",
-    label: "Karyawan",
+    labelEn: "Employee",
+    labelId: "Karyawan",
     home: "/portal",
-    blurb: "Self-service cuti, punch, payslip",
+    blurbEn: "Self-service leave, punch, payslip",
+    blurbId: "Self-service cuti, punch, payslip",
   },
 ];
 
@@ -79,6 +95,7 @@ const PRIMARY = DEMO_PERSONAS.slice(0, 3);
 export default function LoginPage() {
   const router = useRouter();
   const { loginAs } = useAuth();
+  const { tx } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("super_admin");
@@ -179,29 +196,34 @@ export default function LoginPage() {
                 SaaS
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-medium">Platform HRMS & Payroll Statutory Indonesia</p>
+            <p className="text-[11px] text-slate-400 font-medium">{tx("Indonesian HRMS & Statutory Payroll Platform", "Platform HRMS & Payroll Statutory Indonesia")}</p>
           </div>
         </Link>
-        <Link
-          href="/playbook"
-          className="text-xs font-bold text-slate-300 hover:text-emerald-400 flex items-center gap-1.5 transition-colors"
-        >
-          <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Buku Panduan</span>
-        </Link>
+        <div className="flex items-center gap-3">
+          <LanguageToggle variant="segmented" />
+          <Link
+            href="/playbook"
+            className="text-xs font-bold text-slate-300 hover:text-emerald-400 flex items-center gap-1.5 transition-colors"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{tx("Playbook", "Buku Panduan")}</span>
+          </Link>
+        </div>
       </header>
 
       <main className="max-w-5xl w-full mx-auto my-auto z-10 py-8 grid lg:grid-cols-2 gap-8 items-start">
         {/* Hierarchy guide */}
         <section className="space-y-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2">Alur wewenang</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2">{tx("Authority flow", "Alur wewenang")}</p>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
               SuperAdmin → Company Admin → HR
             </h1>
             <p className="text-sm text-slate-400 mt-2 leading-relaxed">
-              Satu portal login. Pilih peran di bawah, atau isi email/kata sandi. CA adalah jalur terpisah
-              (portofolio KAP) — bukan Company Admin.
+              {tx(
+                "One login portal. Pick a role below, or enter email/password. CA is a separate KAP portfolio path — not Company Admin.",
+                "Satu portal login. Pilih peran di bawah, atau isi email/kata sandi. CA adalah jalur terpisah (portofolio KAP) — bukan Company Admin."
+              )}
             </p>
           </div>
 
@@ -213,8 +235,10 @@ export default function LoginPage() {
               <div>
                 <p className="font-bold text-white">Platform SuperAdmin</p>
                 <p className="text-slate-400 text-xs mt-0.5">
-                  Buat perusahaan baru, undang email <strong className="text-slate-200">Company Admin</strong>{" "}
-                  pertama, dan (opsional) tugaskan satu CA.
+                  {tx(
+                    "Create a new company, invite the first Company Admin email, and optionally assign one CA.",
+                    "Buat perusahaan baru, undang email Company Admin pertama, dan (opsional) tugaskan satu CA."
+                  )}
                 </p>
               </div>
             </li>
@@ -225,8 +249,10 @@ export default function LoginPage() {
               <div>
                 <p className="font-bold text-white">Company Admin</p>
                 <p className="text-slate-400 text-xs mt-0.5">
-                  Masuk ke perusahaan tersebut, buka <strong className="text-slate-200">Tim & Peran</strong>,
-                  angkat HR. HR merekrut karyawan dan menjalankan operasional.
+                  {tx(
+                    "Sign in to that company, open Team & Roles, and appoint HR. HR hires employees and runs operations.",
+                    "Masuk ke perusahaan tersebut, buka Tim & Peran, angkat HR. HR merekrut karyawan dan menjalankan operasional."
+                  )}
                 </p>
               </div>
             </li>
@@ -235,10 +261,12 @@ export default function LoginPage() {
                 CA
               </span>
               <div>
-                <p className="font-bold text-white">CA (bukan admin perusahaan)</p>
+                <p className="font-bold text-white">{tx("CA (not company admin)", "CA (bukan admin perusahaan)")}</p>
                 <p className="text-slate-400 text-xs mt-0.5">
-                  Login terpisah → halaman <strong className="text-slate-200">/ca</strong> → masuk klien yang
-                  ditugaskan hanya untuk finalisasi perhitungan payroll.
+                  {tx(
+                    "Separate login → /ca → enter assigned clients only to finalize payroll calculation.",
+                    "Login terpisah → halaman /ca → masuk klien yang ditugaskan hanya untuk finalisasi perhitungan payroll."
+                  )}
                 </p>
               </div>
             </li>
@@ -256,9 +284,9 @@ export default function LoginPage() {
                   className="text-left rounded-2xl border border-slate-700 bg-slate-900/80 hover:border-emerald-500/50 hover:bg-slate-900 p-3 transition-colors"
                 >
                   <Icon className="w-4 h-4 text-emerald-400 mb-2" />
-                  <p className="text-xs font-black text-white leading-tight">{p.label}</p>
+                  <p className="text-xs font-black text-white leading-tight">{tx(p.labelEn, p.labelId)}</p>
                   <p className="text-[10px] text-slate-500 mt-1 font-mono truncate">{p.email}</p>
-                  <p className="text-[10px] text-emerald-400/90 mt-2 font-bold">Masuk sekali klik →</p>
+                  <p className="text-[10px] text-emerald-400/90 mt-2 font-bold">{tx("One-click sign in →", "Masuk sekali klik →")}</p>
                 </button>
               );
             })}
@@ -270,22 +298,22 @@ export default function LoginPage() {
           <div className="text-center mb-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold mb-3">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Portal Login NusaKerja</span>
+              <span>{tx("NusaKerja Login Portal", "Portal Login NusaKerja")}</span>
             </div>
-            <h2 className="text-xl font-black text-white tracking-tight">Masuk dengan akun Anda</h2>
-            <p className="text-xs text-slate-400 mt-1">SuperAdmin, CA, Company Admin, HR, Manager, Karyawan</p>
+            <h2 className="text-xl font-black text-white tracking-tight">{tx("Sign in with your account", "Masuk dengan akun Anda")}</h2>
+            <p className="text-xs text-slate-400 mt-1">{tx("SuperAdmin, CA, Company Admin, HR, Manager, Employee", "SuperAdmin, CA, Company Admin, HR, Manager, Karyawan")}</p>
           </div>
 
           {logged ? (
             <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center">
               <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-              <h3 className="text-lg font-bold text-white">Otentikasi Berhasil!</h3>
+              <h3 className="text-lg font-bold text-white">{tx("Authenticated", "Otentikasi Berhasil!")}</h3>
               {error && <p className="text-[11px] text-amber-300 mt-2">{error}</p>}
               <Link
                 href={resolvedHome}
                 className="mt-6 w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors text-decoration-none"
               >
-                <span>Lanjut ke beranda peran</span>
+                <span>{tx("Continue to role home", "Lanjut ke beranda peran")}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -309,7 +337,7 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Kata Sandi</label>
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">{tx("Password", "Kata Sandi")}</label>
                 <div className="relative mt-1">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                   <input
@@ -327,7 +355,7 @@ export default function LoginPage() {
                 disabled={loading || !email}
                 className="w-full py-3 mt-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-xl font-extrabold text-sm shadow-lg shadow-red-900/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
               >
-                {loading ? "Mengotentikasi..." : "Masuk Ke Sistem"}
+                {loading ? tx("Authenticating...", "Mengotentikasi...") : tx("Sign in", "Masuk Ke Sistem")}
                 {!loading && <ArrowRight className="w-4 h-4" />}
               </button>
             </form>
@@ -336,7 +364,7 @@ export default function LoginPage() {
           <div className="mt-8 pt-6 border-t border-slate-800">
             <p className="text-[11px] text-slate-400 mb-3 font-semibold flex items-center justify-center gap-1.5">
               <Users className="w-3.5 h-3.5" />
-              Sample akun demo — isi form atau klik langsung di kiri
+              {tx("Demo sample accounts — fill the form or click on the left", "Sample akun demo — isi form atau klik langsung di kiri")}
             </p>
             <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
               {DEMO_PERSONAS.map((p) => (
@@ -351,7 +379,7 @@ export default function LoginPage() {
                   }`}
                   title={`${p.email} / ${p.password}`}
                 >
-                  {p.label.replace("Platform ", "").replace(" (Chartered Accountant)", "")}
+                  {tx(p.labelEn, p.labelId).replace("Platform ", "").replace(" (Chartered Accountant)", "").replace(" (Akuntan)", "")}
                 </button>
               ))}
             </div>
@@ -366,7 +394,7 @@ export default function LoginPage() {
       </main>
 
       <footer className="max-w-5xl w-full mx-auto text-center text-xs text-slate-500 z-10 py-2">
-        <p>© 2026 NusaKerja · SuperAdmin membuat perusahaan; Company Admin mengangkat HR; CA hanya hitung payroll.</p>
+        <p>{tx("© 2026 NusaKerja · SuperAdmin creates companies; Company Admin appoints HR; CA only calculates payroll.", "© 2026 NusaKerja · SuperAdmin membuat perusahaan; Company Admin mengangkat HR; CA hanya hitung payroll.")}</p>
       </footer>
     </div>
   );

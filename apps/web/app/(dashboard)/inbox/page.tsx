@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { trpcClient } from "../../../src/utils/trpc-client";
+import { useI18n } from "../../../src/context/i18n-context";
 
 type Notif = {
   id: string;
@@ -15,6 +16,7 @@ type Notif = {
 };
 
 export default function InboxPage() {
+  const { tx } = useI18n();
   const [items, setItems] = useState<Notif[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,10 +46,10 @@ export default function InboxPage() {
     <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 720 }}>
       <div>
         <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900, display: "flex", alignItems: "center", gap: 8 }}>
-          <Bell style={{ width: 22, height: 22 }} /> Inbox
+          <Bell style={{ width: 22, height: 22 }} /> {tx("Inbox", "Kotak Masuk")}
         </h1>
         <p style={{ margin: "6px 0 0", color: "#64748B", fontSize: 14 }}>
-          Leave and expense notifications for your account.
+          {tx("Leave and expense notifications for your account.", "Notifikasi cuti dan klaim untuk akun Anda.")}
         </p>
       </div>
 
@@ -57,7 +59,7 @@ export default function InboxPage() {
 
       <section style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: 20 }}>
         {items.length === 0 ? (
-          <p style={{ color: "#64748B", fontSize: 13 }}>No notifications.</p>
+          <p style={{ color: "#64748B", fontSize: 13 }}>{tx("No notifications.", "Tidak ada notifikasi.")}</p>
         ) : (
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
             {items.map((n) => (

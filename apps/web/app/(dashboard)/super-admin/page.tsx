@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { trpcClient } from "../../../src/utils/trpc-client";
 import { ROLE_DISPLAY_NAME } from "@nusakerja/auth";
+import { useI18n } from "../../../src/context/i18n-context";
 
 interface TenantRow {
   id: string;
@@ -37,6 +38,7 @@ interface HierarchyMember {
 }
 
 export default function SuperAdminPage() {
+  const { tx } = useI18n();
   const [companyName, setCompanyName] = useState("");
   const [slug, setSlug] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
@@ -190,12 +192,14 @@ export default function SuperAdminPage() {
       >
         <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 8, fontSize: 11, fontWeight: 700, color: "#FCD34D" }}>
           <Sparkles style={{ width: 13, height: 13 }} />
-          Control plane saja — tanpa angka payroll / NIK / payslip
+          {tx("Control plane only — no payroll figures / NIK / payslips", "Control plane saja — tanpa angka payroll / NIK / payslip")}
         </div>
-        <h1 style={{ fontSize: 24, fontWeight: 900, margin: 0 }}>Platform SuperAdmin</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 900, margin: 0 }}>{tx("Platform SuperAdmin", "Platform SuperAdmin")}</h1>
         <p style={{ fontSize: 13, margin: "8px 0 0", opacity: 0.85, maxWidth: 640 }}>
-          Buat perusahaan baru → undang <strong>Company Admin</strong> pertama (wajib) → opsional tugaskan{" "}
-          <strong>satu CA</strong>. Company Admin yang kemudian mengangkat HR di dalam perusahaan.
+          {tx(
+            "Create a new company → invite the first Company Admin (required) → optionally assign one CA. Company Admin then appoints HR inside the company.",
+            "Buat perusahaan baru → undang Company Admin pertama (wajib) → opsional tugaskan satu CA. Company Admin yang kemudian mengangkat HR di dalam perusahaan."
+          )}
         </p>
         <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap", fontSize: 12 }}>
           <span style={{ background: "rgba(220,38,38,0.25)", padding: "6px 12px", borderRadius: 999 }}>1. SuperAdmin</span>
@@ -204,7 +208,7 @@ export default function SuperAdminPage() {
           <span style={{ opacity: 0.5 }}>→</span>
           <span style={{ background: "rgba(16,185,129,0.25)", padding: "6px 12px", borderRadius: 999 }}>3. HR</span>
           <span style={{ opacity: 0.5 }}>|</span>
-          <span style={{ background: "rgba(52,211,153,0.2)", padding: "6px 12px", borderRadius: 999 }}>CA = hitung payroll (opsional)</span>
+          <span style={{ background: "rgba(52,211,153,0.2)", padding: "6px 12px", borderRadius: 999 }}>{tx("CA = calculate payroll (optional)", "CA = hitung payroll (opsional)")}</span>
         </div>
       </div>
 
@@ -228,14 +232,14 @@ export default function SuperAdminPage() {
                 <Plus style={{ width: 20, height: 20 }} />
               </div>
               <div>
-                <p style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>Buat Perusahaan + Company Admin</p>
-                <p style={{ fontSize: 12, margin: 0, color: "#64748B" }}>Email Company Admin wajib diisi</p>
+                <p style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>{tx("Create company + Company Admin", "Buat Perusahaan + Company Admin")}</p>
+                <p style={{ fontSize: 12, margin: 0, color: "#64748B" }}>{tx("Company Admin email is required", "Email Company Admin wajib diisi")}</p>
               </div>
             </div>
 
             <form onSubmit={handleOnboard} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <label style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#475569" }}>
-                Nama Perusahaan (PT/CV)
+                {tx("Company name (PT/CV)", "Nama Perusahaan (PT/CV)")}
                 <input
                   className="input"
                   style={{ marginTop: 6 }}
@@ -303,12 +307,12 @@ export default function SuperAdminPage() {
                 {isLoading ? (
                   <>
                     <RefreshCw style={{ width: 16, height: 16 }} />
-                    <span>Memproses...</span>
+                    <span>{tx("Processing...", "Memproses...")}</span>
                   </>
                 ) : (
                   <>
                     <ShieldCheck style={{ width: 16, height: 16 }} />
-                    <span>Buat & undang Company Admin</span>
+                    <span>{tx("Create & invite Company Admin", "Buat & undang Company Admin")}</span>
                   </>
                 )}
               </button>
@@ -317,7 +321,7 @@ export default function SuperAdminPage() {
 
           {/* Create CA firm */}
           <div style={{ background: "#ECFDF5", borderRadius: 20, padding: 22, border: "1px solid #A7F3D0" }}>
-            <p style={{ fontSize: 15, fontWeight: 800, margin: "0 0 4px" }}>Daftarkan akun CA (KAP)</p>
+            <p style={{ fontSize: 15, fontWeight: 800, margin: "0 0 4px" }}>{tx("Register a CA (KAP) account", "Daftarkan akun CA (KAP)")}</p>
             <p style={{ fontSize: 12, color: "#047857", margin: "0 0 12px" }}>
               CA login terpisah di /login → beranda /ca. Bukan admin perusahaan.
             </p>
@@ -338,8 +342,8 @@ export default function SuperAdminPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <Building2 style={{ width: 18, height: 18, color: "#0F172A" }} />
               <div>
-                <p style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>Daftar Perusahaan</p>
-                <p style={{ fontSize: 12, margin: 0, color: "#64748B" }}>Klik baris untuk lihat hierarki peran</p>
+                <p style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>{tx("Company list", "Daftar Perusahaan")}</p>
+                <p style={{ fontSize: 12, margin: 0, color: "#64748B" }}>{tx("Click a row to view the role hierarchy", "Klik baris untuk lihat hierarki peran")}</p>
               </div>
             </div>
             <button type="button" className="btn btn-ghost" onClick={() => void load()}>
@@ -352,7 +356,7 @@ export default function SuperAdminPage() {
               <thead>
                 <tr>
                   <th>Nama</th>
-                  <th>URL perusahaan</th>
+                  <th>{tx("Company URL", "URL perusahaan")}</th>
                   <th>Status</th>
                   <th>CA</th>
                 </tr>
@@ -411,7 +415,7 @@ export default function SuperAdminPage() {
                 Hierarki peran (tanpa PII payroll)
               </p>
               {hierarchy.length === 0 ? (
-                <p style={{ fontSize: 13, color: "#64748B" }}>Belum ada anggota / gagal memuat.</p>
+                <p style={{ fontSize: 13, color: "#64748B" }}>{tx("No members yet / failed to load.", "Belum ada anggota / gagal memuat.")}</p>
               ) : (
                 <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
                   {hierarchy.map((m) => (

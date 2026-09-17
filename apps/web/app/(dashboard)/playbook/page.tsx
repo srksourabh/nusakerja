@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { BookOpen, ShieldCheck, FileText, CheckCircle2, Award, Info, Scale, HelpCircle, ExternalLink, ChevronRight, RefreshCw, Sparkles, AlertCircle, Newspaper } from "lucide-react";
+import { useI18n } from "../../../src/context/i18n-context";
 
 interface NewsItem {
   id: string;
@@ -14,78 +15,114 @@ interface NewsItem {
   isUrgent: boolean;
 }
 
-const sections = [
+type Copy = { en: string; id: string };
+
+const sections: Array<{
+  id: string;
+  title: Copy;
+  badge: Copy;
+  color: string;
+  content: Array<{ subtitle: Copy; desc: Copy }>;
+}> = [
   {
     id: "tax-ter",
-    title: "1. Panduan PPh 21 TER (PMK 168/2023)",
-    badge: "Pajak Penghasilan",
+    title: { en: "1. PPh 21 TER guide (PMK 168/2023)", id: "1. Panduan PPh 21 TER (PMK 168/2023)" },
+    badge: { en: "Income tax", id: "Pajak Penghasilan" },
     color: "#DC2626",
     content: [
       {
-        subtitle: "Tarif Efektif Rata-Rata (TER) Bulanan",
-        desc: "Sesuai aturan PMK 168/2023, pemotongan PPh 21 bulanan Januari s/d November menggunakan Tarif Efektif (Kategori A, B, atau C) berdasarkan status PTKP karyawan.",
+        subtitle: { en: "Monthly average effective rate (TER)", id: "Tarif Efektif Rata-Rata (TER) Bulanan" },
+        desc: {
+          en: "Per PMK 168/2023, monthly PPh 21 withholding from January to November uses the Effective Rate (Category A, B, or C) based on the employee's PTKP status.",
+          id: "Sesuai aturan PMK 168/2023, pemotongan PPh 21 bulanan Januari s/d November menggunakan Tarif Efektif (Kategori A, B, atau C) berdasarkan status PTKP karyawan.",
+        },
       },
       {
-        subtitle: "Kategori TER PTKP",
-        desc: "Kat A: TK/0 (54 Jt), TK/1 & K/0 (58.5 Jt). Kat B: TK/2 & K/1 (63 Jt), TK/3 & K/2 (67.5 Jt). Kat C: K/3 (72 Jt).",
+        subtitle: { en: "TER PTKP categories", id: "Kategori TER PTKP" },
+        desc: {
+          en: "Cat A: TK/0 (54M), TK/1 & K/0 (58.5M). Cat B: TK/2 & K/1 (63M), TK/3 & K/2 (67.5M). Cat C: K/3 (72M).",
+          id: "Kat A: TK/0 (54 Jt), TK/1 & K/0 (58.5 Jt). Kat B: TK/2 & K/1 (63 Jt), TK/3 & K/2 (67.5 Jt). Kat C: K/3 (72 Jt).",
+        },
       },
       {
-        subtitle: "Rekonsiliasi Desember (Pasal 17)",
-        desc: "Pada bulan Desember, total pajak tahunan dihitung dengan Tarif Pasal 17 UU HPP, lalu dikurangi total pajak TER yang telah dipotong dari Jan–Nov.",
+        subtitle: { en: "December reconciliation (Article 17)", id: "Rekonsiliasi Desember (Pasal 17)" },
+        desc: {
+          en: "In December, annual tax is computed with Article 17 HPP rates, then reduced by TER tax already withheld from Jan-Nov.",
+          id: "Pada bulan Desember, total pajak tahunan dihitung dengan Tarif Pasal 17 UU HPP, lalu dikurangi total pajak TER yang telah dipotong dari Jan-Nov.",
+        },
       },
     ],
   },
   {
     id: "bpjs-2026",
-    title: "2. Batas & Tarif BPJS Kesehatan & Ketenagakerjaan (Maret 2026)",
-    badge: "Jaminan Sosial",
+    title: { en: "2. BPJS Health & Employment caps & rates (March 2026)", id: "2. Batas & Tarif BPJS Kesehatan & Ketenagakerjaan (Maret 2026)" },
+    badge: { en: "Social security", id: "Jaminan Sosial" },
     color: "#059669",
     content: [
       {
-        subtitle: "BPJS Ketenagakerjaan (JHT, JP, JKK, JKM)",
-        desc: "Batas Atas (Cap) Jaminan Pensiun (JP) berlaku efektif Maret 2026 adalah Rp11.086.300. Tarif JP: 1% Karyawan, 2% Perusahaan. JHT: 2% Karyawan, 3.7% Perusahaan.",
+        subtitle: { en: "BPJS Ketenagakerjaan (JHT, JP, JKK, JKM)", id: "BPJS Ketenagakerjaan (JHT, JP, JKK, JKM)" },
+        desc: {
+          en: "JP wage cap effective March 2026 is Rp11,086,300. JP rates: 1% employee, 2% employer. JHT: 2% employee, 3.7% employer.",
+          id: "Batas Atas (Cap) Jaminan Pensiun (JP) berlaku efektif Maret 2026 adalah Rp11.086.300. Tarif JP: 1% Karyawan, 2% Perusahaan. JHT: 2% Karyawan, 3.7% Perusahaan.",
+        },
       },
       {
-        subtitle: "BPJS Kesehatan (Perdir 3/2023)",
-        desc: "Batas Atas Gaji BPJS Kesehatan adalah Rp12.000.000 dengan total iuran 5% (1% Karyawan + 4% Perusahaan).",
+        subtitle: { en: "BPJS Kesehatan (Perdir 3/2023)", id: "BPJS Kesehatan (Perdir 3/2023)" },
+        desc: {
+          en: "BPJS Kesehatan wage cap is Rp12,000,000 with 5% total contribution (1% employee + 4% employer).",
+          id: "Batas Atas Gaji BPJS Kesehatan adalah Rp12.000.000 dengan total iuran 5% (1% Karyawan + 4% Perusahaan).",
+        },
       },
     ],
   },
   {
     id: "severance-pp35",
-    title: "3. Perhitungan Pesangon & PHK (PP 35/2021)",
-    badge: "Hak Karyawan",
+    title: { en: "3. Severance & termination (PP 35/2021)", id: "3. Perhitungan Pesangon & PHK (PP 35/2021)" },
+    badge: { en: "Employee rights", id: "Hak Karyawan" },
     color: "#2563EB",
     content: [
       {
-        subtitle: "Uang Pesangon (UP) & UPMK",
-        desc: "Masa kerja < 1 thn = 1 bulan upah. Hingga > 8 thn = 9 bulan upah. UPMK diberikan mulai masa kerja 3 tahun (2 bulan upah) hingga 24+ tahun (10 bulan upah).",
+        subtitle: { en: "Severance (UP) & UPMK", id: "Uang Pesangon (UP) & UPMK" },
+        desc: {
+          en: "Tenure under 1 year = 1 month wage. Up to over 8 years = 9 months. UPMK starts at 3 years (2 months) up to 24+ years (10 months).",
+          id: "Masa kerja < 1 thn = 1 bulan upah. Hingga > 8 thn = 9 bulan upah. UPMK diberikan mulai masa kerja 3 tahun (2 bulan upah) hingga 24+ tahun (10 bulan upah).",
+        },
       },
       {
-        subtitle: "Uang Penggantian Hak (UPH)",
-        desc: "Meliputi sisa cuti tahunan yang belum gugur serta biaya pulang karyawan ke tempat penerimaan kerja.",
+        subtitle: { en: "Compensation of rights (UPH)", id: "Uang Penggantian Hak (UPH)" },
+        desc: {
+          en: "Includes unused annual leave plus return travel to the place of hire.",
+          id: "Meliputi sisa cuti tahunan yang belum gugur serta biaya pulang karyawan ke tempat penerimaan kerja.",
+        },
       },
     ],
   },
   {
     id: "holidays-2026",
-    title: "4. Hari Libur Nasional & Cuti Bersama 2026",
-    badge: "Kalender Kerja",
+    title: { en: "4. National holidays & collective leave 2026", id: "4. Hari Libur Nasional & Cuti Bersama 2026" },
+    badge: { en: "Work calendar", id: "Kalender Kerja" },
     color: "#7C3AED",
     content: [
       {
-        subtitle: "Cuti Bersama Pemerintah",
-        desc: "Cuti Bersama mengurangi hak cuti tahunan karyawan swasta sesuai kesepakatan Peraturan Perusahaan / Perjanjian Kerja Bersama (PKB).",
+        subtitle: { en: "Government collective leave", id: "Cuti Bersama Pemerintah" },
+        desc: {
+          en: "Collective leave reduces private-sector annual leave per company regulations / collective bargaining agreement (PKB).",
+          id: "Cuti Bersama mengurangi hak cuti tahunan karyawan swasta sesuai kesepakatan Peraturan Perusahaan / Perjanjian Kerja Bersama (PKB).",
+        },
       },
       {
-        subtitle: "Lembur Hari Libur Resmi",
-        desc: "Kerja pada hari libur resmi dihitung 2x lipat upah jam pertama hingga jam ke-8 sesuai PP 35/2021.",
+        subtitle: { en: "Official holiday overtime", id: "Lembur Hari Libur Resmi" },
+        desc: {
+          en: "Work on official holidays is paid 2x for hours 1 through 8 per PP 35/2021.",
+          id: "Kerja pada hari libur resmi dihitung 2x lipat upah jam pertama hingga jam ke-8 sesuai PP 35/2021.",
+        },
       },
     ],
   },
 ];
 
 export default function PlaybookPage() {
+  const { tx } = useI18n();
   const [statutoryNews, setStatutoryNews] = useState<NewsItem[]>([]);
   const [fetching, setFetching] = useState(false);
   const [lastFetched, setLastFetched] = useState<string | null>(null);
@@ -140,10 +177,10 @@ export default function PlaybookPage() {
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 9999, background: "rgba(255,255,255,0.1)", fontSize: 11, fontWeight: 700, marginBottom: 8, color: "#FCA5A5" }}>
             <BookOpen style={{ width: 13, height: 13 }} />
-            <span>Indonesia Statutory & HR Operations Playbook 2026</span>
+            <span>{tx("Indonesia Statutory & HR Operations Playbook 2026", "Buku Panduan Operasi HR & Statutory Indonesia 2026")}</span>
           </div>
-          <h1 style={{ fontSize: 26, fontWeight: 900, margin: 0, letterSpacing: "-0.02em" }}>Buku Panduan Compliance HR & Penggajian NusaKerja</h1>
-          <p style={{ fontSize: 13, margin: "6px 0 0", opacity: 0.85 }}>Ringkasan regulasi perpajakan PPh 21 TER, jaminan sosial BPJS 2026, UU Cipta Kerja PP 35/2021, & berita statutory terintegrasi.</p>
+          <h1 style={{ fontSize: 26, fontWeight: 900, margin: 0, letterSpacing: "-0.02em" }}>{tx("NusaKerja HR & payroll compliance playbook", "Buku Panduan Compliance HR & Penggajian NusaKerja")}</h1>
+          <p style={{ fontSize: 13, margin: "6px 0 0", opacity: 0.85 }}>{tx("Summary of PPh 21 TER tax, BPJS 2026 social security, Job Creation Law PP 35/2021, and integrated statutory news.", "Ringkasan regulasi perpajakan PPh 21 TER, jaminan sosial BPJS 2026, UU Cipta Kerja PP 35/2021, & berita statutory terintegrasi.")}</p>
         </div>
       </div>
 
@@ -155,8 +192,14 @@ export default function PlaybookPage() {
               <Newspaper style={{ width: 18, height: 18 }} />
             </div>
             <div>
-              <h2 style={{ fontSize: 16, fontWeight: 900, color: "#0F172A", margin: 0 }}>Portal Berita Circular & Pembaruan Statutory Otomatis</h2>
-              <p style={{ fontSize: 11, color: "#64748B", margin: 0 }}>Super Admin Auto-Fetch Scraper dari Kemnaker, DJP Pajak, & BPJS {lastFetched && `• Terakhir Diperbarui ${lastFetched}`}</p>
+              <h2 style={{ fontSize: 16, fontWeight: 900, color: "#0F172A", margin: 0 }}>{tx("Circular news & automatic statutory updates", "Portal Berita Circular & Pembaruan Statutory Otomatis")}</h2>
+              <p style={{ fontSize: 11, color: "#64748B", margin: 0 }}>
+                {tx(
+                  "Super Admin auto-fetch scraper from Kemnaker, DJP Pajak, & BPJS",
+                  "Super Admin Auto-Fetch Scraper dari Kemnaker, DJP Pajak, & BPJS"
+                )}
+                {lastFetched && ` • ${tx("Last updated", "Terakhir Diperbarui")} ${lastFetched}`}
+              </p>
             </div>
           </div>
           <button
@@ -165,7 +208,7 @@ export default function PlaybookPage() {
             style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 10, background: "#0F172A", color: "#fff", fontSize: 11, fontWeight: 800, border: "none", cursor: "pointer" }}
           >
             <RefreshCw style={{ width: 12, height: 12 }} className={fetching ? "animate-spin" : ""} />
-            <span>{fetching ? "Mengambil Berita..." : "Jalankan Auto-Fetch Scraper"}</span>
+            <span>{fetching ? tx("Fetching news...", "Mengambil Berita...") : tx("Run auto-fetch scraper", "Jalankan Auto-Fetch Scraper")}</span>
           </button>
         </div>
 
@@ -177,15 +220,15 @@ export default function PlaybookPage() {
                   <span style={{ fontSize: 10, fontWeight: 900, background: news.isUrgent ? "#FEE2E2" : "#E2E8F0", color: news.isUrgent ? "#991B1B" : "#334155", padding: "2px 8px", borderRadius: 9999, textTransform: "uppercase" }}>
                     {news.source} • {news.category}
                   </span>
-                  <span style={{ fontSize: 10, color: "#64748B", fontWeight: 700 }}>Berlaku: {news.effectiveDate}</span>
+                  <span style={{ fontSize: 10, color: "#64748B", fontWeight: 700 }}>{tx("Effective:", "Berlaku:")} {news.effectiveDate}</span>
                 </div>
                 <h3 style={{ fontSize: 13, fontWeight: 800, color: "#0F172A", margin: "0 0 6px" }}>{news.title}</h3>
                 <p style={{ fontSize: 11, color: "#475569", margin: 0, lineHeight: 1.5 }}>{news.summary}</p>
               </div>
               <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid #E2E8F0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 10, color: "#166534", fontWeight: 800 }}>✓ Otomatis Berlaku untuk Seluruh Tenant Schema</span>
+                <span style={{ fontSize: 10, color: "#166534", fontWeight: 800 }}>{tx("Automatically applied to all tenant schemas", "Otomatis Berlaku untuk Seluruh Tenant Schema")}</span>
                 <a href={news.officialDocUrl} target="_blank" rel="noreferrer" style={{ fontSize: 10, fontWeight: 800, color: "#DC2626", textDecoration: "none", display: "flex", alignItems: "center", gap: 3 }}>
-                  Surat Edaran Resmi <ExternalLink style={{ width: 10, height: 10 }} />
+                  {tx("Official circular", "Surat Edaran Resmi")} <ExternalLink style={{ width: 10, height: 10 }} />
                 </a>
               </div>
             </div>
@@ -200,30 +243,30 @@ export default function PlaybookPage() {
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid #E7E0EC" }}>
                 <span className="badge" style={{ background: `${s.color}15`, color: s.color, fontWeight: 800 }}>
-                  {s.badge}
+                  {tx(s.badge.en, s.badge.id)}
                 </span>
-                <span style={{ fontSize: 11, color: "#625B71", fontWeight: 700 }}>Versi Maret 2026</span>
+                <span style={{ fontSize: 11, color: "#625B71", fontWeight: 700 }}>{tx("March 2026 edition", "Versi Maret 2026")}</span>
               </div>
-              <h2 style={{ fontSize: 16, fontWeight: 800, color: "#1C1B1F", margin: "0 0 16px" }}>{s.title}</h2>
+              <h2 style={{ fontSize: 16, fontWeight: 800, color: "#1C1B1F", margin: "0 0 16px" }}>{tx(s.title.en, s.title.id)}</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {s.content.map((item, idx) => (
                   <div key={idx} style={{ padding: "12px 14px", borderRadius: 14, background: "#F8FAFC", border: "1px solid #E2E8F0" }}>
                     <p style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", margin: "0 0 4px", display: "flex", alignItems: "center", gap: 6 }}>
                       <CheckCircle2 style={{ width: 14, height: 14, color: s.color }} />
-                      {item.subtitle}
+                      {tx(item.subtitle.en, item.subtitle.id)}
                     </p>
-                    <p style={{ fontSize: 12, color: "#475569", margin: 0, lineHeight: 1.5 }}>{item.desc}</p>
+                    <p style={{ fontSize: 12, color: "#475569", margin: 0, lineHeight: 1.5 }}>{tx(item.desc.en, item.desc.id)}</p>
                   </div>
                 ))}
               </div>
             </div>
             <div style={{ marginTop: 20, paddingTop: 12, borderTop: "1px solid #F1F5F9", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 11, color: "#64748B", fontWeight: 600 }}>Tervalidasi Konsultan Pajak & HR</span>
+              <span style={{ fontSize: 11, color: "#64748B", fontWeight: 600 }}>{tx("Validated by tax & HR consultants", "Tervalidasi Konsultan Pajak & HR")}</span>
               <a
                 href={s.id === "severance-pp35" ? "/severance" : "#"}
                 style={{ fontSize: 11, color: s.color, fontWeight: 800, textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}
               >
-                Pelajari Detail <ChevronRight style={{ width: 12, height: 12 }} />
+                {tx("Learn more", "Pelajari Detail")} <ChevronRight style={{ width: 12, height: 12 }} />
               </a>
             </div>
           </div>
@@ -237,16 +280,16 @@ export default function PlaybookPage() {
             <Scale style={{ width: 20, height: 20 }} />
           </div>
           <div>
-            <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: "#1E3A8A" }}>Referensi Portal Resmi Pemerintah Republik Indonesia</h3>
-            <p style={{ fontSize: 12, color: "#1E40AF", margin: 0 }}>Gunakan portal di bawah untuk sinkronisasi data e-Faktur/PPh21 dan kepersertaan BPJS.</p>
+            <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: "#1E3A8A" }}>{tx("Official Government of Indonesia portal references", "Referensi Portal Resmi Pemerintah Republik Indonesia")}</h3>
+            <p style={{ fontSize: 12, color: "#1E40AF", margin: 0 }}>{tx("Use the portals below to sync e-Faktur/PPh 21 and BPJS membership data.", "Gunakan portal di bawah untuk sinkronisasi data e-Faktur/PPh21 dan kepersertaan BPJS.")}</p>
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }}>
           {[
-            { name: "DJP Coretax Pajak", desc: "Pelaporan PPh 21 TER", url: "https://coretaxdjp.pajak.go.id/" },
-            { name: "BPJS TK SIPP Online", desc: "Mutasi Tenaga Kerja", url: "https://sipp.bpjsketenagakerjaan.go.id" },
-            { name: "BPJS Health e-Dabu", desc: "Badan Usaha Kesehatan", url: "https://edabu.bpjs-kesehatan.go.id/Edabu/Home/Login" },
-            { name: "SIAPkerja Kemnaker", desc: "Pelaporan Wajib Lapor WLKP", url: "https://siapkerja.kemnaker.go.id" },
+            { name: "DJP Coretax Pajak", desc: tx("PPh 21 TER filing", "Pelaporan PPh 21 TER"), url: "https://coretaxdjp.pajak.go.id/" },
+            { name: "BPJS TK SIPP Online", desc: tx("Workforce mutation", "Mutasi Tenaga Kerja"), url: "https://sipp.bpjsketenagakerjaan.go.id" },
+            { name: "BPJS Health e-Dabu", desc: tx("Employer health portal", "Badan Usaha Kesehatan"), url: "https://edabu.bpjs-kesehatan.go.id/Edabu/Home/Login" },
+            { name: "SIAPkerja Kemnaker", desc: tx("Mandatory WLKP reporting", "Pelaporan Wajib Lapor WLKP"), url: "https://siapkerja.kemnaker.go.id" },
           ].map((gov) => (
             <a
               key={gov.name}
@@ -260,7 +303,7 @@ export default function PlaybookPage() {
                 <p style={{ fontSize: 10, color: "#3B82F6", margin: 0 }}>{gov.desc}</p>
               </div>
               <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, color: "#2563EB" }}>
-                <span>Buka Portal</span>
+                <span>{tx("Open portal", "Buka Portal")}</span>
                 <ExternalLink style={{ width: 10, height: 10 }} />
               </div>
             </a>
