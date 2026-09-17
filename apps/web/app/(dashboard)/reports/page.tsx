@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FileText, Download, CheckCircle2, ShieldCheck, FileCode, FileSpreadsheet, Sparkles, UserX, Calendar, Search, Users, BarChart3, Clock } from "lucide-react";
+import { useI18n } from "../../../src/context/i18n-context";
 
 interface WeeklySummaryRow {
   employeeCode: string;
@@ -40,6 +41,7 @@ interface NotPresentRow {
 }
 
 export default function ReportsPage() {
+  const { tx } = useI18n();
   const [activeTab, setActiveTab] = useState<"weekly" | "monthly_grid" | "not_present" | "statutory">("weekly");
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -233,9 +235,12 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
               <BarChart3 className="w-3.5 h-3.5 text-amber-300" />
               <span>UDS-HR & Field-Connect Weekly & Monthly Reporting Hub</span>
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight">Laporan Presensi & Statutory Export</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight">{tx("Attendance reports & statutory export", "Laporan Presensi & Statutory Export")}</h1>
             <p className="text-sm text-slate-300 mt-2 max-w-2xl">
-              Laporan Mingguan (Weekly Summary), Grid Presensi Bulanan (UDS-HR), Exceptions &quot;Not Present Today&quot;, XML DJP Coretax PPh 21 TER, &amp; CSV BPJS.
+              {tx(
+                "Weekly summary, monthly attendance grid, not-present-today exceptions, DJP Coretax PPh 21 TER XML, and BPJS CSV.",
+                "Laporan Mingguan, Grid Presensi Bulanan, karyawan tidak hadir hari ini, XML DJP Coretax PPh 21 TER, dan CSV BPJS."
+              )}
             </p>
           </div>
         </div>
@@ -252,7 +257,7 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
           }`}
         >
           <Clock className="w-4 h-4 inline mr-2" />
-          Laporan Mingguan (Weekly Summary)
+          {tx("Weekly summary", "Laporan Mingguan")}
         </button>
         <button
           onClick={() => setActiveTab("monthly_grid")}
@@ -263,7 +268,7 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
           }`}
         >
           <Calendar className="w-4 h-4 inline mr-2" />
-          Grid Presensi Bulanan (UDS-HR)
+          {tx("Monthly attendance grid", "Grid Presensi Bulanan")}
         </button>
         <button
           onClick={() => setActiveTab("not_present")}
@@ -274,7 +279,7 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
           }`}
         >
           <UserX className="w-4 h-4 inline mr-2" />
-          Tidak Hadir Hari Ini (Not Present)
+          {tx("Not present today", "Tidak Hadir Hari Ini")}
         </button>
         <button
           onClick={() => setActiveTab("statutory")}
@@ -285,7 +290,7 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
           }`}
         >
           <FileCode className="w-4 h-4 inline mr-2" />
-          Download Export Statutory & GL
+          {tx("Statutory & GL export", "Download Export Statutory & GL")}
         </button>
       </div>
 
@@ -294,8 +299,8 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Rekapitulasi Presensi & Jam Lembur Mingguan</h2>
-              <p className="text-xs text-slate-500">Rincian jam kerja terhitung Minggu 1 s.d. Minggu 4 dan total akumulasi lembur.</p>
+              <h2 className="text-lg font-bold text-slate-900">{tx("Weekly attendance & overtime recap", "Rekapitulasi Presensi & Jam Lembur Mingguan")}</h2>
+              <p className="text-xs text-slate-500">{tx("Hours from week 1 to week 4 plus accumulated overtime.", "Rincian jam kerja terhitung Minggu 1 s.d. Minggu 4 dan total akumulasi lembur.")}</p>
             </div>
             <button
               onClick={handleWeeklyAttendanceCsv}
@@ -346,8 +351,8 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Rekapitulasi Presensi Karyawan Bulanan Grid</h2>
-              <p className="text-xs text-slate-500">Kalkulasi total jam hadir, keterlambatan, dan status presensi harian per karyawan.</p>
+              <h2 className="text-lg font-bold text-slate-900">{tx("Monthly employee attendance grid", "Rekapitulasi Presensi Karyawan Bulanan Grid")}</h2>
+              <p className="text-xs text-slate-500">{tx("Present hours, lateness, and daily attendance status per employee.", "Kalkulasi total jam hadir, keterlambatan, dan status presensi harian per karyawan.")}</p>
             </div>
             <button
               onClick={handleWeeklyAttendanceCsv}
@@ -396,8 +401,8 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
       {activeTab === "not_present" && (
         <div className="space-y-4">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">Roster Karyawan Tidak Hadir Hari Ini</h2>
-            <p className="text-xs text-slate-500">Daftar karyawan yang belum melakukan punch-in presensi atau sedang mengambil cuti.</p>
+            <h2 className="text-lg font-bold text-slate-900">{tx("Employees not present today", "Roster Karyawan Tidak Hadir Hari Ini")}</h2>
+            <p className="text-xs text-slate-500">{tx("Employees who have not punched in or are on leave.", "Daftar karyawan yang belum melakukan punch-in presensi atau sedang mengambil cuti.")}</p>
           </div>
 
           <div className="card-white p-4 border rounded-2xl shadow-sm">
@@ -405,10 +410,10 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
               <thead>
                 <tr className="bg-slate-100 border-b">
                   <th className="p-3 font-bold">NIK/Code</th>
-                  <th className="p-3 font-bold">Nama Karyawan</th>
-                  <th className="p-3 font-bold">Jabatan & Departemen</th>
-                  <th className="p-3 font-bold">Manager Atasan</th>
-                  <th className="p-3 font-bold">Status Alasan</th>
+                  <th className="p-3 font-bold">{tx("Employee name", "Nama Karyawan")}</th>
+                  <th className="p-3 font-bold">{tx("Title & department", "Jabatan & Departemen")}</th>
+                  <th className="p-3 font-bold">{tx("Reporting manager", "Manager Atasan")}</th>
+                  <th className="p-3 font-bold">{tx("Reason status", "Status Alasan")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -419,9 +424,9 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
                     <td className="p-3 text-slate-600">{np.designation} ({np.department})</td>
                     <td className="p-3 text-slate-600">{np.manager}</td>
                     <td className="p-3">
-                      {np.reason === "Absent" && <span className="px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-bold text-[10px]">Tanpa Keterangan (Absent)</span>}
-                      {np.reason === "On-Leave" && <span className="px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 font-bold text-[10px]">Sedang Cuti (On-Leave)</span>}
-                      {np.reason === "Unexcused" && <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">Belum Punch In</span>}
+                      {np.reason === "Absent" && <span className="px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-bold text-[10px]">{tx("Unexplained absence", "Tanpa Keterangan (Absent)")}</span>}
+                      {np.reason === "On-Leave" && <span className="px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 font-bold text-[10px]">{tx("On leave", "Sedang Cuti (On-Leave)")}</span>}
+                      {np.reason === "Unexcused" && <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">{tx("Not punched in", "Belum Punch In")}</span>}
                     </td>
                   </tr>
                 ))}
@@ -440,7 +445,7 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
               <FileCode className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[10px] font-extrabold text-red-600 uppercase tracking-wider">Format Resmi DJP</span>
+              <span className="text-[10px] font-extrabold text-red-600 uppercase tracking-wider">{tx("Official DJP format", "Format Resmi DJP")}</span>
               <h3 className="text-base font-bold text-[#1C1B1F]">DJP Coretax XML (e-Bupot 21/26)</h3>
               <p className="text-xs text-[#625B71] mt-1">
                 File schema XML siap upload ke portal Coretax Pajak.go.id dengan format PPh 21 TER PMK 168/2023.
@@ -451,7 +456,7 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
               className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold space-x-2 flex items-center justify-center"
             >
               <Download className="w-4 h-4" />
-              <span>Unduh File XML (e-Bupot)</span>
+              <span>{tx("Download XML (e-Bupot)", "Unduh File XML (e-Bupot)")}</span>
             </button>
           </div>
 
@@ -472,7 +477,7 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
               className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold space-x-2 flex items-center justify-center"
             >
               <Download className="w-4 h-4" />
-              <span>Unduh CSV BPJS SIPP</span>
+              <span>{tx("Download BPJS SIPP CSV", "Unduh CSV BPJS SIPP")}</span>
             </button>
           </div>
 
@@ -482,7 +487,7 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
               <Sparkles className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider">Jurnal Akuntansi</span>
+              <span className="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider">{tx("Accounting journal", "Jurnal Akuntansi")}</span>
               <h3 className="text-base font-bold text-[#1C1B1F]">GL Accounting Journal CSV</h3>
               <p className="text-xs text-[#625B71] mt-1">
                 Draft jurnal debit/kredit biaya gaji, utang PPh 21, & BPJS untuk sistem ERP/Accounting.
@@ -493,7 +498,7 @@ JKT88992011,3171021990040002,Bambang Prasetyo,28000000,0.0024,0.003,560000,11086
               className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold space-x-2 flex items-center justify-center"
             >
               <Download className="w-4 h-4" />
-              <span>Unduh Jurnal GL CSV</span>
+              <span>{tx("Download GL journal CSV", "Unduh Jurnal GL CSV")}</span>
             </button>
           </div>
         </div>

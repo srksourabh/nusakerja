@@ -7,6 +7,7 @@ import { calculateOvertimePay } from "@nusakerja/config";
 import { PunchClockPanel } from "../../../src/components/punch-clock-panel";
 import { AttendanceMapPanel } from "../../../src/components/attendance-map-panel";
 import { useAuth } from "../../../src/context/auth-context";
+import { useI18n } from "../../../src/context/i18n-context";
 
 interface Session {
   id: string;
@@ -43,6 +44,7 @@ interface RectificationRequest {
 
 export default function AttendancePage() {
   const { isManager, isHrAdmin, shellMode } = useAuth();
+  const { tx } = useI18n();
   const showTeamMap = (isManager || isHrAdmin) && shellMode === "manage";
 
   const [gpsLocation] = useState({
@@ -168,8 +170,8 @@ export default function AttendancePage() {
             <Radio className="w-5 h-5 animate-pulse" />
           </div>
           <div>
-            <p className="text-sm font-extrabold text-white">Field-Connect Real-Time GPS Tracking & Attendance</p>
-            <p className="text-xs text-slate-400">Verifikasi lokasi presisi & sinkronisasi otomatis offline punch buffer.</p>
+            <p className="text-sm font-extrabold text-white">{tx("Field-Connect real-time GPS tracking & attendance", "Field-Connect Real-Time GPS Tracking & Attendance")}</p>
+            <p className="text-xs text-slate-400">{tx("Precise location verification and automatic offline punch buffer sync.", "Verifikasi lokasi presisi & sinkronisasi otomatis offline punch buffer.")}</p>
           </div>
         </div>
         <button
@@ -177,7 +179,7 @@ export default function AttendancePage() {
           className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center space-x-1.5 transition-all shadow-md"
         >
           <PlusCircle className="w-4 h-4" />
-          <span>Form Koreksi Presensi (Rectification)</span>
+          <span>{tx("Attendance correction form", "Form Koreksi Presensi")}</span>
         </button>
       </div>
 
@@ -188,18 +190,18 @@ export default function AttendancePage() {
           <CardHeader>
             <CardTitle className="text-base font-bold text-slate-900 flex items-center">
               <MapPin className="w-5 h-5 text-red-600 mr-2" />
-              Presensi GPS Field-Connect (Mobile Location Punch)
+              {tx("Field-Connect GPS punch (mobile location)", "Presensi GPS Field-Connect (Mobile Location Punch)")}
             </CardTitle>
             <p className="text-xs text-slate-500">
-              Sistem verifikasi lokasi presensi presisi tinggi sesuai regulasi UU PDP Law No. 27/2022.
+              {tx("High-precision attendance location verification under UU PDP Law No. 27/2022.", "Sistem verifikasi lokasi presensi presisi tinggi sesuai regulasi UU PDP Law No. 27/2022.")}
             </p>
           </CardHeader>
 
           <div className="p-6 pt-0 space-y-5">
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-500 font-medium">Status Geofence Radius:</span>
-                <Badge variant="success">✓ Radius Terverifikasi (Sudirman HQ)</Badge>
+                <span className="text-slate-500 font-medium">{tx("Geofence radius status:", "Status Geofence Radius:")}</span>
+                <Badge variant="success">{tx("Radius verified (Sudirman HQ)", "Radius Terverifikasi (Sudirman HQ)")}</Badge>
               </div>
               <div className="text-xs text-slate-700 font-semibold flex items-center space-x-1">
                 <Navigation className="w-3.5 h-3.5 text-red-600" />
@@ -207,7 +209,7 @@ export default function AttendancePage() {
               </div>
               <div className="text-[11px] text-slate-500 font-mono flex justify-between pt-1">
                 <span>Lat: {gpsLocation.lat}° S, Lng: {gpsLocation.lng}° E</span>
-                <span className="text-emerald-700 font-bold">Akurasi GPS: ±{gpsLocation.accuracy}m</span>
+                <span className="text-emerald-700 font-bold">{tx("GPS accuracy: ±{m}m", "Akurasi GPS: ±{m}m", { m: gpsLocation.accuracy })}</span>
               </div>
             </div>
 
@@ -227,17 +229,17 @@ export default function AttendancePage() {
           <CardHeader>
             <CardTitle className="text-base font-bold text-slate-900 flex items-center">
               <Clock className="w-5 h-5 text-amber-500 mr-2" />
-              Kalkulator Upah Lembur (PP 35/2021)
+              {tx("Overtime pay calculator (PP 35/2021)", "Kalkulator Upah Lembur (PP 35/2021)")}
             </CardTitle>
             <p className="text-xs text-slate-500">
-              Rumus statutory: <code className="font-mono text-red-600 bg-red-50 px-1 py-0.5 rounded">1/173 x Upah Sebulan</code> dengan pengali 1.5x dan 2.0x.
+              {tx("Statutory formula:", "Rumus statutory:")} <code className="font-mono text-red-600 bg-red-50 px-1 py-0.5 rounded">1/173 x {tx("Monthly wage", "Upah Sebulan")}</code> {tx("with 1.5x and 2.0x multipliers.", "dengan pengali 1.5x dan 2.0x.")}
             </p>
           </CardHeader>
 
           <div className="p-6 pt-0 space-y-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Upah Sebulan (IDR)
+                {tx("Monthly wage (IDR)", "Upah Sebulan (IDR)")}
               </label>
               <input
                 type="number"
@@ -249,7 +251,7 @@ export default function AttendancePage() {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Jumlah Jam Lembur
+                {tx("Overtime hours", "Jumlah Jam Lembur")}
               </label>
               <input
                 type="number"
@@ -268,16 +270,16 @@ export default function AttendancePage() {
                 className="w-4 h-4 text-red-600 rounded"
               />
               <label htmlFor="holiday" className="text-xs font-semibold text-slate-700 cursor-pointer">
-                Lembur Pada Hari Libur Resmi / Cuti Bersama
+                {tx("Overtime on official holidays / collective leave", "Lembur Pada Hari Libur Resmi / Cuti Bersama")}
               </label>
             </div>
 
             <div className="p-4 bg-red-50 border border-red-200 rounded-2xl space-y-1 mt-4">
-              <span className="text-[10px] font-extrabold text-red-700 uppercase tracking-wider">Total Upah Lembur Hak Karyawan</span>
+              <span className="text-[10px] font-extrabold text-red-700 uppercase tracking-wider">{tx("Total overtime pay due to employee", "Total Upah Lembur Hak Karyawan")}</span>
               <p className="text-2xl font-black text-red-950 font-mono">
                 Rp {calculatedOvertime.toLocaleString("id-ID")}
               </p>
-              <p className="text-[11px] text-red-700 font-medium">Upah Sejam (1/173): Rp {Math.round(monthlyWage / 173).toLocaleString("id-ID")}</p>
+              <p className="text-[11px] text-red-700 font-medium">{tx("Hourly wage (1/173):", "Upah Sejam (1/173):")} Rp {Math.round(monthlyWage / 173).toLocaleString("id-ID")}</p>
             </div>
           </div>
         </Card>
@@ -288,19 +290,19 @@ export default function AttendancePage() {
         <CardHeader>
           <CardTitle className="text-base font-bold text-slate-900 flex items-center">
             <Navigation className="w-5 h-5 text-emerald-600 mr-2" />
-            Monitoring Lokasi Tim Field-Connect (Live GPS Tracking)
+            {tx("Field-Connect team location monitoring (live GPS)", "Monitoring Lokasi Tim Field-Connect (Live GPS Tracking)")}
           </CardTitle>
-          <p className="text-xs text-slate-500">Daftar lokasi presensi lapangan tim secara real-time dari aplikasi mobile.</p>
+          <p className="text-xs text-slate-500">{tx("Real-time field punch locations from the mobile app.", "Daftar lokasi presensi lapangan tim secara real-time dari aplikasi mobile.")}</p>
         </CardHeader>
         <div className="p-6 pt-0 overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-100 border-b text-slate-700 font-bold uppercase">
               <tr>
-                <th className="p-3">Nama & Jabatan</th>
-                <th className="p-3">Waktu Punch IN</th>
-                <th className="p-3">Lokasi Terverifikasi</th>
-                <th className="p-3 text-center">Jarak HQ</th>
-                <th className="p-3 text-center">Status Geofence</th>
+                <th className="p-3">{tx("Name & title", "Nama & Jabatan")}</th>
+                <th className="p-3">{tx("Punch IN time", "Waktu Punch IN")}</th>
+                <th className="p-3">{tx("Verified location", "Lokasi Terverifikasi")}</th>
+                <th className="p-3 text-center">{tx("Distance to HQ", "Jarak HQ")}</th>
+                <th className="p-3 text-center">{tx("Geofence status", "Status Geofence")}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -334,20 +336,20 @@ export default function AttendancePage() {
           <CardHeader>
             <CardTitle className="text-base font-bold text-slate-900 flex items-center">
               <Calendar className="w-5 h-5 text-blue-600 mr-2" />
-              Timeline Sesi Presensi Hari Ini
+              {tx("Today punch session timeline", "Timeline Sesi Presensi Hari Ini")}
             </CardTitle>
-            <p className="text-xs text-slate-500">Rincian jam masuk, jam keluar, dan total durasi kerja hari ini.</p>
+            <p className="text-xs text-slate-500">{tx("Clock-in, clock-out, and total working duration today.", "Rincian jam masuk, jam keluar, dan total durasi kerja hari ini.")}</p>
           </CardHeader>
           <div className="p-6 pt-0 space-y-3">
             {sessions.map((s) => (
               <div key={s.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
                 <div>
-                  <p className="font-bold text-slate-900">Sesi {s.punchIn} — {s.punchOut || "Berjalan"}</p>
+                  <p className="font-bold text-slate-900">{tx("Session", "Sesi")} {s.punchIn} — {s.punchOut || tx("In progress", "Berjalan")}</p>
                   <p className="text-[11px] text-slate-500">{s.locationName}</p>
                 </div>
                 <div className="text-right">
                   <span className="font-bold text-emerald-700 font-mono block">{s.duration}</span>
-                  <Badge variant="success">Geofence Valid</Badge>
+                  <Badge variant="success">{tx("Geofence valid", "Geofence Valid")}</Badge>
                 </div>
               </div>
             ))}
@@ -359,9 +361,9 @@ export default function AttendancePage() {
           <CardHeader>
             <CardTitle className="text-base font-bold text-slate-900 flex items-center">
               <FileText className="w-5 h-5 text-purple-600 mr-2" />
-              Riwayat Koreksi Presensi (Rectification)
+              {tx("Attendance correction history", "Riwayat Koreksi Presensi")}
             </CardTitle>
-            <p className="text-xs text-slate-500">Permohonan koreksi lupa absen yang telah diajukan ke Manager/HR.</p>
+            <p className="text-xs text-slate-500">{tx("Missed-punch correction requests submitted to Manager/HR.", "Permohonan koreksi lupa absen yang telah diajukan ke Manager/HR.")}</p>
           </CardHeader>
           <div className="p-6 pt-0 space-y-3">
             {rectifications.map((r) => (
@@ -371,9 +373,9 @@ export default function AttendancePage() {
                   <p className="text-[11px] text-slate-500">{r.reason}</p>
                 </div>
                 <div>
-                  {r.status === "approved" && <Badge variant="success">✓ Disetujui</Badge>}
-                  {r.status === "pending" && <Badge variant="warning">⏳ Menunggu</Badge>}
-                  {r.status === "rejected" && <Badge variant="error">✕ Ditolak</Badge>}
+                  {r.status === "approved" && <Badge variant="success">✓ {tx("Approved", "Disetujui")}</Badge>}
+                  {r.status === "pending" && <Badge variant="warning">⏳ {tx("Pending", "Menunggu")}</Badge>}
+                  {r.status === "rejected" && <Badge variant="error">✕ {tx("Rejected", "Ditolak")}</Badge>}
                 </div>
               </div>
             ))}
@@ -385,10 +387,10 @@ export default function AttendancePage() {
       {showRectificationModal && (
         <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in fade-in">
-            <h3 className="text-lg font-bold text-slate-900">Form Koreksi Presensi (Rectification)</h3>
+            <h3 className="text-lg font-bold text-slate-900">{tx("Attendance correction form", "Form Koreksi Presensi")}</h3>
             <form onSubmit={handleCreateRectification} className="space-y-3 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Tanggal Absen</label>
+                <label className="block font-bold text-slate-700 mb-1">{tx("Attendance date", "Tanggal Absen")}</label>
                 <input
                   type="date"
                   value={rectDate}
@@ -397,7 +399,7 @@ export default function AttendancePage() {
                 />
               </div>
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Jam Usulan (Jam:Menit)</label>
+                <label className="block font-bold text-slate-700 mb-1">{tx("Proposed time (HH:MM)", "Jam Usulan (Jam:Menit)")}</label>
                 <input
                   type="time"
                   value={rectTime}
@@ -406,11 +408,11 @@ export default function AttendancePage() {
                 />
               </div>
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Alasan Koreksi</label>
+                <label className="block font-bold text-slate-700 mb-1">{tx("Correction reason", "Alasan Koreksi")}</label>
                 <textarea
                   value={rectReason}
                   onChange={(e) => setRectReason(e.target.value)}
-                  placeholder="Contoh: Lupa punch out karena jaringan mati di lapangan"
+                  placeholder={tx("Example: Forgot to punch out because the field network dropped", "Contoh: Lupa punch out karena jaringan mati di lapangan")}
                   className="w-full px-3 py-2 border rounded-lg h-20"
                 />
               </div>
@@ -420,13 +422,13 @@ export default function AttendancePage() {
                   onClick={() => setShowRectificationModal(false)}
                   className="w-1/2 py-2.5 bg-slate-100 font-bold rounded-lg hover:bg-slate-200"
                 >
-                  Batal
+                  {tx("Cancel", "Batal")}
                 </button>
                 <button
                   type="submit"
                   className="w-1/2 py-2.5 bg-red-600 font-bold text-white rounded-lg hover:bg-red-700"
                 >
-                  Kirim Permohonan
+                  {tx("Submit request", "Kirim Permohonan")}
                 </button>
               </div>
             </form>

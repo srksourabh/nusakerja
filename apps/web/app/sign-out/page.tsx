@@ -3,9 +3,12 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { LogOut, CheckCircle2, ShieldCheck, ArrowRight, Home } from "lucide-react";
+import { useI18n } from "../../src/context/i18n-context";
+import { LanguageToggle } from "../../src/components/language-toggle";
 
 export default function SignOutPage() {
   const [cleared, setCleared] = useState(false);
+  const { tx } = useI18n();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -19,16 +22,17 @@ export default function SignOutPage() {
       {/* Organic Light Flare */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 bg-red-600/15 rounded-full blur-3xl pointer-events-none" />
 
-      <header className="max-w-6xl w-full mx-auto py-2">
+      <header className="max-w-6xl w-full mx-auto py-2 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 w-fit">
           <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center border border-white/20 shadow-lg">
             <img src="/logo.png" alt="NusaKerja" className="w-full h-full object-contain" />
           </div>
           <div>
             <span className="text-xl font-black tracking-tight text-white">NusaKerja</span>
-            <p className="text-[11px] text-slate-400 font-medium">Platform HRMS & Payroll Statutory Indonesia</p>
+            <p className="text-[11px] text-slate-400 font-medium">{tx("Indonesian HRMS & Statutory Payroll Platform", "Platform HRMS & Payroll Statutory Indonesia")}</p>
           </div>
         </Link>
+        <LanguageToggle variant="segmented" />
       </header>
 
       <main className="max-w-md w-full mx-auto my-auto z-10 py-8">
@@ -38,8 +42,8 @@ export default function SignOutPage() {
               <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 flex items-center justify-center mx-auto animate-pulse">
                 <LogOut className="w-8 h-8" />
               </div>
-              <h2 className="text-xl font-black text-white">Menutup Sesi NusaKerja...</h2>
-              <p className="text-xs text-slate-400">Membersihkan token otentikasi multi-tenant & audit log aman.</p>
+              <h2 className="text-xl font-black text-white">{tx("Closing NusaKerja session...", "Menutup Sesi NusaKerja...")}</h2>
+              <p className="text-xs text-slate-400">{tx("Clearing multi-tenant auth tokens and secure audit log.", "Membersihkan token otentikasi multi-tenant & audit log aman.")}</p>
             </div>
           ) : (
             <div className="space-y-6 animate-in fade-in">
@@ -47,18 +51,18 @@ export default function SignOutPage() {
                 <CheckCircle2 className="w-8 h-8" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-white">Anda Telah Keluar (Signed Out)</h2>
-                <p className="text-xs text-slate-400 mt-1">Sesi terenkripsi Anda untuk PT Nusantara Utama telah ditutup dengan aman.</p>
+                <h2 className="text-xl font-black text-white">{tx("You have signed out", "Anda Telah Keluar")}</h2>
+                <p className="text-xs text-slate-400 mt-1">{tx("Your encrypted session for PT Nusantara Utama has been closed.", "Sesi terenkripsi Anda untuk PT Nusantara Utama telah ditutup dengan aman.")}</p>
               </div>
 
               <div className="space-y-2 pt-2">
                 <Link href="/login" className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors">
-                  <span>Masuk Kembali (Sign In)</span>
+                  <span>{tx("Sign in again", "Masuk Kembali")}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link href="/" className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors">
                   <Home className="w-4 h-4" />
-                  <span>Kembali ke Beranda Utama</span>
+                  <span>{tx("Back to home", "Kembali ke Beranda Utama")}</span>
                 </Link>
               </div>
             </div>

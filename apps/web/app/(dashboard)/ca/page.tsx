@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Calculator, Building2, ArrowRight } from "lucide-react";
 import { trpcClient } from "../../../src/utils/trpc-client";
+import { useI18n } from "../../../src/context/i18n-context";
 
 interface PortfolioRow {
   tenantId: string;
@@ -14,6 +15,7 @@ interface PortfolioRow {
 }
 
 export default function CaPortfolioPage() {
+  const { tx } = useI18n();
   const [rows, setRows] = useState<PortfolioRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -78,15 +80,17 @@ export default function CaPortfolioPage() {
   return (
     <div style={{ maxWidth: 720, margin: "0 auto" }}>
       <p style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: "#047857", marginBottom: 8 }}>
-        CA Portfolio — bukan Company Admin
+        {tx("CA Portfolio — not Company Admin", "CA Portfolio — bukan Company Admin")}
       </p>
       <h1 style={{ fontSize: 24, fontWeight: 900, color: "#0F172A", margin: "0 0 8px", display: "flex", alignItems: "center", gap: 10 }}>
         <Calculator style={{ width: 28, height: 28, color: "#059669" }} />
-        Perusahaan yang ditugaskan
+        {tx("Assigned companies", "Perusahaan yang ditugaskan")}
       </h1>
       <p style={{ fontSize: 14, color: "#475569", marginBottom: 20, lineHeight: 1.5 }}>
-        Anda hanya boleh <strong>finalisasi perhitungan payroll</strong> untuk klien di bawah.
-        Disbursement dan signing filing tetap di Company Admin / HR perusahaan tersebut.
+        {tx(
+          "You may only finalize payroll calculation for the clients below. Disbursement and filing stay with that company's Admin / HR.",
+          "Anda hanya boleh finalisasi perhitungan payroll untuk klien di bawah. Disbursement dan signing filing tetap di Company Admin / HR perusahaan tersebut."
+        )}
       </p>
 
       {error && (
@@ -96,12 +100,15 @@ export default function CaPortfolioPage() {
       )}
 
       {!loaded ? (
-        <p style={{ color: "#64748B", fontSize: 14 }}>Memuat portofolio...</p>
+        <p style={{ color: "#64748B", fontSize: 14 }}>{tx("Loading portfolio...", "Memuat portofolio...")}</p>
       ) : rows.length === 0 ? (
         <div style={{ padding: 24, borderRadius: 16, border: "1px dashed #CBD5E1", background: "#F8FAFC" }}>
-          <p style={{ fontWeight: 700, margin: 0 }}>Belum ada perusahaan ditugaskan</p>
+          <p style={{ fontWeight: 700, margin: 0 }}>{tx("No companies assigned yet", "Belum ada perusahaan ditugaskan")}</p>
           <p style={{ fontSize: 13, color: "#64748B", marginTop: 6 }}>
-            Minta Platform SuperAdmin menugaskan perusahaan ke akun CA Anda dari konsol /super-admin.
+            {tx(
+              "Ask Platform SuperAdmin to assign a company to your CA account from /super-admin.",
+              "Minta Platform SuperAdmin menugaskan perusahaan ke akun CA Anda dari konsol /super-admin."
+            )}
           </p>
         </div>
       ) : (
@@ -134,7 +141,7 @@ export default function CaPortfolioPage() {
                 className="btn btn-primary"
                 style={{ display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}
               >
-                {busy === r.tenantId ? "..." : "Masuk (hitung payroll)"}
+                {busy === r.tenantId ? "..." : tx("Enter (calculate payroll)", "Masuk (hitung payroll)")}
                 <ArrowRight style={{ width: 14, height: 14 }} />
               </button>
             </li>

@@ -6,13 +6,7 @@ import {
   calculateSeverancePay,
   type TerminationReason,
 } from "@nusakerja/config/severance";
-
-const REASONS: Array<{ value: TerminationReason; label: string }> = [
-  { value: "LAYOFF", label: "PHK / Efisiensi Perusahaan (1x Pesangon)" },
-  { value: "RETIREMENT", label: "Pensiun (2x Pesangon)" },
-  { value: "DISABILITY", label: "Sakit Berkepanjangan / Cacat (2x Pesangon)" },
-  { value: "RESIGNATION", label: "Mengundurkan Diri (Hanya UPH & Uang Pisah)" },
-];
+import { useI18n } from "../context/i18n-context";
 
 function idr(n: number) {
   return `Rp${n.toLocaleString("id-ID")}`;
@@ -31,11 +25,18 @@ const fieldStyle: CSSProperties = {
 };
 
 export function SeveranceCalculator() {
+  const { tx } = useI18n();
   const [monthlyWage, setMonthlyWage] = useState(15_000_000);
   const [yearsOfService, setYearsOfService] = useState(5.5);
   const [terminationReason, setTerminationReason] = useState<TerminationReason>("LAYOFF");
 
   const calc = calculateSeverancePay(monthlyWage, yearsOfService, terminationReason);
+  const reasons: Array<{ value: TerminationReason; label: string }> = [
+    { value: "LAYOFF", label: tx("Layoff / efficiency (1x severance)", "PHK / Efisiensi Perusahaan (1x Pesangon)") },
+    { value: "RETIREMENT", label: tx("Retirement (2x severance)", "Pensiun (2x Pesangon)") },
+    { value: "DISABILITY", label: tx("Prolonged illness / disability (2x severance)", "Sakit Berkepanjangan / Cacat (2x Pesangon)") },
+    { value: "RESIGNATION", label: tx("Resignation (UPH & separation pay only)", "Mengundurkan Diri (Hanya UPH & Uang Pisah)") },
+  ];
 
   return (
     <div
@@ -45,10 +46,10 @@ export function SeveranceCalculator() {
       <div style={{ padding: 20, borderRadius: 16, background: "#F8FAFC", border: "1px solid #E2E8F0" }}>
         <p style={{ margin: "0 0 14px", fontSize: 15, fontWeight: 800, display: "flex", alignItems: "center", gap: 8 }}>
           <Calculator style={{ width: 18, height: 18, color: "#DC2626" }} />
-          Parameter Pengakhiran Kerja
+          {tx("Termination parameters", "Parameter Pengakhiran Kerja")}
         </p>
         <label style={{ fontSize: 12, fontWeight: 700, display: "block", marginBottom: 12 }}>
-          Upah Sebulan (Gaji Pokok + Tunjangan Tetap)
+          {tx("Monthly wage (basic + fixed allowances)", "Upah Sebulan (Gaji Pokok + Tunjangan Tetap)")}
           <input
             type="number"
             min={0}
@@ -58,7 +59,7 @@ export function SeveranceCalculator() {
           />
         </label>
         <label style={{ fontSize: 12, fontWeight: 700, display: "block", marginBottom: 12 }}>
-          Masa Kerja (Tahun)
+          {tx("Years of service", "Masa Kerja (Tahun)")}
           <input
             type="number"
             min={0}
@@ -69,13 +70,13 @@ export function SeveranceCalculator() {
           />
         </label>
         <label style={{ fontSize: 12, fontWeight: 700, display: "block" }}>
-          Alasan Pengakhiran Kerja
+          {tx("Termination reason", "Alasan Pengakhiran Kerja")}
           <select
             value={terminationReason}
             onChange={(e) => setTerminationReason(e.target.value as TerminationReason)}
             style={{ ...fieldStyle, fontFamily: "var(--font-sans)" }}
           >
-            {REASONS.map((r) => (
+            {reasons.map((r) => (
               <option key={r.value} value={r.value}>
                 {r.label}
               </option>
@@ -95,18 +96,18 @@ export function SeveranceCalculator() {
       >
         <p style={{ margin: "0 0 14px", fontSize: 15, fontWeight: 800, display: "flex", alignItems: "center", gap: 8 }}>
           <DollarSign style={{ width: 18, height: 18, color: "#34D399" }} />
-          Rincian Hak Kompensasi PHK
+          {tx("PP 35 compensation breakdown", "Rincian Hak Kompensasi PHK")}
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 13 }}>
-          <Row label={`Uang Pesangon (${calc.pesangonMonths} bulan)`} value={idr(calc.pesangonPay)} />
-          <Row label={`UPMK (${calc.upmkMonths} bulan)`} value={idr(calc.upmkPay)} />
+          <Row label={tx("Severance pay ({n} months)", "Uang Pesangon ({n} bulan)", { n: calc.pesangonMonths })} value={idr(calc.pesangonPay)} />
+          <Row label={tx("UPMK ({n} months)", "UPMK ({n} bulan)", { n: calc.upmkMonths })} value={idr(calc.upmkPay)} />
           <Row label="UPH (15%)" value={idr(calc.uphPay)} />
           <div style={{ borderTop: "1px solid #334155", paddingTop: 10, display: "flex", justifyContent: "space-between", fontWeight: 800 }}>
-            <span>Total hak kompensasi</span>
+            <span>{tx("Total compensation due", "Total hak kompensasi")}</span>
             <span style={{ color: "#6EE7B7", fontFamily: "var(--font-mono)" }}>{idr(calc.totalSeverance)}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", color: "#FCA5A5" }}>
-            <span>Potongan PPh 21 Final</span>
+            <span>{tx("Final PPh 21 withholding", "Potongan PPh 21 Final")}</span>
             <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700 }}>- {idr(calc.pph21SeveranceTax)}</span>
           </div>
           <div
@@ -120,7 +121,7 @@ export function SeveranceCalculator() {
               color: "#6EE7B7",
             }}
           >
-            <span>Take-home pesangon bersih</span>
+            <span>{tx("Net severance take-home", "Take-home pesangon bersih")}</span>
             <span style={{ fontFamily: "var(--font-mono)" }}>{idr(calc.netSeverance)}</span>
           </div>
         </div>

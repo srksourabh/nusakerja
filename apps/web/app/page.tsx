@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { Sparkles, ShieldCheck, ArrowRight, Building2, Network, UserCheck, DollarSign, Globe, CheckCircle2, FileText, ChevronRight } from "lucide-react";
+import { useI18n } from "../src/context/i18n-context";
+import { LanguageToggle } from "../src/components/language-toggle";
 
 export default function Home() {
-  // Dual Language State: 'ID' (Bahasa Indonesia) or 'EN' (English)
-  const [lang, setLang] = useState<"ID" | "EN">("EN");
+  const { locale, tx } = useI18n();
+  const lang = locale === "id-ID" ? "ID" : "EN";
 
   const content = {
     ID: {
@@ -121,31 +122,13 @@ export default function Home() {
 
         {/* Navigation & Language Toggle */}
         <div className="flex items-center space-x-3 sm:space-x-4">
-          {/* Dual Language Selector Button */}
-          <div className="bg-slate-800 p-1 rounded-full border border-slate-700 flex items-center space-x-1">
-            <button
-              onClick={() => setLang("ID")}
-              className={`px-3 py-1 text-xs font-bold rounded-full transition-all flex items-center space-x-1 ${
-                lang === "ID" ? "bg-red-600 text-white shadow-md" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <span>🇮🇩 ID</span>
-            </button>
-            <button
-              onClick={() => setLang("EN")}
-              className={`px-3 py-1 text-xs font-bold rounded-full transition-all flex items-center space-x-1 ${
-                lang === "EN" ? "bg-blue-600 text-white shadow-md" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <span>🇺🇸 EN</span>
-            </button>
-          </div>
+          <LanguageToggle variant="segmented" />
 
           {/* TEMP: Easy Login — remove from landing after testing */}
           <Link href="/login" data-temp-easy-login="true">
             <button className="px-4 py-2.5 rounded-full text-xs font-black bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-all shadow-lg border-2 border-emerald-300 flex items-center gap-1.5">
               <UserCheck className="w-3.5 h-3.5" />
-              <span>{lang === "ID" ? "Easy Login" : "Easy Login"}</span>
+              <span>{tx("Easy Login", "Easy Login")}</span>
               <span className="hidden sm:inline text-[9px] font-bold bg-slate-900 text-emerald-300 px-1.5 py-0.5 rounded-full uppercase">
                 Temp
               </span>
@@ -167,9 +150,9 @@ export default function Home() {
 
       {/* TEMP banner: remove after testing */}
       <div className="relative z-40 bg-emerald-600 text-slate-950 text-center text-xs sm:text-sm font-bold py-2 px-4 flex flex-wrap items-center justify-center gap-2" data-temp-easy-login="true">
-        <span>{lang === "ID" ? "Mode uji — tombol Easy Login sementara di landing." : "Test mode — temporary Easy Login on landing."}</span>
+        <span>{tx("Test mode — temporary Easy Login on landing.", "Mode uji — tombol Easy Login sementara di landing.")}</span>
         <Link href="/login" className="underline underline-offset-2 font-black">
-          {lang === "ID" ? "Buka login SuperAdmin / CA / Company Admin →" : "Open SuperAdmin / CA / Company Admin login →"}
+          {tx("Open SuperAdmin / CA / Company Admin login →", "Buka login SuperAdmin / CA / Company Admin →")}
         </Link>
       </div>
 
