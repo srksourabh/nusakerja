@@ -63,6 +63,12 @@ export const authRouter = router({
         path: "/",
         expires: expiresAt,
       });
+      cookies().set("nk_role", user.role, {
+        httpOnly: false,
+        sameSite: "lax",
+        path: "/",
+        expires: expiresAt,
+      });
 
       await writeAudit({
         userId: user.id,
@@ -87,6 +93,7 @@ export const authRouter = router({
       await db.delete(sessions).where(eq(sessions.token, token));
     }
     cookies().delete(SESSION_COOKIE);
+    cookies().delete("nk_role");
     cookies().delete("nk_active_tenant");
     await writeAudit({
       userId: ctx.user.id,

@@ -6,6 +6,41 @@ import { calculateBpjsContribution, calculatePph21Ter } from "@nusakerja/config"
 import { trpcClient } from "../../../src/utils/trpc-client";
 import { useI18n } from "../../../src/context/i18n-context";
 
+function escapePdfText(value: string) {
+  return value.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+}
+
+function downloadPayslipPdf(lines: string[], filename: string) {
+  const stream = `BT /F1 16 Tf 72 740 Td (${escapePdfText(lines[0] ?? "")}) Tj 0 -28 Td /F1 11 Tf ${lines
+    .slice(1)
+    .map((line) => `0 -18 Td (${escapePdfText(line)}) Tj`)
+    .join(" ")} ET`;
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
+  ];
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+  objects.forEach((object, index) => {
+    offsets.push(pdf.length);
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+  });
+  const xref = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${offsets
+    .slice(1)
+    .map((offset) => `${String(offset).padStart(10, "0")} 00000 n \n`)
+    .join("")}trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  const url = URL.createObjectURL(new Blob([pdf], { type: "application/pdf" }));
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
 const TER_TABLE = [
   { cat: "A", range: "s.d. Rp5.400.000",         tarif: "0%  →  0.25%  →  0.50%" },
   { cat: "A", range: "Rp5.400.001 – Rp5.650.000", tarif: "0.25%" },
@@ -283,7 +318,25 @@ export default function PayrollPage() {
                 </div>
               </div>
 
-              <button className="btn btn-secondary btn-md" style={{ alignSelf: "flex-start" }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-md"
+                style={{ alignSelf: "flex-start" }}
+                onClick={() =>
+                  downloadPayslipPdf(
+                    [
+                      "NusaKerja payslip",
+                      `Period: ${year}-${String(month).padStart(2, "0")}`,
+                      `Gross: ${fmt(result.gross)}`,
+                      `BPJS employee: ${fmt(result.bpjsEE)}`,
+                      `PPh 21: ${fmt(result.pph21)}`,
+                      `Take-home: ${fmt(result.thp)}`,
+                      `Employer BPJS: ${fmt(result.bpjsER)}`,
+                    ],
+                    `payslip-${year}-${String(month).padStart(2, "0")}.pdf`
+                  )
+                }
+              >
                 <Download style={{ width: 14, height: 14 }} />
                 <span>{tx("Export payslip PDF", "Export Slip Gaji PDF")}</span>
               </button>

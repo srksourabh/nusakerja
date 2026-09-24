@@ -32,7 +32,17 @@ export default function LeavePage() {
   const [endDate, setEndDate] = useState("2026-08-10");
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
-  const [decidingId, setDecidingId] = useState<string | null>(null);
+  const [deciding, setDeciding] = useState<{ id: string; decision: "APPROVED" | "REJECTED" } | null>(null);
+
+  const spanDays = (start: string, end: string) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end)) return null;
+    const [sy, sm, sd] = start.split("-").map(Number);
+    const [ey, em, ed] = end.split("-").map(Number);
+    const from = Date.UTC(sy, sm - 1, sd);
+    const to = Date.UTC(ey, em - 1, ed);
+    if (Number.isNaN(from) || Number.isNaN(to) || to < from) return null;
+    return Math.floor((to - from) / 86_400_000) + 1;
+  };
 
   const maxEndDate = (() => {
     const [year, month, day] = startDate.split("-").map(Number);
@@ -43,14 +53,12 @@ export default function LeavePage() {
   const load = useCallback(async () => {
     setError(null);
     try {
-      const my = await trpcClient.leave.myRequests.query();
+      const [my, p] = await Promise.all([
+        trpcClient.leave.myRequests.query(),
+        canDecide ? trpcClient.leave.pendingForMe.query() : Promise.resolve([]),
+      ]);
       setMine(my as LeaveRow[]);
-      if (canDecide) {
-        const p = await trpcClient.leave.pendingForMe.query();
-        setPending(p as LeaveRow[]);
-      } else {
-        setPending([]);
-      }
+      setPending(p as LeaveRow[]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load leave");
     }
@@ -62,6 +70,16 @@ export default function LeavePage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const covered = spanDays(startDate, endDate);
+    if (covered == null || covered !== totalDays) {
+      const message = tx(
+        `Requested ${totalDays} day(s), but the selected dates cover ${covered ?? 0} day(s).`,
+        `Diminta ${totalDays} hari, tetapi tanggal yang dipilih mencakup ${covered ?? 0} hari.`
+      );
+      setError(message);
+      window.alert(message);
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -83,7 +101,7 @@ export default function LeavePage() {
   };
 
   const decide = async (requestId: string, decision: "APPROVED" | "REJECTED") => {
-    setDecidingId(requestId);
+    setDeciding({ id: requestId, decision });
     setError(null);
     try {
       await trpcClient.leave.decide.mutate({ requestId, decision });
@@ -91,7 +109,7 @@ export default function LeavePage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Decision failed");
     } finally {
-      setDecidingId(null);
+      setDeciding(null);
     }
   };
 
@@ -198,6 +216,9 @@ export default function LeavePage() {
             disabled={busy}
             style={{
               marginTop: 14,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
               background: "#0F766E",
               color: "#fff",
               border: "none",
@@ -207,7 +228,8 @@ export default function LeavePage() {
               cursor: "pointer",
             }}
           >
-            {tx("Submit to boss", "Kirim ke atasan")}
+            {busy && <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} />}
+            {busy ? tx("Submitting...", "Mengirim...") : tx("Submit to boss", "Kirim ke atasan")}
           </button>
         </form>
       )}
@@ -251,7 +273,7 @@ export default function LeavePage() {
                     <div style={{ display: "flex", gap: 8 }}>
                       <button
                         type="button"
-                        disabled={decidingId !== null}
+                        disabled={deciding !== null}
                         onClick={() => void decide(r.id, "APPROVED")}
                         style={{
                           display: "inline-flex",
@@ -266,12 +288,12 @@ export default function LeavePage() {
                           cursor: "pointer",
                         }}
                       >
-                        {decidingId === r.id ? <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} /> : <CheckCircle2 style={{ width: 14, height: 14 }} />}
+                        {deciding?.id === r.id && deciding.decision === "APPROVED" ? <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} /> : <CheckCircle2 style={{ width: 14, height: 14 }} />}
                         {tx("Approve", "Setujui")}
                       </button>
                       <button
                         type="button"
-                        disabled={decidingId !== null}
+                        disabled={deciding !== null}
                         onClick={() => void decide(r.id, "REJECTED")}
                         style={{
                           display: "inline-flex",
@@ -286,7 +308,7 @@ export default function LeavePage() {
                           cursor: "pointer",
                         }}
                       >
-                        {decidingId === r.id ? <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} /> : <XCircle style={{ width: 14, height: 14 }} />}
+                        {deciding?.id === r.id && deciding.decision === "REJECTED" ? <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} /> : <XCircle style={{ width: 14, height: 14 }} />}
                         {tx("Reject", "Tolak")}
                       </button>
                     </div>

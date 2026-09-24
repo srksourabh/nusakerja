@@ -26,7 +26,8 @@ const fieldStyle: CSSProperties = {
 
 export function SeveranceCalculator() {
   const { tx } = useI18n();
-  const [monthlyWage, setMonthlyWage] = useState(15_000_000);
+  const [monthlyWageInput, setMonthlyWageInput] = useState("15000000");
+  const monthlyWage = monthlyWageInput === "" ? 0 : Number(monthlyWageInput);
   const [yearsOfService, setYearsOfService] = useState(5.5);
   const [terminationReason, setTerminationReason] = useState<TerminationReason>("LAYOFF");
 
@@ -53,8 +54,11 @@ export function SeveranceCalculator() {
           <input
             type="number"
             min={0}
-            value={monthlyWage}
-            onChange={(e) => setMonthlyWage(parseFloat(e.target.value) || 0)}
+            value={monthlyWageInput}
+            onChange={(e) => {
+              const raw = e.target.value;
+              setMonthlyWageInput(raw === "" ? "" : raw.replace(/^0+(?=\d)/, ""));
+            }}
             style={fieldStyle}
           />
         </label>

@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Users,
   Calendar,
@@ -37,7 +39,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     shellMode,
     setShellMode,
     roleLabel,
+    role,
+    sessionReady,
   } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!sessionReady) return;
+    const home = role === "super_admin" ? "/super-admin" : role === "reseller_admin" ? "/ca" : "/dashboard";
+    const wantsSuper = pathname === "/super-admin" || pathname.startsWith("/super-admin/");
+    const wantsCa = pathname === "/ca" || pathname.startsWith("/ca/");
+    if (wantsSuper && role !== "super_admin") router.replace(home);
+    else if (wantsCa && role !== "reseller_admin") router.replace(home);
+  }, [sessionReady, role, pathname, router]);
 
   const companyUser = !isSuperAdmin && !isCa;
   const showManageNav = canManage && shellMode === "manage";
@@ -337,7 +352,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </span>
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {[
-                { href: "https://coretaxdjp.pajak.go.id/", label: "DJP Coretax PPh 21", color: "#F87171" },
+                { href: "https://www.pajak.go.id", label: "DJP Coretax PPh 21", color: "#F87171" },
                 { href: "https://sipp.bpjsketenagakerjaan.go.id", label: "BPJS TK SIPP", color: "#34D399" },
                 { href: "https://edabu.bpjs-kesehatan.go.id/Edabu/Home/Login", label: "BPJS Kesehatan e-Dabu", color: "#38BDF8" },
               ].map((link) => (
@@ -464,7 +479,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <main className="page-content">{children}</main>
+        <main className="page-content">
+          {sessionReady &&
+          ((pathname.startsWith("/super-admin") && role !== "super_admin") ||
+            ((pathname === "/ca" || pathname.startsWith("/ca/")) && role !== "reseller_admin"))
+            ? null
+            : children}
+        </main>
       </div>
     </div>
   );

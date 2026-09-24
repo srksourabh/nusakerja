@@ -5,7 +5,39 @@ import { extractTenantSlugFromHost } from "./src/utils/tenant-url";
 const TENANT_SLUG_COOKIE = "nk_tenant_slug";
 const TENANT_SLUG_HEADER = "x-tenant-slug";
 
+function homeForRole(role: string | undefined): string {
+  if (role === "super_admin") return "/super-admin";
+  if (role === "reseller_admin") return "/ca";
+  return "/dashboard";
+}
+
+function roleGuard(request: NextRequest): NextResponse | null {
+  const { pathname } = request.nextUrl;
+  if (pathname.startsWith("/api") || pathname.startsWith("/_next")) return null;
+  const role = request.cookies.get("nk_role")?.value;
+  if (!role) return null;
+  const wantsSuper = pathname === "/super-admin" || pathname.startsWith("/super-admin/");
+  const wantsCa = pathname === "/ca" || pathname.startsWith("/ca/");
+  if (wantsSuper && role !== "super_admin") {
+    const url = request.nextUrl.clone();
+    url.pathname = homeForRole(role);
+    return NextResponse.redirect(url);
+  }
+  if (wantsCa && role !== "reseller_admin") {
+    const url = request.nextUrl.clone();
+    url.pathname = homeForRole(role);
+    return NextResponse.redirect(url);
+  }
+  return null;
+}
+
 export function middleware(request: NextRequest) {
+  const denied = roleGuard(request);
+  if (denied) {
+    applySecurityHeaders(denied);
+    return denied;
+  }
+
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host") || "";
 
