@@ -126,18 +126,29 @@ export default function PlaybookPage() {
   const [statutoryNews, setStatutoryNews] = useState<NewsItem[]>([]);
   const [fetching, setFetching] = useState(false);
   const [lastFetched, setLastFetched] = useState<string | null>(null);
+  const [fetchNote, setFetchNote] = useState<string | null>(null);
 
   const fetchStatutoryUpdates = async () => {
     setFetching(true);
+    setFetchNote(null);
     try {
       const res = await fetch("/api/cron/fetch-statutory-updates");
       const json = await res.json();
-      if (json && json.data) {
-        setStatutoryNews(json.data);
-        setLastFetched(new Date().toLocaleTimeString("id-ID"));
+      if (!res.ok || !json?.data) {
+        throw new Error(res.status === 401 ? "Sign in required" : "Fetch failed");
       }
-    } catch {
-      // Fallback data
+      setStatutoryNews(json.data);
+      setLastFetched(new Date().toLocaleTimeString("id-ID"));
+    } catch (err) {
+      setFetchNote(
+        err instanceof Error && err.message === "Sign in required"
+          ? tx(
+              "Sign in to fetch live updates. Showing the saved list.",
+              "Masuk untuk mengambil pembaruan langsung. Menampilkan daftar tersimpan."
+            )
+          : tx("Live fetch failed. Showing the saved list.", "Pengambilan langsung gagal. Menampilkan daftar tersimpan.")
+      );
+      setLastFetched(new Date().toLocaleTimeString("id-ID"));
       setStatutoryNews([
         {
           id: "stat-1",
@@ -146,7 +157,7 @@ export default function PlaybookPage() {
           category: "PPh 21 TER",
           effectiveDate: "01 Januari 2026",
           summary: "Skema pemotongan PPh 21 TER Kategori A, B, C dan penyesuaian non-NPWP surcharge +20%.",
-          officialDocUrl: "https://coretaxdjp.pajak.go.id/",
+          officialDocUrl: "https://jdih.kemenkeu.go.id/dok/pmk-168-tahun-2023",
           isUrgent: true,
         },
         {
@@ -211,6 +222,7 @@ export default function PlaybookPage() {
             <span>{fetching ? tx("Fetching news...", "Mengambil Berita...") : tx("Run auto-fetch scraper", "Jalankan Auto-Fetch Scraper")}</span>
           </button>
         </div>
+        {fetchNote && <p style={{ margin: "0 0 12px", fontSize: 12, color: "#92400E" }}>{fetchNote}</p>}
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           {statutoryNews.map((news) => (
@@ -286,7 +298,7 @@ export default function PlaybookPage() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }}>
           {[
-            { name: "DJP Coretax Pajak", desc: tx("PPh 21 TER filing", "Pelaporan PPh 21 TER"), url: "https://coretaxdjp.pajak.go.id/" },
+            { name: "DJP Coretax Pajak", desc: tx("PPh 21 TER filing", "Pelaporan PPh 21 TER"), url: "https://www.pajak.go.id" },
             { name: "BPJS TK SIPP Online", desc: tx("Workforce mutation", "Mutasi Tenaga Kerja"), url: "https://sipp.bpjsketenagakerjaan.go.id" },
             { name: "BPJS Health e-Dabu", desc: tx("Employer health portal", "Badan Usaha Kesehatan"), url: "https://edabu.bpjs-kesehatan.go.id/Edabu/Home/Login" },
             { name: "SIAPkerja Kemnaker", desc: tx("Mandatory WLKP reporting", "Pelaporan Wajib Lapor WLKP"), url: "https://siapkerja.kemnaker.go.id" },

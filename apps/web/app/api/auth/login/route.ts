@@ -47,6 +47,12 @@ export async function POST(req: Request) {
       path: "/",
       expires: expiresAt,
     });
+    cookies().set("nk_role", user.role, {
+      httpOnly: false,
+      sameSite: "lax",
+      path: "/",
+      expires: expiresAt,
+    });
     await db.insert(auditLogs).values({
       userId: user.id,
       tenantId: resolvedTenantId,

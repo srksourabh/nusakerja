@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { eq, and, desc, isNull } from "drizzle-orm";
+import { eq, and, desc, isNull, inArray } from "drizzle-orm";
 import { can } from "@nusakerja/auth";
 import {
   db,
@@ -59,16 +59,27 @@ async function hrFallbackEmployeeIds(tenantId: string): Promise<string[]> {
     .from(users)
     .where(and(eq(users.tenantId, tenantId), eq(users.role, "hr_admin")));
   if (hrUsers.length === 0) return [];
-  const ids: string[] = [];
-  for (const u of hrUsers) {
-    const [emp] = await db
-      .select({ id: employees.id })
-      .from(employees)
-      .where(and(eq(employees.tenantId, tenantId), eq(employees.userId, u.id)))
-      .limit(1);
-    if (emp) ids.push(emp.id);
-  }
-  return ids;
+  const emps = await db
+    .select({ id: employees.id })
+    .from(employees)
+    .where(
+      and(
+        eq(employees.tenantId, tenantId),
+        inArray(
+          employees.userId,
+          hrUsers.map((u) => u.id)
+        )
+      )
+    );
+  return emps.map((emp) => emp.id);
+}
+
+async function adminAndHrUserIds(tenantId: string): Promise<string[]> {
+  const rows = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(and(eq(users.tenantId, tenantId), inArray(users.role, ["hr_admin", "client_admin"])));
+  return rows.map((row) => row.id);
 }
 
 async function notifyUser(opts: {
@@ -89,6 +100,30 @@ async function notifyUser(opts: {
     resource: opts.resource,
     resourceId: opts.resourceId,
   });
+}
+
+async function notifyActors(opts: {
+  tenantId: string;
+  userIds: Array<string | null | undefined>;
+  type: "LEAVE_SUBMITTED" | "LEAVE_DECIDED" | "EXPENSE_SUBMITTED" | "EXPENSE_DECIDED";
+  title: string;
+  body?: string;
+  resource: string;
+  resourceId: string;
+}) {
+  const unique = [...new Set(opts.userIds.filter((id): id is string => Boolean(id)))];
+  if (unique.length === 0) return;
+  await db.insert(notifications).values(
+    unique.map((userId) => ({
+      tenantId: opts.tenantId,
+      userId,
+      type: opts.type,
+      title: opts.title,
+      body: opts.body ?? null,
+      resource: opts.resource,
+      resourceId: opts.resourceId,
+    }))
+  );
 }
 
 async function userIdForEmployee(employeeId: string | null): Promise<string | null> {
@@ -230,10 +265,10 @@ export const leaveRouter = router({
       if (selectedDays == null) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Enter a valid leave date range." });
       }
-      if (selectedDays > input.totalDays) {
+      if (selectedDays !== input.totalDays) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: `The selected date range is ${selectedDays} days, which exceeds the requested ${input.totalDays} days.`,
+          message: `Requested ${input.totalDays} day(s), but the selected dates cover ${selectedDays} day(s).`,
         });
       }
 
@@ -266,17 +301,16 @@ export const leaveRouter = router({
         .returning();
 
       const bossUserId = await userIdForEmployee(approverEmployeeId);
-      if (bossUserId) {
-        await notifyUser({
-          tenantId: ctx.tenantId,
-          userId: bossUserId,
-          type: "LEAVE_SUBMITTED",
-          title: "Leave request pending",
-          body: `${self.fullName} submitted ${input.leaveType} (${input.totalDays} day(s)).`,
-          resource: "leave_request",
-          resourceId: newRequest.id,
-        });
-      }
+      const adminIds = await adminAndHrUserIds(ctx.tenantId);
+      await notifyActors({
+        tenantId: ctx.tenantId,
+        userIds: [bossUserId, ...adminIds],
+        type: "LEAVE_SUBMITTED",
+        title: "Leave request pending",
+        body: `${self.fullName} submitted ${input.leaveType} (${input.totalDays} day(s)).`,
+        resource: "leave_request",
+        resourceId: newRequest.id,
+      });
 
       await writeAudit({
         userId: ctx.user.id,
@@ -489,17 +523,16 @@ export const expensesRouter = router({
         .returning();
 
       const bossUserId = await userIdForEmployee(approverEmployeeId);
-      if (bossUserId) {
-        await notifyUser({
-          tenantId: ctx.tenantId,
-          userId: bossUserId,
-          type: "EXPENSE_SUBMITTED",
-          title: "Expense claim pending",
-          body: `${self.fullName}: ${input.category} Rp ${input.amountIdr.toLocaleString("id-ID")}`,
-          resource: "expense_claim",
-          resourceId: claim.id,
-        });
-      }
+      const adminIds = await adminAndHrUserIds(ctx.tenantId);
+      await notifyActors({
+        tenantId: ctx.tenantId,
+        userIds: [bossUserId, ...adminIds],
+        type: "EXPENSE_SUBMITTED",
+        title: "Expense claim pending",
+        body: `${self.fullName}: ${input.category} Rp ${input.amountIdr.toLocaleString("id-ID")}`,
+        resource: "expense_claim",
+        resourceId: claim.id,
+      });
 
       await writeAudit({
         userId: ctx.user.id,

@@ -109,22 +109,9 @@ export function PunchClockPanel({ compact = false }: { compact?: boolean }) {
         applyLocalDemo(next);
         return;
       }
-      const coords = await new Promise<{ latitude?: number; longitude?: number }>((resolve) => {
-        if (typeof navigator === "undefined" || !navigator.geolocation) {
-          resolve({});
-          return;
-        }
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-          () => resolve({}),
-          { enableHighAccuracy: true, timeout: 8000, maximumAge: 60_000 }
-        );
-      });
       await trpcClient.attendance.punch.mutate({
         punchType,
-        latitude: coords.latitude,
-        longitude: coords.longitude,
-        locationName: coords.latitude != null ? "GPS punch" : "Office",
+        locationName: "Office",
       });
       await load();
     } catch (e) {

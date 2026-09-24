@@ -1,4 +1,8 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { SESSION_COOKIE } from "@nusakerja/auth";
+
+const PMK_168_URL = "https://jdih.kemenkeu.go.id/dok/pmk-168-tahun-2023";
 
 export interface StatutoryUpdateItem {
   id: string;
@@ -13,6 +17,27 @@ export interface StatutoryUpdateItem {
 }
 
 export async function GET() {
+  const token = cookies().get(SESSION_COOKIE)?.value;
+  if (!token) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  let sourceTitle: string | null = null;
+  try {
+    const live = await fetch(PMK_168_URL, {
+      headers: { "User-Agent": "NusaKerja-statutory-fetch" },
+      signal: AbortSignal.timeout(8000),
+      cache: "no-store",
+    });
+    if (live.ok) {
+      const html = await live.text();
+      const match = html.match(/<title>([^<]+)<\/title>/i);
+      sourceTitle = match?.[1]?.replace(/\s+/g, " ").trim() ?? null;
+    }
+  } catch {
+    sourceTitle = null;
+  }
+
   const updates: StatutoryUpdateItem[] = [
     {
       id: "stat-2026-001",
@@ -20,8 +45,10 @@ export async function GET() {
       title: "Peraturan Menteri Keuangan PMK 168/2023 & Petunjuk Teknis Coretax PPh 21 TER 2026",
       category: "PPh 21 TER",
       effectiveDate: "01 Januari 2026",
-      summary: "Penyesuaian skema pemotongan Pajak Penghasilan Pasal 21 dengan Tarif Efektif Rata-Rata (TER) Kategori A, B, dan C serta pengenaan surcharge +20% bagi pegawai tanpa NPWP.",
-      officialDocUrl: "https://coretax.pajak.go.id",
+      officialDocUrl: PMK_168_URL,
+      summary: sourceTitle
+        ? `Penyesuaian skema pemotongan Pajak Penghasilan Pasal 21 dengan Tarif Efektif Rata-Rata (TER) Kategori A, B, dan C serta pengenaan surcharge +20% bagi pegawai tanpa NPWP. Sumber: ${sourceTitle}`
+        : "Penyesuaian skema pemotongan Pajak Penghasilan Pasal 21 dengan Tarif Efektif Rata-Rata (TER) Kategori A, B, dan C serta pengenaan surcharge +20% bagi pegawai tanpa NPWP.",
       isUrgent: true,
       publishedAt: new Date().toISOString(),
     },

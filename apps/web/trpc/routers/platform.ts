@@ -118,6 +118,15 @@ export const platformRouter = router({
         });
       }
 
+      const email = input.companyAdminEmail.toLowerCase();
+      const [emailTaken] = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
+      if (emailTaken) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `Email ${input.companyAdminEmail} sudah digunakan. Gunakan email lain.`,
+        });
+      }
+
       const schema_name = `tenant_${slug.replace(/-/g, "_")}`;
 
       const [tenant] = await db
@@ -133,7 +142,7 @@ export const platformRouter = router({
       const token = randomBytes(24).toString("hex");
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       await db.insert(invites).values({
-        email: input.companyAdminEmail,
+        email,
         role: "client_admin",
         tenantId: tenant.id,
         token,
@@ -146,7 +155,7 @@ export const platformRouter = router({
       const [admin] = await db
         .insert(users)
         .values({
-          email: input.companyAdminEmail,
+          email,
           name: input.companyAdminName,
           role: "client_admin",
           tenantId: tenant.id,
@@ -155,6 +164,13 @@ export const platformRouter = router({
         })
         .onConflictDoNothing()
         .returning();
+
+      if (!admin) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `Email ${input.companyAdminEmail} sudah digunakan. Gunakan email lain.`,
+        });
+      }
 
       if (input.caUserId) {
         await db.insert(companyCaAssignments).values({

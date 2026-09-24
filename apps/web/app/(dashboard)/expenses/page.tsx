@@ -27,17 +27,17 @@ export default function ExpensesPage() {
   const [category, setCategory] = useState<"TRAVEL" | "MEAL" | "MEDICAL" | "OTHER">("TRAVEL");
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
-  const [decidingId, setDecidingId] = useState<string | null>(null);
+  const [deciding, setDeciding] = useState<{ id: string; decision: "APPROVED" | "REJECTED" } | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
     try {
-      setMine((await trpcClient.expenses.myClaims.query()) as Claim[]);
-      if (canDecide) {
-        setPending((await trpcClient.expenses.pendingForMe.query()) as Claim[]);
-      } else {
-        setPending([]);
-      }
+      const [my, waiting] = await Promise.all([
+        trpcClient.expenses.myClaims.query(),
+        canDecide ? trpcClient.expenses.pendingForMe.query() : Promise.resolve([]),
+      ]);
+      setMine(my as Claim[]);
+      setPending(waiting as Claim[]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load expenses");
     }
@@ -68,7 +68,7 @@ export default function ExpensesPage() {
   };
 
   const decide = async (claimId: string, decision: "APPROVED" | "REJECTED") => {
-    setDecidingId(claimId);
+    setDeciding({ id: claimId, decision });
     setError(null);
     try {
       await trpcClient.expenses.decide.mutate({ claimId, decision });
@@ -76,7 +76,7 @@ export default function ExpensesPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Decision failed");
     } finally {
-      setDecidingId(null);
+      setDeciding(null);
     }
   };
 
@@ -164,6 +164,9 @@ export default function ExpensesPage() {
             disabled={busy}
             style={{
               marginTop: 14,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
               background: "#0F766E",
               color: "#fff",
               border: "none",
@@ -173,7 +176,8 @@ export default function ExpensesPage() {
               cursor: "pointer",
             }}
           >
-            Submit to boss
+            {busy && <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} />}
+            {busy ? tx("Submitting...", "Mengirim...") : tx("Submit to boss", "Kirim ke atasan")}
           </button>
         </form>
       )}
@@ -212,7 +216,7 @@ export default function ExpensesPage() {
                     <div style={{ display: "flex", gap: 8 }}>
                       <button
                         type="button"
-                        disabled={decidingId !== null}
+                        disabled={deciding !== null}
                         onClick={() => void decide(c.id, "APPROVED")}
                         style={{
                           background: "#059669",
@@ -227,12 +231,12 @@ export default function ExpensesPage() {
                           gap: 4,
                         }}
                       >
-                        {decidingId === c.id ? <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} /> : <CheckCircle2 style={{ width: 14, height: 14 }} />}
+                        {deciding?.id === c.id && deciding.decision === "APPROVED" ? <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} /> : <CheckCircle2 style={{ width: 14, height: 14 }} />}
                         {tx("Approve", "Setujui")}
                       </button>
                       <button
                         type="button"
-                        disabled={decidingId !== null}
+                        disabled={deciding !== null}
                         onClick={() => void decide(c.id, "REJECTED")}
                         style={{
                           background: "#DC2626",
@@ -247,7 +251,7 @@ export default function ExpensesPage() {
                           gap: 4,
                         }}
                       >
-                        {decidingId === c.id ? <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} /> : <XCircle style={{ width: 14, height: 14 }} />}
+                        {deciding?.id === c.id && deciding.decision === "REJECTED" ? <LoaderCircle className="animate-spin" style={{ width: 14, height: 14 }} /> : <XCircle style={{ width: 14, height: 14 }} />}
                         {tx("Reject", "Tolak")}
                       </button>
                     </div>

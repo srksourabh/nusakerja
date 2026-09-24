@@ -42,6 +42,33 @@ const KIND_LABEL: Record<PolicyKind, string> = {
   pay_structure: "Pay structure",
 };
 
+function payloadLines(kind: string, payload: Record<string, unknown>): string[] {
+  if (kind === "leave") {
+    return [
+      `Annual leave: ${String(payload.annualLeaveDays ?? "-")} days`,
+      `Sick leave: ${String(payload.sickLeaveDays ?? "-")} days`,
+    ];
+  }
+  if (kind === "pay_structure" && Array.isArray(payload.components)) {
+    return (payload.components as Array<{ label?: string; code?: string; amountIdr?: number }>).map(
+      (component) =>
+        `${component.label || component.code || "Component"}: Rp ${Number(component.amountIdr ?? 0).toLocaleString("id-ID")}`
+    );
+  }
+  return Object.entries(payload).map(([key, value]) => {
+    if (value == null || typeof value !== "object") return `${key}: ${value == null ? "-" : String(value)}`;
+    return `${key}: ${Object.entries(value as Record<string, unknown>)
+      .map(([childKey, childValue]) => `${childKey} ${String(childValue)}`)
+      .join(", ")}`;
+  });
+}
+
+const SOURCE_LABEL: Record<string, string> = {
+  employee: "This employee",
+  grade: "Matching grade",
+  tenant: "Company default",
+};
+
 function defaultPayload(kind: PolicyKind): Record<string, unknown> {
   if (kind === "leave") return { annualLeaveDays: 12, sickLeaveDays: 14 };
   if (kind === "pay_structure") {
@@ -65,8 +92,8 @@ export default function PoliciesPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const [name, setName] = useState("New leave policy");
-  const [kind, setKind] = useState<PolicyKind>("leave");
+  const [name, setName] = useState("");
+  const [kind, setKind] = useState<PolicyKind>("hr_general");
   const [annualDays, setAnnualDays] = useState(12);
   const [effectiveFrom, setEffectiveFrom] = useState("2026-01-01");
 
@@ -77,7 +104,7 @@ export default function PoliciesPage() {
 
   const [resolveEmployeeId, setResolveEmployeeId] = useState("");
   const [resolveKind, setResolveKind] = useState<PolicyKind>("leave");
-  const [resolved, setResolved] = useState<string | null>(null);
+  const [resolved, setResolved] = useState<{ name: string; kind: string; source: string; lines: string[] } | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -107,6 +134,11 @@ export default function PoliciesPage() {
   }, [canEdit, load]);
 
   const createPolicy = async () => {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setError("Enter a policy name.");
+      return;
+    }
     setBusy(true);
     setError(null);
     setSuccess(null);
@@ -116,13 +148,14 @@ export default function PoliciesPage() {
           ? { annualLeaveDays: annualDays, sickLeaveDays: 14 }
           : defaultPayload(kind);
       await trpcClient.policies.create.mutate({
-        name,
+        name: trimmed,
         kind,
         payload,
         effectiveFrom,
         effectiveTo: null,
       });
-      setSuccess(`Created "${name}".`);
+      setName("");
+      setSuccess(`Created one ${KIND_LABEL[kind]} policy "${trimmed}". It is not copied to other departments.`);
       await load();
     } catch (e) {
       setError(trpcMessage(e, "Create failed"));
@@ -171,8 +204,17 @@ export default function PoliciesPage() {
         employeeId: resolveEmployeeId,
         kind: resolveKind,
       });
-      setResolved(result ? JSON.stringify(result, null, 2) : "No policy resolved");
-      setSuccess(result ? `Resolved via ${result.source}.` : "No matching policy for that employee.");
+      setResolved(
+        result
+          ? {
+              name: result.name,
+              kind: result.kind,
+              source: SOURCE_LABEL[result.source] ?? result.source,
+              lines: payloadLines(result.kind, result.payload ?? {}),
+            }
+          : null
+      );
+      setSuccess(result ? `Resolved via ${SOURCE_LABEL[result.source] ?? result.source}.` : "No matching policy for that employee.");
     } catch (e) {
       setError(trpcMessage(e, "Resolve failed"));
     } finally {
@@ -448,19 +490,17 @@ export default function PoliciesPage() {
           Resolve
         </button>
         {resolved && (
-          <pre
-            style={{
-              marginTop: 12,
-              background: "#0F172A",
-              color: "#E2E8F0",
-              padding: 12,
-              borderRadius: 12,
-              fontSize: 12,
-              overflow: "auto",
-            }}
-          >
-            {resolved}
-          </pre>
+          <div style={{ marginTop: 12, background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 12, padding: 14 }}>
+            <p style={{ margin: 0, fontWeight: 800 }}>{resolved.name}</p>
+            <p style={{ margin: "4px 0 8px", fontSize: 12, color: "#64748B" }}>
+              {KIND_LABEL[resolved.kind as PolicyKind] ?? resolved.kind} · {resolved.source}
+            </p>
+            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 }}>
+              {resolved.lines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </div>
         )}
       </section>
 
@@ -483,8 +523,8 @@ export default function PoliciesPage() {
                   <strong>{p.name}</strong>
                   <span style={{ fontSize: 12, fontWeight: 700, color: "#0F766E" }}>{KIND_LABEL[p.kind]}</span>
                 </div>
-                <p style={{ margin: "6px 0", fontSize: 12, color: "#64748B", fontFamily: "var(--font-mono)" }}>
-                  {JSON.stringify(p.payload)} · from {p.effectiveFrom}
+                <p style={{ margin: "6px 0", fontSize: 12, color: "#64748B" }}>
+                  {payloadLines(p.kind, p.payload).join(" · ")} · from {p.effectiveFrom}
                   {p.effectiveTo ? ` → ${p.effectiveTo}` : ""}
                 </p>
                 <p style={{ margin: 0, fontSize: 12 }}>

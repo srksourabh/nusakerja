@@ -6,20 +6,37 @@ import { UserPlus, CheckCircle2, ShieldCheck, FileSpreadsheet } from "lucide-rea
 import { getTerCategory } from "@nusakerja/config";
 import { useI18n } from "../../../src/context/i18n-context";
 
+function nextEmployeeCode(used: string[]) {
+  const year = new Date().getFullYear();
+  const taken = new Set(used);
+  let n = 1;
+  let code = `NK-${year}-${String(n).padStart(3, "0")}`;
+  while (taken.has(code)) {
+    n += 1;
+    code = `NK-${year}-${String(n).padStart(3, "0")}`;
+  }
+  return code;
+}
+
+function blankOnboarding(used: string[]) {
+  return {
+    employeeCode: nextEmployeeCode(used),
+    fullName: "",
+    nikKtp: "",
+    npwp: "",
+    bpjsKetenagakerjaanNo: "",
+    bpjsKesehatanNo: "",
+    ptkpStatus: "TK_0",
+    workerCategory: "PKWTT",
+    basicSalaryIdr: "",
+    nationality: "WNI",
+  };
+}
+
 export default function OnboardingPage() {
   const { tx } = useI18n();
-  const [formData, setFormData] = useState({
-    employeeCode: "NK-2026-049",
-    fullName: "Budi Santoso",
-    nikKtp: "3171012304850001",
-    npwp: "09.254.321.1-013.000",
-    bpjsKetenagakerjaanNo: "12345678901",
-    bpjsKesehatanNo: "0001234567890",
-    ptkpStatus: "K_1",
-    workerCategory: "PKWTT",
-    basicSalaryIdr: 12000000,
-    nationality: "WNI",
-  });
+  const [issuedCodes, setIssuedCodes] = useState<string[]>([]);
+  const [formData, setFormData] = useState(() => blankOnboarding([]));
 
   const [submitted, setSubmitted] = useState(false);
 
@@ -27,6 +44,11 @@ export default function OnboardingPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (issuedCodes.includes(formData.employeeCode)) {
+      window.alert(tx("Employee code is already used. Generate a new one.", "Kode karyawan sudah dipakai. Buat kode baru."));
+      return;
+    }
+    setIssuedCodes((prev) => [...prev, formData.employeeCode]);
     setSubmitted(true);
   };
 
@@ -60,7 +82,13 @@ export default function OnboardingPage() {
               { name: formData.fullName, code: formData.employeeCode, ptkp: formData.ptkpStatus, cat: derivedTerCategory }
             )}
           </p>
-          <Button variant="primary" onClick={() => setSubmitted(false)}>
+          <Button
+            variant="primary"
+            onClick={() => {
+              setFormData(blankOnboarding([...issuedCodes, formData.employeeCode]));
+              setSubmitted(false);
+            }}
+          >
             {tx("Add another employee", "Tambah Karyawan Lain")}
           </Button>
         </Card>
@@ -187,7 +215,13 @@ export default function OnboardingPage() {
                 <input
                   type="number"
                   value={formData.basicSalaryIdr}
-                  onChange={(e) => setFormData({ ...formData, basicSalaryIdr: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    setFormData({
+                      ...formData,
+                      basicSalaryIdr: raw === "" ? "" : raw.replace(/^0+(?=\d)/, ""),
+                    });
+                  }}
                   className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500 font-mono text-lg font-bold"
                   required
                 />

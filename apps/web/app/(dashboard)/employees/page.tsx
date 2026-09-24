@@ -7,6 +7,18 @@ import Link from "next/link";
 import { useAuth } from "../../../src/context/auth-context";
 import { useI18n } from "../../../src/context/i18n-context";
 
+function uniqueEmployeeCode(used: string[]) {
+  const year = new Date().getFullYear();
+  const taken = new Set(used);
+  let n = 1;
+  let code = `NTM-${year}-${String(n).padStart(3, "0")}`;
+  while (taken.has(code)) {
+    n += 1;
+    code = `NTM-${year}-${String(n).padStart(3, "0")}`;
+  }
+  return code;
+}
+
 interface EmployeeItem {
   id: string;
   code: string;
@@ -127,13 +139,13 @@ export default function EmployeesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   // New Employee Form State
-  const [newCode, setNewCode] = useState("NTM-2026-006");
+  const [newCode, setNewCode] = useState("");
   const [newName, setNewName] = useState("");
   const [newDesignation, setNewDesignation] = useState("Service Engineer");
   const [newDept, setNewDept] = useState("Field Engineering & Maintenance");
   const [newRoleCat, setNewRoleCat] = useState<"Admin" | "HR" | "Team Leader" | "Service Engineer">("Service Engineer");
   const [newPtkp, setNewPtkp] = useState("TK/0");
-  const [newSalary, setNewSalary] = useState(8500000);
+  const [newSalary, setNewSalary] = useState("");
   const [newSupervisor, setNewSupervisor] = useState("Hendra Wijaya (Team Leader)");
 
   const filteredEmployees = employeesList.filter(
@@ -146,6 +158,8 @@ export default function EmployeesPage() {
   const handleAddEmployee = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName) return;
+    const salary = Number(newSalary);
+    if (!newSalary || Number.isNaN(salary) || salary <= 0) return;
 
     const newEmp: EmployeeItem = {
       id: `emp-${Date.now()}`,
@@ -160,7 +174,7 @@ export default function EmployeesPage() {
       npwp: `01.234.567.8-013.00${employeesList.length + 1}`,
       bpjsTk: `1001234568${employeesList.length + 1}`,
       bpjsKs: `000123456789${employeesList.length + 1}`,
-      salary: Number(newSalary),
+      salary,
       location: "HQ Sudirman, Jakarta",
       supervisor: newSupervisor,
       status: "active",
@@ -169,6 +183,8 @@ export default function EmployeesPage() {
     setEmployeesList([newEmp, ...employeesList]);
     setShowAddModal(false);
     setNewName("");
+    setNewSalary("");
+    setNewCode(uniqueEmployeeCode([newEmp.code, ...employeesList.map((row) => row.code)]));
   };
 
   return (
@@ -190,7 +206,11 @@ export default function EmployeesPage() {
         </div>
         {canEditRoster && (
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={() => {
+              setNewCode(uniqueEmployeeCode(employeesList.map((row) => row.code)));
+              setNewSalary("");
+              setShowAddModal(true);
+            }}
             className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center space-x-2 shadow-lg transition-all"
           >
             <UserPlus className="w-4 h-4" />
@@ -321,7 +341,10 @@ export default function EmployeesPage() {
                   <input
                     type="number"
                     value={newSalary}
-                    onChange={(e) => setNewSalary(Number(e.target.value))}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      setNewSalary(raw === "" ? "" : raw.replace(/^0+(?=\d)/, ""));
+                    }}
                     className="w-full mt-1 p-2.5 bg-slate-50 border rounded-xl font-mono"
                     required
                   />

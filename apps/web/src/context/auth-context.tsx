@@ -43,6 +43,8 @@ interface AuthContextType {
   isSuperAdmin: boolean;
   isCa: boolean;
   roleLabel: string;
+  /** False until the saved session role has been read. Route guards wait on this. */
+  sessionReady: boolean;
   mustChangePassword: boolean;
   completeFirstTimePasswordChange: (newPassword: string) => Promise<boolean>;
   sendPasswordResetEmail: (email: string) => Promise<{ success: boolean; message: string }>;
@@ -130,6 +132,10 @@ function canUseManagePortal(role: UserRole): boolean {
   return role === "client_admin" || role === "hr_admin" || role === "manager";
 }
 
+function writeRoleCookie(role: UserRole) {
+  document.cookie = `nk_role=${role}; Path=/; Max-Age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+}
+
 const AuthContext = createContext<AuthContextType>({
   role: "employee",
   user: defaultProfiles.employee,
@@ -144,6 +150,7 @@ const AuthContext = createContext<AuthContextType>({
   isSuperAdmin: false,
   isCa: false,
   roleLabel: "Employee",
+  sessionReady: false,
   mustChangePassword: false,
   completeFirstTimePasswordChange: async () => true,
   sendPasswordResetEmail: async () => ({ success: true, message: "" }),
@@ -151,6 +158,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRoleState] = useState<UserRole>("employee");
+  const [sessionReady, setSessionReady] = useState(false);
   const [shellMode, setShellModeState] = useState<ShellMode>("my_work");
   const [mustChangePassword, setMustChangePassword] = useState<boolean>(false);
   const [activeProfile, setActiveProfile] = useState<UserProfile>(defaultProfiles.employee);
@@ -173,11 +181,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (localStorage.getItem("nusakerja_first_login") === "true") {
       setMustChangePassword(true);
     }
+    if (savedRole && ALL_ROLES.includes(savedRole)) {
+      writeRoleCookie(savedRole);
+    }
+    setSessionReady(true);
   }, []);
 
   const loginAs = (newRole: UserRole, email?: string) => {
     setRoleState(newRole);
     localStorage.setItem("nusakerja_session_role", newRole);
+    writeRoleCookie(newRole);
     setActiveProfile({
       ...defaultProfiles[newRole],
       email: email || defaultProfiles[newRole].email,
@@ -231,6 +244,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isSuperAdmin,
         isCa,
         roleLabel,
+        sessionReady,
         mustChangePassword,
         completeFirstTimePasswordChange,
         sendPasswordResetEmail,
