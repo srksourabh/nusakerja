@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, Button, Badge } from "@nusakerja/ui";
 import { UserPlus, CheckCircle2, ShieldCheck, FileSpreadsheet } from "lucide-react";
 import { getTerCategory } from "@nusakerja/config";
+import { trpcClient } from "../../../src/utils/trpc-client";
 import { useI18n } from "../../../src/context/i18n-context";
 
 function nextEmployeeCode(used: string[]) {
@@ -54,18 +55,35 @@ export default function OnboardingPage() {
   const [issuedCodes, setIssuedCodes] = useState<string[]>([]);
   const [formData, setFormData] = useState(() => blankOnboarding([]));
   const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
-    const used = readIssuedCodes();
-    setIssuedCodes(used);
-    setFormData(blankOnboarding(used));
+    let cancelled = false;
+    const local = readIssuedCodes();
+    setIssuedCodes(local);
+    setFormData(blankOnboarding(local));
     setSubmitted(false);
+    void trpcClient.employees.list
+      .query()
+      .then((rows) => {
+        if (cancelled) return;
+        const used = [...new Set([...readIssuedCodes(), ...rows.map((row) => row.employeeCode)])];
+        writeIssuedCodes(used);
+        setIssuedCodes(used);
+        setFormData(blankOnboarding(used));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const derivedTerCategory = getTerCategory(formData.ptkpStatus);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     const used = [...new Set([...issuedCodes, ...readIssuedCodes()])];
     if (used.includes(formData.employeeCode)) {
       const next = blankOnboarding(used);
@@ -78,10 +96,39 @@ export default function OnboardingPage() {
       );
       return;
     }
-    const nextIssued = [...used, formData.employeeCode];
-    writeIssuedCodes(nextIssued);
-    setIssuedCodes(nextIssued);
-    setSubmitted(true);
+    if (!/^\d{16}$/.test(formData.nikKtp)) {
+      setFormError(tx("NIK / KTP must be 16 digits.", "NIK / KTP harus 16 digit."));
+      return;
+    }
+    const salary = Number(formData.basicSalaryIdr);
+    if (!Number.isFinite(salary) || salary <= 0) {
+      setFormError(tx("Enter a monthly basic salary.", "Isi gaji pokok bulanan."));
+      return;
+    }
+    setSaving(true);
+    try {
+      await trpcClient.employees.create.mutate({
+        employeeCode: formData.employeeCode,
+        fullName: formData.fullName,
+        nikKtp: formData.nikKtp,
+        npwp: formData.npwp || undefined,
+        bpjsKetenagakerjaanNo: formData.bpjsKetenagakerjaanNo || undefined,
+        bpjsKesehatanNo: formData.bpjsKesehatanNo || undefined,
+        ptkpStatus: formData.ptkpStatus as "TK_0",
+        workerCategory: formData.workerCategory as "PKWTT",
+        joinDate: new Date().toISOString().slice(0, 10),
+        basicSalaryIdr: salary,
+        grade: 1,
+      });
+      const nextIssued = [...used, formData.employeeCode];
+      writeIssuedCodes(nextIssued);
+      setIssuedCodes(nextIssued);
+      setSubmitted(true);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : tx("Could not save the employee.", "Karyawan gagal disimpan."));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -263,12 +310,15 @@ export default function OnboardingPage() {
               </div>
             </div>
 
+            {formError && <p className="text-sm font-semibold text-red-700">{formError}</p>}
             <div className="pt-4 border-t border-slate-200 flex justify-between items-center">
               <span className="text-xs text-slate-500">
-                {tx("Data will be verified against DJP Coretax and BPJS SIPP formats.", "Data akan diverifikasi dengan format DJP Coretax & BPJS SIPP.")}
+                {tx("Saved to this company's employee roster.", "Disimpan ke daftar karyawan perusahaan ini.")}
               </span>
-              <Button variant="primary" type="submit">
-                {tx("Save & register employee", "Simpan & Daftarkan Karyawan")}
+              <Button variant="primary" type="submit" disabled={saving}>
+                {saving
+                  ? tx("Saving...", "Menyimpan...")
+                  : tx("Save & register employee", "Simpan & Daftarkan Karyawan")}
               </Button>
             </div>
           </form>

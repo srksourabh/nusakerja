@@ -8,7 +8,16 @@ const TENANT_SLUG_HEADER = "x-tenant-slug";
 function homeForRole(role: string | undefined): string {
   if (role === "super_admin") return "/super-admin";
   if (role === "reseller_admin") return "/ca";
+  if (role === "employee") return "/portal";
+  if (role === "client_admin") return "/team";
   return "/dashboard";
+}
+
+const CA_ALLOWED = ["/ca", "/payroll", "/playbook"];
+const EMPLOYEE_ALLOWED = ["/portal", "/leave", "/expenses", "/attendance", "/inbox", "/playbook"];
+
+function pathAllowed(prefixes: string[], pathname: string): boolean {
+  return prefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
 const APP_PREFIXES = [
@@ -54,6 +63,13 @@ function roleGuard(request: NextRequest): NextResponse | null {
     return NextResponse.redirect(url);
   }
   if (wantsCa && role !== "reseller_admin") {
+    const url = request.nextUrl.clone();
+    url.pathname = homeForRole(role);
+    return NextResponse.redirect(url);
+  }
+  const limited =
+    role === "reseller_admin" ? CA_ALLOWED : role === "employee" ? EMPLOYEE_ALLOWED : null;
+  if (limited && !pathAllowed(limited, pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = homeForRole(role);
     return NextResponse.redirect(url);

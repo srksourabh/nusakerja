@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, Badge } from "@nusakerja/ui";
 import { MapPin, Clock, FileText, Calendar, PlusCircle, Navigation, Radio } from "lucide-react";
 import { calculateOvertimePay } from "@nusakerja/config";
 import { PunchClockPanel } from "../../../src/components/punch-clock-panel";
 import { AttendanceMapPanel } from "../../../src/components/attendance-map-panel";
+import { trpcClient } from "../../../src/utils/trpc-client";
 import { useAuth } from "../../../src/context/auth-context";
 import { useI18n } from "../../../src/context/i18n-context";
 
@@ -21,16 +22,10 @@ interface Session {
   status: "present" | "late" | "half-day" | "on-leave";
 }
 
-interface FieldWorkerPunch {
-  id: string;
-  employeeName: string;
-  designation: string;
-  punchInTime: string;
-  locationName: string;
-  lat: number;
-  lng: number;
-  distanceKm: string;
-  geofenceStatus: "valid" | "field_approved" | "out_of_bounds";
+function formatClosed(seconds: number) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  return `${hours}h ${minutes}m`;
 }
 
 interface RectificationRequest {
@@ -47,88 +42,44 @@ export default function AttendancePage() {
   const { tx } = useI18n();
   const showTeamMap = (isManager || isHrAdmin) && shellMode === "manage";
 
-  const [gpsLocation] = useState({
-    lat: -6.2088,
-    lng: 106.8456,
-    accuracy: 4.2,
-    address: "Jl. Jend. Sudirman Kav 52-53, Jakarta Selatan",
-  });
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [sessionsReady, setSessionsReady] = useState(false);
 
-  // Field-Connect active team location list
-  const [fieldPunches] = useState<FieldWorkerPunch[]>([
-    {
-      id: "fp-1",
-      employeeName: "Hendra Wijaya",
-      designation: "Senior Field Operations Engineer",
-      punchInTime: "07:45:00",
-      locationName: "Surabaya Industrial Park (Field Site A)",
-      lat: -7.2575,
-      lng: 112.7521,
-      distanceKm: "0.2 km",
-      geofenceStatus: "valid",
-    },
-    {
-      id: "fp-2",
-      employeeName: "Ahmad Hidayat",
-      designation: "Enterprise Sales Account Executive",
-      punchInTime: "08:15:10",
-      locationName: "Bandung Hub Office, Jl. Asia Afrika",
-      lat: -6.9175,
-      lng: 107.6191,
-      distanceKm: "0.4 km",
-      geofenceStatus: "field_approved",
-    },
-    {
-      id: "fp-3",
-      employeeName: "Dewi Lestari, S.Kom.",
-      designation: "VP of Software Engineering",
-      punchInTime: "08:28:45",
-      locationName: "HQ Sudirman, Jakarta",
-      lat: -6.2088,
-      lng: 106.8456,
-      distanceKm: "0.0 km",
-      geofenceStatus: "valid",
-    },
-  ]);
+  useEffect(() => {
+    let cancelled = false;
+    void trpcClient.attendance.todayStatus
+      .query()
+      .then((status) => {
+        if (cancelled) return;
+        setSessions(
+          status.segments.map((seg, index) => ({
+            id: `seg-${index}`,
+            punchIn: new Date(seg.inAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+            punchOut: seg.outAt
+              ? new Date(seg.outAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+              : null,
+            duration: seg.outAt ? formatClosed(seg.secondsClosed) : status.liveLabel,
+            locationName: "",
+            lat: 0,
+            lng: 0,
+            geofenceValid: false,
+            status: "present",
+          }))
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setSessions([]);
+      })
+      .finally(() => {
+        if (!cancelled) setSessionsReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  // Sessions history (sample — live segments are on PunchClockPanel)
-  const [sessions] = useState<Session[]>([
-    {
-      id: "sess-1",
-      punchIn: "08:30:15",
-      punchOut: "12:00:00",
-      duration: "3h 30m",
-      locationName: "HQ Sudirman, Jakarta",
-      lat: -6.2088,
-      lng: 106.8456,
-      geofenceValid: true,
-      status: "present",
-    },
-    {
-      id: "sess-2",
-      punchIn: "13:00:00",
-      punchOut: "17:00:00",
-      duration: "4h 0m",
-      locationName: "HQ Sudirman, Jakarta",
-      lat: -6.2088,
-      lng: 106.8456,
-      geofenceValid: true,
-      status: "present",
-    },
-  ]);
-
-  // Rectification Requests state
   const [showRectificationModal, setShowRectificationModal] = useState(false);
-  const [rectifications, setRectifications] = useState<RectificationRequest[]>([
-    {
-      id: "rec-101",
-      date: "2026-07-21",
-      type: "punch_out",
-      proposedTime: "17:30",
-      reason: "Jaringan mati saat di lokasi proyek",
-      status: "approved",
-    },
-  ]);
+  const [rectifications, setRectifications] = useState<RectificationRequest[]>([]);
   const [rectDate, setRectDate] = useState("2026-07-22");
   const [rectTime, setRectTime] = useState("08:30");
   const [rectReason, setRectReason] = useState("");
@@ -199,18 +150,12 @@ export default function AttendancePage() {
 
           <div className="p-6 pt-0 space-y-5">
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-500 font-medium">{tx("Geofence radius status:", "Status Geofence Radius:")}</span>
-                <Badge variant="success">{tx("Radius verified (Sudirman HQ)", "Radius Terverifikasi (Sudirman HQ)")}</Badge>
-              </div>
-              <div className="text-xs text-slate-700 font-semibold flex items-center space-x-1">
-                <Navigation className="w-3.5 h-3.5 text-red-600" />
-                <span>{gpsLocation.address}</span>
-              </div>
-              <div className="text-[11px] text-slate-500 font-mono flex justify-between pt-1">
-                <span>Lat: {gpsLocation.lat}° S, Lng: {gpsLocation.lng}° E</span>
-                <span className="text-emerald-700 font-bold">{tx("GPS accuracy: ±{m}m", "Akurasi GPS: ±{m}m", { m: gpsLocation.accuracy })}</span>
-              </div>
+              <p className="text-xs text-slate-600">
+                {tx(
+                  "A punch is shown on the map only when it includes coordinates. Today's timeline uses the punches saved for your account.",
+                  "Presensi tampil di peta hanya jika menyertakan koordinat. Timeline hari ini memakai presensi yang tersimpan untuk akun Anda."
+                )}
+              </p>
             </div>
 
             <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
@@ -306,24 +251,11 @@ export default function AttendancePage() {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {fieldPunches.map((fp) => (
-                <tr key={fp.id} className="hover:bg-slate-50">
-                  <td className="p-3">
-                    <p className="font-bold text-slate-900">{fp.employeeName}</p>
-                    <p className="text-[10px] text-slate-500">{fp.designation}</p>
-                  </td>
-                  <td className="p-3 font-mono font-bold text-slate-800">{fp.punchInTime}</td>
-                  <td className="p-3">
-                    <p className="font-semibold text-slate-800">{fp.locationName}</p>
-                    <p className="text-[10px] text-slate-400 font-mono">Lat: {fp.lat}°, Lng: {fp.lng}°</p>
-                  </td>
-                  <td className="p-3 text-center font-mono font-bold text-slate-700">{fp.distanceKm}</td>
-                  <td className="p-3 text-center">
-                    {fp.geofenceStatus === "valid" && <Badge variant="success">✓ Valid Geofence</Badge>}
-                    {fp.geofenceStatus === "field_approved" && <Badge variant="info"> Field Approved</Badge>}
-                  </td>
-                </tr>
-              ))}
+              <tr>
+                <td colSpan={5} className="p-4 text-slate-500">
+                  {tx("Punches without coordinates are omitted.", "Presensi tanpa koordinat tidak ditampilkan.")}
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -341,16 +273,16 @@ export default function AttendancePage() {
             <p className="text-xs text-slate-500">{tx("Clock-in, clock-out, and total working duration today.", "Rincian jam masuk, jam keluar, dan total durasi kerja hari ini.")}</p>
           </CardHeader>
           <div className="p-6 pt-0 space-y-3">
-            {sessions.map((s) => (
+            {!sessionsReady ? (
+              <p className="text-sm text-slate-500">{tx("Loading today's punches...", "Memuat presensi hari ini...")}</p>
+            ) : sessions.length === 0 ? (
+              <p className="text-sm text-slate-500">{tx("No punches recorded today.", "Belum ada presensi hari ini.")}</p>
+            ) : sessions.map((s) => (
               <div key={s.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
                 <div>
                   <p className="font-bold text-slate-900">{tx("Session", "Sesi")} {s.punchIn} — {s.punchOut || tx("In progress", "Berjalan")}</p>
-                  <p className="text-[11px] text-slate-500">{s.locationName}</p>
                 </div>
-                <div className="text-right">
-                  <span className="font-bold text-emerald-700 font-mono block">{s.duration}</span>
-                  <Badge variant="success">{tx("Geofence valid", "Geofence Valid")}</Badge>
-                </div>
+                <span className="font-bold text-emerald-700 font-mono">{s.duration}</span>
               </div>
             ))}
           </div>
@@ -366,7 +298,9 @@ export default function AttendancePage() {
             <p className="text-xs text-slate-500">{tx("Missed-punch correction requests submitted to Manager/HR.", "Permohonan koreksi lupa absen yang telah diajukan ke Manager/HR.")}</p>
           </CardHeader>
           <div className="p-6 pt-0 space-y-3">
-            {rectifications.map((r) => (
+            {rectifications.length === 0 ? (
+              <p className="text-sm text-slate-500">{tx("No correction requests yet.", "Belum ada permohonan koreksi.")}</p>
+            ) : rectifications.map((r) => (
               <div key={r.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
                 <div>
                   <p className="font-bold text-slate-900">{r.date} • {r.type.toUpperCase()} ({r.proposedTime})</p>

@@ -27,10 +27,12 @@ export default function ExpensesPage() {
   const [category, setCategory] = useState<"TRAVEL" | "MEAL" | "MEDICAL" | "OTHER">("TRAVEL");
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [deciding, setDeciding] = useState<{ id: string; decision: "APPROVED" | "REJECTED" } | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
+    setLoading(true);
     try {
       const [my, waiting] = await Promise.all([
         trpcClient.expenses.myClaims.query(),
@@ -40,6 +42,8 @@ export default function ExpensesPage() {
       setPending(waiting as Claim[]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load expenses");
+    } finally {
+      setLoading(false);
     }
   }, [canDecide]);
 
@@ -185,7 +189,9 @@ export default function ExpensesPage() {
 
       <section style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: 20 }}>
         <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800 }}>{tx("My claims", "Klaim saya")}</h2>
-        {mine.length === 0 ? (
+        {loading ? (
+          <p style={{ color: "#64748B", fontSize: 13 }}>{tx("Loading claims...", "Memuat klaim...")}</p>
+        ) : mine.length === 0 ? (
           <p style={{ color: "#64748B", fontSize: 13 }}>{tx("No expense claims yet.", "Belum ada klaim biaya.")}</p>
         ) : (
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
@@ -203,7 +209,9 @@ export default function ExpensesPage() {
       {canDecide && (
         <section style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: 20 }}>
           <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800 }}>{tx("Pending for me", "Menunggu keputusan saya")}</h2>
-          {pending.length === 0 ? (
+          {loading ? (
+            <p style={{ color: "#64748B", fontSize: 13 }}>{tx("Loading claims...", "Memuat klaim...")}</p>
+          ) : pending.length === 0 ? (
             <p style={{ color: "#64748B", fontSize: 13 }}>{tx("No pending expenses.", "Tidak ada klaim tertunda.")}</p>
           ) : (
             <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>

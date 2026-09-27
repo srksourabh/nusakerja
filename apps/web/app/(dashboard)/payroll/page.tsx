@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DollarSign, Play, Download, CheckCircle2, Calculator, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 import { calculateBpjsContribution, calculatePph21Ter } from "@nusakerja/config";
 import { trpcClient } from "../../../src/utils/trpc-client";
 import { triggerFileDownload } from "../../../src/utils/download";
+import { useAuth } from "../../../src/context/auth-context";
 import { useI18n } from "../../../src/context/i18n-context";
 
 function escapePdfText(value: string) {
@@ -46,8 +47,19 @@ const TER_TABLE = [
   { cat: "C", range: "s.d. Rp6.600.000",           tarif: "0%  →  0.25%  →  0.50%" },
 ];
 
+interface RosterPayRow {
+  name: string;
+  code: string;
+  role: string;
+  gross: number;
+  bpjs: number;
+  pph: number;
+  thp: number;
+}
+
 export default function PayrollPage() {
   const { tx } = useI18n();
+  const { user } = useAuth();
   const [gaji, setGaji]         = useState("10000000");
   const [ptkp, setPtkp]         = useState("TK0");
   const [hasNpwp, setHasNpwp]   = useState(true);
@@ -71,6 +83,43 @@ export default function PayrollPage() {
     totalPph21TaxIdr: number;
     totalNetPayoutIdr: number;
   } | null>(null);
+  const [rosterRows, setRosterRows] = useState<RosterPayRow[]>([]);
+  const [rosterLoading, setRosterLoading] = useState(true);
+  const [rosterError, setRosterError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void trpcClient.employees.list
+      .query()
+      .then((rows) => {
+        if (cancelled) return;
+        setRosterRows(
+          rows.map((row) => {
+            const gross = Number(row.basicSalaryIdr);
+            const bpjs = calculateBpjsContribution(gross);
+            const pph = calculatePph21Ter(gross, row.ptkpStatus, Boolean(row.npwp));
+            return {
+              name: row.fullName,
+              code: row.employeeCode,
+              role: row.workerCategory,
+              gross,
+              bpjs: bpjs.totalEmployeeDeductions,
+              pph: pph.pph21TaxIdr,
+              thp: gross - bpjs.totalEmployeeDeductions - pph.pph21TaxIdr,
+            };
+          })
+        );
+      })
+      .catch((err) => {
+        if (!cancelled) setRosterError(err instanceof Error ? err.message : "Failed to load roster");
+      })
+      .finally(() => {
+        if (!cancelled) setRosterLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const fmt = (n: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 
@@ -347,14 +396,13 @@ export default function PayrollPage() {
         </div>
       </div>
 
-      {/* PT Nusa Teknik Mandiri Sample Company Payroll Breakdown */}
       <div className="card-white" style={{ padding: 24 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid #E2E8F0" }}>
           <div>
-            <h3 style={{ fontSize: 16, fontWeight: 900, color: "#0F172A", margin: 0 }}>{tx("Payroll summary — PT Nusa Teknik Mandiri (5 sample employees)", "Ringkasan Penggajian PT Nusa Teknik Mandiri (5 Karyawan Sampel)")}</h3>
-            <p style={{ fontSize: 12, color: "#64748B", margin: 0 }}>{tx("Automatic PPh 21 TER PMK 168/2023 & BPJS TK/KS March 2026", "Perhitungan Otomatis PPh 21 TER PMK 168/2023 & BPJS Ketenagakerjaan/Kesehatan Maret 2026")}</p>
+            <h3 style={{ fontSize: 16, fontWeight: 900, color: "#0F172A", margin: 0 }}>{tx(`Payroll summary — ${user.companyName}`, `Ringkasan penggajian — ${user.companyName}`)}</h3>
+            <p style={{ fontSize: 12, color: "#64748B", margin: 0 }}>{tx("PPh 21 TER and employee BPJS from each roster basic salary.", "PPh 21 TER dan BPJS karyawan dihitung dari gaji pokok di daftar karyawan.")}</p>
           </div>
-          <span className="badge badge-success" style={{ fontSize: 11, fontWeight: 800 }}>✓ Periode Juli 2026</span>
+          <span className="badge badge-success" style={{ fontSize: 11, fontWeight: 800 }}>{tx(`Period ${month}/${year}`, `Periode ${month}/${year}`)}</span>
         </div>
 
         <div className="table-wrap">
@@ -362,7 +410,7 @@ export default function PayrollPage() {
             <thead>
               <tr style={{ background: "#F8FAFC", textTransform: "uppercase", fontSize: 11 }}>
                 <th>NIK & Nama</th>
-                <th>{tx("Role category", "Kategori Peran")}</th>
+                <th>{tx("Contract", "Kontrak")}</th>
                 <th>{tx("Basic salary (gross)", "Gaji Pokok (Bruto)")}</th>
                 <th>{tx("Employee BPJS (3%)", "BPJS Karyawan (3%)")}</th>
                 <th>PPh 21 TER</th>
@@ -370,43 +418,20 @@ export default function PayrollPage() {
               </tr>
             </thead>
             <tbody>
-              {[
-                { name: "Ir. Aris Pratama, M.T.", code: "NTM-2026-001", role: "Admin", gross: 22000000, bpjs: 496788, pph: 2420000, thp: 19083212 },
-                { name: "Bambang Prasetyo, S.H.", code: "NTM-2026-002", role: "HR", gross: 18500000, bpjs: 496788, pph: 1665000, thp: 16338212 },
-                { name: "Hendra Wijaya", code: "NTM-2026-003", role: "Team Leader", gross: 14000000, bpjs: 451192, pph: 980000, thp: 12568808 },
-                { name: "Rian Kurniawan, S.T.", code: "NTM-2026-004", role: "Service Engineer", gross: 9500000, bpjs: 285000, pph: 237500, thp: 8977500 },
-                { name: "Budi Santoso", code: "NTM-2026-005", role: "Service Engineer", gross: 7200000, bpjs: 216000, pph: 90000, thp: 6894000 },
-              ].map((emp) => (
+              {rosterLoading ? (
+                <tr><td colSpan={6}>{tx("Loading roster...", "Memuat daftar...")}</td></tr>
+              ) : rosterError ? (
+                <tr><td colSpan={6}>{rosterError}</td></tr>
+              ) : rosterRows.length === 0 ? (
+                <tr><td colSpan={6}>{tx("No employees on this roster yet.", "Belum ada karyawan di daftar ini.")}</td></tr>
+              ) : rosterRows.map((emp) => (
                 <tr key={emp.code}>
                   <td>
                     <div style={{ fontWeight: 800, color: "#0F172A" }}>{emp.name}</div>
                     <div style={{ fontSize: 10, color: "#64748B", fontFamily: "var(--font-mono)" }}>{emp.code}</div>
                   </td>
                   <td>
-                    <span
-                      style={{
-                        padding: "2px 8px",
-                        borderRadius: 9999,
-                        fontSize: 10,
-                        fontWeight: 900,
-                        background:
-                          emp.role === "Admin"
-                            ? "#F3E8FF"
-                            : emp.role === "HR"
-                            ? "#E0F2FE"
-                            : emp.role === "Team Leader"
-                            ? "#FEF3C7"
-                            : "#D1FAE5",
-                        color:
-                          emp.role === "Admin"
-                            ? "#6B21A8"
-                            : emp.role === "HR"
-                            ? "#0369A1"
-                            : emp.role === "Team Leader"
-                            ? "#92400E"
-                            : "#065F46",
-                      }}
-                    >
+                    <span style={{ padding: "2px 8px", borderRadius: 9999, fontSize: 10, fontWeight: 900, background: "#F1F5F9", color: "#0F172A" }}>
                       {emp.role}
                     </span>
                   </td>

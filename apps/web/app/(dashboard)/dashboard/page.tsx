@@ -1,14 +1,77 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, Button, Badge } from "@nusakerja/ui";
-import { Users, Clock, DollarSign, ShieldAlert, FileText, CheckCircle2, ArrowRight, MapPin, Calendar, Smartphone, UserCheck, BookOpen } from "lucide-react";
+import { Users, Clock, DollarSign, ShieldAlert, FileText, ArrowRight, MapPin, Calendar, Smartphone, UserCheck, BookOpen } from "lucide-react";
+import { trpcClient } from "../../../src/utils/trpc-client";
 import { useAuth } from "../../../src/context/auth-context";
 import { useI18n } from "../../../src/context/i18n-context";
+
+const idr = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 });
 
 export default function DashboardPage() {
   const { user, isEmployee } = useAuth();
   const { tx } = useI18n();
+  const [headcount, setHeadcount] = useState<number | null>(null);
+  const [grossPayroll, setGrossPayroll] = useState<number | null>(null);
+  const [todayWorked, setTodayWorked] = useState<string | null>(null);
+  const [myLeave, setMyLeave] = useState<Array<{ id: string; label: string; status: string }>>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (isEmployee) {
+      void trpcClient.attendance.todayStatus
+        .query()
+        .then((status) => {
+          if (!cancelled) setTodayWorked(status.punchCount > 0 ? status.workedIncludingLiveLabel : null);
+        })
+        .catch(() => {
+          if (!cancelled) setTodayWorked(null);
+        });
+      void trpcClient.leave.myRequests
+        .query()
+        .then((rows) => {
+          if (cancelled) return;
+          setMyLeave(
+            rows.slice(0, 3).map((row) => ({
+              id: row.id,
+              label: `${row.leaveType} · ${row.totalDays}d · ${row.startDate} → ${row.endDate}`,
+              status: row.status,
+            }))
+          );
+        })
+        .catch(() => {
+          if (!cancelled) setMyLeave([]);
+        });
+      return () => {
+        cancelled = true;
+      };
+    }
+    void trpcClient.employees.list
+      .query()
+      .then((rows) => {
+        if (cancelled) return;
+        setHeadcount(rows.length);
+        setGrossPayroll(rows.reduce((sum, row) => sum + Number(row.basicSalaryIdr), 0));
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setHeadcount(null);
+          setGrossPayroll(null);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isEmployee]);
+
+  const consoleTitle =
+    user.role === "client_admin"
+      ? tx("Company Admin console", "Konsol Admin Perusahaan")
+      : user.role === "manager"
+        ? tx("Team manager console", "Konsol Manajer Tim")
+        : tx("HR Admin & statutory payroll console", "Konsol Utama HR Admin & Statutory Payroll");
 
   if (isEmployee) {
     return (
@@ -41,21 +104,19 @@ export default function DashboardPage() {
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{tx("Today attendance", "Status Presensi Hari Ini")}</span>
                 <Clock className="w-5 h-5 text-sky-500" />
               </div>
-              <p className="text-2xl font-extrabold text-slate-900 mt-2">{tx("Present (08:02)", "Hadir (08:02)")}</p>
-              <p className="text-xs text-emerald-600 mt-1 flex items-center font-medium">
-                <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> {tx("Sudirman GPS valid", "GPS Sudirman Valid")}
-              </p>
+              <p className="text-2xl font-extrabold text-slate-900 mt-2">{todayWorked ?? tx("No punch yet", "Belum presensi")}</p>
+              <p className="text-xs text-slate-500 mt-1 font-medium">{tx("Worked today, including an open punch.", "Jam kerja hari ini, termasuk presensi yang masih terbuka.")}</p>
             </CardHeader>
           </Card>
 
           <Card className="border-slate-200 shadow-sm">
             <CardHeader>
               <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{tx("Annual leave 2026 remaining", "Sisa Cuti Tahunan 2026")}</span>
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{tx("Recent leave requests", "Pengajuan cuti terbaru")}</span>
                 <Calendar className="w-5 h-5 text-purple-500" />
               </div>
-              <p className="text-3xl font-extrabold text-slate-900 mt-2">{tx("7 days", "7 Hari")}</p>
-              <p className="text-xs text-slate-500 mt-1 font-medium">{tx("From 12 days/year quota", "Dari kuota 12 hari/tahun")}</p>
+              <p className="text-3xl font-extrabold text-slate-900 mt-2">{myLeave.length}</p>
+              <p className="text-xs text-slate-500 mt-1 font-medium">{tx("Recent leave requests on your record", "Pengajuan cuti terbaru di data Anda")}</p>
             </CardHeader>
           </Card>
 
@@ -65,19 +126,19 @@ export default function DashboardPage() {
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{tx("This month payslip", "Slip Gaji Bulan Ini")}</span>
                 <FileText className="w-5 h-5 text-emerald-500" />
               </div>
-              <p className="text-2xl font-extrabold text-emerald-700 mt-2">{tx("Issued (July)", "Terbit (Juli)")}</p>
-              <p className="text-xs text-slate-500 mt-1 font-medium">{tx("PPh 21 TER withheld OK", "PPh 21 TER Dipotong OK")}</p>
+              <p className="text-2xl font-extrabold text-emerald-700 mt-2">{tx("Open portal", "Buka portal")}</p>
+              <p className="text-xs text-slate-500 mt-1 font-medium">{tx("Payslips are issued from payroll.", "Slip gaji terbit dari payroll.")}</p>
             </CardHeader>
           </Card>
 
           <Card className="border-slate-200 shadow-sm">
             <CardHeader>
               <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{tx("Hours this week", "Jam Kerja Minggu Ini")}</span>
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{tx("Hours today", "Jam kerja hari ini")}</span>
                 <Clock className="w-5 h-5 text-amber-500" />
               </div>
-              <p className="text-3xl font-extrabold text-slate-900 mt-2">41h 30m</p>
-              <p className="text-xs text-emerald-600 mt-1 font-medium">{tx("+3h 30m overtime per PP 35", "+3h 30m Lembur Sesuai PP 35")}</p>
+              <p className="text-3xl font-extrabold text-slate-900 mt-2">{todayWorked ?? "0h 0m"}</p>
+              <p className="text-xs text-slate-500 mt-1 font-medium">{tx("Today only. Overtime is calculated on Attendance.", "Hari ini saja. Lembur dihitung di Presensi.")}</p>
             </CardHeader>
           </Card>
         </div>
@@ -90,38 +151,14 @@ export default function DashboardPage() {
               <p className="text-xs text-slate-500">{tx("Official public holidays, collective leave, and HR notices.", "Jadwal hari libur resmi Cuti Bersama dan pengumuman HR.")}</p>
             </CardHeader>
             <div className="p-6 pt-0 space-y-4">
-              <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800">{tx("Annual leave request (23-24 Jul 2026)", "Permohonan Cuti Tahunan (23-24 Juli 2026)")}</p>
-                    <p className="text-xs text-slate-500">{tx("Direct manager: Bambang Prasetyo, S.H. (Head of HR)", "Atasan Langsung: Bambang Prasetyo, S.H. (Head of HR)")}</p>
-                  </div>
+              {myLeave.length === 0 ? (
+                <p className="text-sm text-slate-500">{tx("No leave requests on your record.", "Belum ada pengajuan cuti di data Anda.")}</p>
+              ) : myLeave.map((row) => (
+                <div key={row.id} className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                  <p className="text-sm font-semibold text-slate-800">{row.label}</p>
+                  <Badge variant={row.status === "APPROVED" ? "success" : row.status === "REJECTED" ? "error" : "warning"}>{row.status}</Badge>
                 </div>
-                <Badge variant="warning">⏳ {tx("Pending manager approval", "Menunggu Persetujuan Atasan")}</Badge>
-              </div>
-
-              <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800">{tx("Sick leave with doctor letter (12 May 2026)", "Cuti Sakit dengan Surat Dokter (12 Mei 2026)")}</p>
-                    <p className="text-xs text-slate-500">{tx("Verified by HR & manager", "Telah Diverifikasi HR & Manajer")}</p>
-                  </div>
-                </div>
-                <Badge variant="success">✓ {tx("Approved", "Disetujui")}</Badge>
-              </div>
-
-              <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2.5 h-2.5 rounded-full bg-sky-500"></div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800">{tx("PPh 21 TER regulation update PMK 168/2023", "Pembaruan Regulasi PPh 21 TER PMK 168/2023")}</p>
-                    <p className="text-xs text-slate-500">{tx("Monthly tax withholding auto-updated on payslips", "Potongan pajak bulanan otomatis diperbarui di slip gaji")}</p>
-                  </div>
-                </div>
-                <Badge variant="neutral">{tx("Statutory information", "Informasi Statutory")}</Badge>
-              </div>
+              ))}
             </div>
           </Card>
 
@@ -183,7 +220,7 @@ export default function DashboardPage() {
       {/* Top Banner HR Admin */}
       <div className="bg-gradient-to-r from-red-700 to-red-600 rounded-2xl p-6 text-white shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{tx("HR Admin & statutory payroll console", "Konsol Utama HR Admin & Statutory Payroll")}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{consoleTitle}</h1>
           <p className="mt-1 text-red-100 text-xs sm:text-sm max-w-xl">
             {tx(
               "Payroll & HRMS aligned to PPh 21 TER (PMK 168/2023), BPJS TK/KS 2026, and PP 35/2021.",
@@ -206,10 +243,8 @@ export default function DashboardPage() {
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{tx("Total employees", "Total Karyawan")}</span>
               <Users className="w-5 h-5 text-slate-400" />
             </div>
-            <p className="text-3xl font-extrabold text-slate-900 mt-2">48</p>
-            <p className="text-xs text-emerald-600 mt-1 flex items-center font-medium">
-              <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> {tx("45 Indonesian citizens, 3 expats (TKA)", "45 WNI, 3 TKA (Expat)")}
-            </p>
+            <p className="text-3xl font-extrabold text-slate-900 mt-2">{headcount ?? "—"}</p>
+            <p className="text-xs text-slate-500 mt-1 font-medium">{tx("People on this company roster", "Orang di daftar karyawan perusahaan ini")}</p>
           </CardHeader>
         </Card>
 
@@ -219,8 +254,8 @@ export default function DashboardPage() {
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{tx("Total gross payroll", "Total Gross Payroll")}</span>
               <DollarSign className="w-5 h-5 text-slate-400" />
             </div>
-            <p className="text-3xl font-extrabold text-slate-900 mt-2">Rp482,5M</p>
-            <p className="text-xs text-slate-500 mt-1 font-medium">{tx("July 2026 period", "Periode Juli 2026")}</p>
+            <p className="text-3xl font-extrabold text-slate-900 mt-2">{grossPayroll == null ? "—" : idr.format(grossPayroll)}</p>
+            <p className="text-xs text-slate-500 mt-1 font-medium">{tx("Sum of basic salaries on the roster", "Jumlah gaji pokok di daftar karyawan")}</p>
           </CardHeader>
         </Card>
 
@@ -230,8 +265,8 @@ export default function DashboardPage() {
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{tx("PPh 21 TER withheld", "Potongan PPh 21 TER")}</span>
               <FileText className="w-5 h-5 text-slate-400" />
             </div>
-            <p className="text-3xl font-extrabold text-red-600 mt-2">Rp34,8M</p>
-            <p className="text-xs text-slate-500 mt-1 font-medium">{tx("Coretax ready (Cat A/B/C)", "Coretax Ready (Kat A/B/C)")}</p>
+            <p className="text-2xl font-extrabold text-red-600 mt-2">{tx("Open Payroll", "Buka Payroll")}</p>
+            <p className="text-xs text-slate-500 mt-1 font-medium">{tx("Withholding is calculated on a payroll run.", "Potongan dihitung saat payroll dijalankan.")}</p>
           </CardHeader>
         </Card>
 
@@ -241,8 +276,8 @@ export default function DashboardPage() {
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{tx("BPJS total (employment + health)", "BPJS Total (TK + KS)")}</span>
               <ShieldAlert className="w-5 h-5 text-slate-400" />
             </div>
-            <p className="text-3xl font-extrabold text-slate-900 mt-2">Rp52,1M</p>
-            <p className="text-xs text-emerald-600 mt-1 font-medium">JP Cap Rp11.086.300 OK</p>
+            <p className="text-2xl font-extrabold text-slate-900 mt-2">{tx("Open Payroll", "Buka Payroll")}</p>
+            <p className="text-xs text-slate-500 mt-1 font-medium">{tx("BPJS follows the payroll run, not a fixed sample.", "BPJS mengikuti hasil payroll, bukan angka contoh.")}</p>
           </CardHeader>
         </Card>
       </div>
@@ -293,7 +328,7 @@ export default function DashboardPage() {
         {/* HR Admin Quick Links */}
         <Card className="border-slate-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base font-bold text-slate-900">{tx("HR Admin quick actions", "Aksi Cepat HR Admin")}</CardTitle>
+            <CardTitle className="text-base font-bold text-slate-900">{tx("Quick actions", "Aksi cepat")}</CardTitle>
           </CardHeader>
           <div className="p-6 pt-0 space-y-3">
             <Link href="/onboarding" className="block">

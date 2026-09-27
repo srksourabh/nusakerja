@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { eq, and, desc, isNull, inArray } from "drizzle-orm";
+import { eq, and, desc, isNull, inArray, or } from "drizzle-orm";
 import { can } from "@nusakerja/auth";
 import {
   db,
@@ -468,16 +468,18 @@ export const expensesRouter = router({
         .orderBy(desc(expenseClaims.createdAt));
     }
     if (!self) return [];
+    const reports = await db
+      .select({ id: employees.id })
+      .from(employees)
+      .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.managerEmployeeId, self.id)));
+    const reportIds = reports.map((row) => row.id);
+    const mineOrTeam = reportIds.length
+      ? or(eq(expenseClaims.approverEmployeeId, self.id), inArray(expenseClaims.employeeId, reportIds))
+      : eq(expenseClaims.approverEmployeeId, self.id);
     return db
       .select()
       .from(expenseClaims)
-      .where(
-        and(
-          eq(expenseClaims.tenantId, ctx.tenantId),
-          eq(expenseClaims.status, "PENDING"),
-          eq(expenseClaims.approverEmployeeId, self.id)
-        )
-      )
+      .where(and(eq(expenseClaims.tenantId, ctx.tenantId), eq(expenseClaims.status, "PENDING"), mineOrTeam))
       .orderBy(desc(expenseClaims.createdAt));
   }),
 
