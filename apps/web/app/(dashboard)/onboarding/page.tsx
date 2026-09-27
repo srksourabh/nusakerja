@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, Button, Badge } from "@nusakerja/ui";
 import { UserPlus, CheckCircle2, ShieldCheck, FileSpreadsheet } from "lucide-react";
 import { getTerCategory } from "@nusakerja/config";
@@ -16,6 +16,22 @@ function nextEmployeeCode(used: string[]) {
     code = `NK-${year}-${String(n).padStart(3, "0")}`;
   }
   return code;
+}
+
+const ISSUED_CODES_KEY = "nusakerja_onboarding_codes";
+
+function readIssuedCodes(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem(ISSUED_CODES_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed.filter((code) => typeof code === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeIssuedCodes(codes: string[]) {
+  localStorage.setItem(ISSUED_CODES_KEY, JSON.stringify([...new Set(codes)]));
 }
 
 function blankOnboarding(used: string[]) {
@@ -37,18 +53,34 @@ export default function OnboardingPage() {
   const { tx } = useI18n();
   const [issuedCodes, setIssuedCodes] = useState<string[]>([]);
   const [formData, setFormData] = useState(() => blankOnboarding([]));
-
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    const used = readIssuedCodes();
+    setIssuedCodes(used);
+    setFormData(blankOnboarding(used));
+    setSubmitted(false);
+  }, []);
 
   const derivedTerCategory = getTerCategory(formData.ptkpStatus);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (issuedCodes.includes(formData.employeeCode)) {
-      window.alert(tx("Employee code is already used. Generate a new one.", "Kode karyawan sudah dipakai. Buat kode baru."));
+    const used = [...new Set([...issuedCodes, ...readIssuedCodes()])];
+    if (used.includes(formData.employeeCode)) {
+      const next = blankOnboarding(used);
+      setFormData(next);
+      window.alert(
+        tx(
+          `Employee code ${formData.employeeCode} is already used. The next code is ${next.employeeCode}.`,
+          `Kode karyawan ${formData.employeeCode} sudah dipakai. Kode berikutnya ${next.employeeCode}.`
+        )
+      );
       return;
     }
-    setIssuedCodes((prev) => [...prev, formData.employeeCode]);
+    const nextIssued = [...used, formData.employeeCode];
+    writeIssuedCodes(nextIssued);
+    setIssuedCodes(nextIssued);
     setSubmitted(true);
   };
 
@@ -85,7 +117,10 @@ export default function OnboardingPage() {
           <Button
             variant="primary"
             onClick={() => {
-              setFormData(blankOnboarding([...issuedCodes, formData.employeeCode]));
+              const used = [...new Set([...issuedCodes, formData.employeeCode, ...readIssuedCodes()])];
+              writeIssuedCodes(used);
+              setIssuedCodes(used);
+              setFormData(blankOnboarding(used));
               setSubmitted(false);
             }}
           >

@@ -52,14 +52,15 @@ export default function ExpensesPage() {
     setBusy(true);
     setError(null);
     try {
-      await trpcClient.expenses.submit.mutate({
+      const created = (await trpcClient.expenses.submit.mutate({
         amountIdr: amount,
         category,
         description: description || `${category} claim`,
-      });
+      })) as Claim;
+      setMine((prev) => [created, ...prev.filter((row) => row.id !== created.id)]);
       setShowForm(false);
       setDescription("");
-      await load();
+      void load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Submit failed");
     } finally {

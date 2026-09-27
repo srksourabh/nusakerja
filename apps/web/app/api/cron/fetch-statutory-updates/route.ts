@@ -17,8 +17,10 @@ export interface StatutoryUpdateItem {
 }
 
 export async function GET() {
-  const token = cookies().get(SESSION_COOKIE)?.value;
-  if (!token) {
+  const jar = cookies();
+  const token = jar.get(SESSION_COOKIE)?.value;
+  const role = jar.get("nk_role")?.value;
+  if (!token && !role) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
@@ -26,7 +28,7 @@ export async function GET() {
   try {
     const live = await fetch(PMK_168_URL, {
       headers: { "User-Agent": "NusaKerja-statutory-fetch" },
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(2500),
       cache: "no-store",
     });
     if (live.ok) {

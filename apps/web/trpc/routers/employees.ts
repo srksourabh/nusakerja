@@ -172,6 +172,24 @@ export const employeesRouter = router({
     .mutation(async ({ input, ctx }) => {
       assertGrade(input.grade);
       const derivedTerCategory = getTerCategory(input.ptkpStatus);
+      if (ctx.tenantId) {
+        const [codeTaken] = await db
+          .select({ id: employees.id })
+          .from(employees)
+          .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.employeeCode, input.employeeCode)))
+          .limit(1);
+        if (codeTaken) {
+          throw new TRPCError({ code: "CONFLICT", message: "Kode karyawan sudah digunakan." });
+        }
+        const [nikTaken] = await db
+          .select({ id: employees.id })
+          .from(employees)
+          .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.nikKtp, input.nikKtp)))
+          .limit(1);
+        if (nikTaken) {
+          throw new TRPCError({ code: "CONFLICT", message: "NIK/KTP sudah digunakan." });
+        }
+      }
 
       const [newEmployee] = await db
         .insert(employees)

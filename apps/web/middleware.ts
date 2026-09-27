@@ -11,11 +11,41 @@ function homeForRole(role: string | undefined): string {
   return "/dashboard";
 }
 
+const APP_PREFIXES = [
+  "/dashboard",
+  "/super-admin",
+  "/ca",
+  "/admin",
+  "/leave",
+  "/expenses",
+  "/attendance",
+  "/payroll",
+  "/employees",
+  "/onboarding",
+  "/policies",
+  "/playbook",
+  "/inbox",
+  "/portal",
+  "/team",
+  "/reports",
+  "/severance",
+  "/organogram",
+];
+
+function isAppPath(pathname: string): boolean {
+  return APP_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
+
 function roleGuard(request: NextRequest): NextResponse | null {
   const { pathname } = request.nextUrl;
-  if (pathname.startsWith("/api") || pathname.startsWith("/_next")) return null;
+  if (pathname.startsWith("/api") || pathname.startsWith("/_next") || !isAppPath(pathname)) return null;
   const role = request.cookies.get("nk_role")?.value;
-  if (!role) return null;
+  if (!role) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("next", pathname);
+    return NextResponse.redirect(url);
+  }
   const wantsSuper = pathname === "/super-admin" || pathname.startsWith("/super-admin/");
   const wantsCa = pathname === "/ca" || pathname.startsWith("/ca/");
   if (wantsSuper && role !== "super_admin") {

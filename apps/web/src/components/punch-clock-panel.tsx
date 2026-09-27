@@ -109,11 +109,38 @@ export function PunchClockPanel({ compact = false }: { compact?: boolean }) {
         applyLocalDemo(next);
         return;
       }
-      await trpcClient.attendance.punch.mutate({
+      const result = (await trpcClient.attendance.punch.mutate({
         punchType,
         locationName: "Office",
-      });
-      await load();
+      })) as {
+        dayKey?: string;
+        punchCount?: number;
+        totalClosedLabel?: string;
+        status?: {
+          state: "IN" | "OUT";
+          openSince: Date | string | null;
+          totalSecondsClosed: number;
+          liveElapsedSeconds: number;
+          segments: TodayStatus["segments"];
+        };
+      };
+      if (result.status) {
+        const live = result.status.liveElapsedSeconds;
+        setStatus({
+          state: result.status.state,
+          openSince: result.status.openSince,
+          totalSecondsClosed: result.status.totalSecondsClosed,
+          liveElapsedSeconds: live,
+          totalClosedLabel: result.totalClosedLabel ?? formatDuration(result.status.totalSecondsClosed),
+          liveLabel: formatDuration(live),
+          workedIncludingLiveLabel: formatDuration(result.status.totalSecondsClosed + live),
+          segments: result.status.segments,
+          dayKey: result.dayKey ?? localDateKey(new Date()),
+          punchCount: (status?.punchCount ?? 0) + 1,
+        });
+      } else {
+        await load();
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Punch failed");
     } finally {

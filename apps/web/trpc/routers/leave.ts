@@ -300,26 +300,29 @@ export const leaveRouter = router({
         })
         .returning();
 
-      const bossUserId = await userIdForEmployee(approverEmployeeId);
-      const adminIds = await adminAndHrUserIds(ctx.tenantId);
-      await notifyActors({
-        tenantId: ctx.tenantId,
-        userIds: [bossUserId, ...adminIds],
-        type: "LEAVE_SUBMITTED",
-        title: "Leave request pending",
-        body: `${self.fullName} submitted ${input.leaveType} (${input.totalDays} day(s)).`,
-        resource: "leave_request",
-        resourceId: newRequest.id,
-      });
-
-      await writeAudit({
-        userId: ctx.user.id,
-        tenantId: ctx.tenantId,
-        action: "leave.submit",
-        resource: "leave_request",
-        resourceId: newRequest.id,
-        details: { approverEmployeeId },
-      });
+      const [bossUserId, adminIds] = await Promise.all([
+        userIdForEmployee(approverEmployeeId),
+        adminAndHrUserIds(ctx.tenantId),
+      ]);
+      await Promise.all([
+        notifyActors({
+          tenantId: ctx.tenantId,
+          userIds: [bossUserId, ...adminIds],
+          type: "LEAVE_SUBMITTED",
+          title: "Leave request pending",
+          body: `${self.fullName} submitted ${input.leaveType} (${input.totalDays} day(s)).`,
+          resource: "leave_request",
+          resourceId: newRequest.id,
+        }),
+        writeAudit({
+          userId: ctx.user.id,
+          tenantId: ctx.tenantId,
+          action: "leave.submit",
+          resource: "leave_request",
+          resourceId: newRequest.id,
+          details: { approverEmployeeId },
+        }),
+      ]);
 
       return newRequest;
     }),
@@ -522,26 +525,29 @@ export const expensesRouter = router({
         })
         .returning();
 
-      const bossUserId = await userIdForEmployee(approverEmployeeId);
-      const adminIds = await adminAndHrUserIds(ctx.tenantId);
-      await notifyActors({
-        tenantId: ctx.tenantId,
-        userIds: [bossUserId, ...adminIds],
-        type: "EXPENSE_SUBMITTED",
-        title: "Expense claim pending",
-        body: `${self.fullName}: ${input.category} Rp ${input.amountIdr.toLocaleString("id-ID")}`,
-        resource: "expense_claim",
-        resourceId: claim.id,
-      });
-
-      await writeAudit({
-        userId: ctx.user.id,
-        tenantId: ctx.tenantId,
-        action: "expense.submit",
-        resource: "expense_claim",
-        resourceId: claim.id,
-        details: { approverEmployeeId, category: input.category },
-      });
+      const [bossUserId, adminIds] = await Promise.all([
+        userIdForEmployee(approverEmployeeId),
+        adminAndHrUserIds(ctx.tenantId),
+      ]);
+      await Promise.all([
+        notifyActors({
+          tenantId: ctx.tenantId,
+          userIds: [bossUserId, ...adminIds],
+          type: "EXPENSE_SUBMITTED",
+          title: "Expense claim pending",
+          body: `${self.fullName}: ${input.category} Rp ${input.amountIdr.toLocaleString("id-ID")}`,
+          resource: "expense_claim",
+          resourceId: claim.id,
+        }),
+        writeAudit({
+          userId: ctx.user.id,
+          tenantId: ctx.tenantId,
+          action: "expense.submit",
+          resource: "expense_claim",
+          resourceId: claim.id,
+          details: { approverEmployeeId, category: input.category },
+        }),
+      ]);
 
       return claim;
     }),

@@ -7,6 +7,23 @@ import Link from "next/link";
 import { useAuth } from "../../../src/context/auth-context";
 import { useI18n } from "../../../src/context/i18n-context";
 
+const ISSUED_NIK_KEY = "nusakerja_employee_niks";
+
+function readIssuedNiks(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem(ISSUED_NIK_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed.filter((code) => typeof code === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function rememberNik(code: string) {
+  const next = [...new Set([...readIssuedNiks(), code])];
+  localStorage.setItem(ISSUED_NIK_KEY, JSON.stringify(next));
+}
+
 function uniqueEmployeeCode(used: string[]) {
   const year = new Date().getFullYear();
   const taken = new Set(used);
@@ -155,15 +172,30 @@ export default function EmployeesPage() {
       e.code.toLowerCase().includes(search.toLowerCase())
   );
 
+  const takenCodes = () => [...employeesList.map((row) => row.code), ...readIssuedNiks()];
+
   const handleAddEmployee = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName) return;
     const salary = Number(newSalary);
     if (!newSalary || Number.isNaN(salary) || salary <= 0) return;
+    const code = newCode.trim();
+    const used = takenCodes();
+    if (!code || used.includes(code)) {
+      const next = uniqueEmployeeCode(used);
+      setNewCode(next);
+      window.alert(
+        tx(
+          `Employee NIK ${code || "(empty)"} is already used. The next NIK is ${next}.`,
+          `NIK karyawan ${code || "(kosong)"} sudah dipakai. NIK berikutnya ${next}.`
+        )
+      );
+      return;
+    }
 
     const newEmp: EmployeeItem = {
       id: `emp-${Date.now()}`,
-      code: newCode,
+      code,
       name: newName,
       designation: newDesignation,
       department: newDept,
@@ -180,11 +212,12 @@ export default function EmployeesPage() {
       status: "active",
     };
 
+    rememberNik(code);
     setEmployeesList([newEmp, ...employeesList]);
     setShowAddModal(false);
     setNewName("");
     setNewSalary("");
-    setNewCode(uniqueEmployeeCode([newEmp.code, ...employeesList.map((row) => row.code)]));
+    setNewCode(uniqueEmployeeCode([code, ...used]));
   };
 
   return (
@@ -207,7 +240,8 @@ export default function EmployeesPage() {
         {canEditRoster && (
           <button
             onClick={() => {
-              setNewCode(uniqueEmployeeCode(employeesList.map((row) => row.code)));
+              setNewCode(uniqueEmployeeCode(takenCodes()));
+              setNewName("");
               setNewSalary("");
               setShowAddModal(true);
             }}

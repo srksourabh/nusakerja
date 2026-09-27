@@ -4,6 +4,7 @@ import { useState } from "react";
 import { DollarSign, Play, Download, CheckCircle2, Calculator, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 import { calculateBpjsContribution, calculatePph21Ter } from "@nusakerja/config";
 import { trpcClient } from "../../../src/utils/trpc-client";
+import { triggerFileDownload } from "../../../src/utils/download";
 import { useI18n } from "../../../src/context/i18n-context";
 
 function escapePdfText(value: string) {
@@ -33,12 +34,7 @@ function downloadPayslipPdf(lines: string[], filename: string) {
     .slice(1)
     .map((offset) => `${String(offset).padStart(10, "0")} 00000 n \n`)
     .join("")}trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
-  const url = URL.createObjectURL(new Blob([pdf], { type: "application/pdf" }));
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
+  triggerFileDownload(filename, pdf, "application/pdf");
 }
 
 const TER_TABLE = [
