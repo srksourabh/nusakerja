@@ -1,23 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardHeader, CardTitle, Badge, Button } from "@nusakerja/ui";
-import { Users, FileText, Search, UserPlus, Upload, Download, CheckCircle2, AlertCircle, FileSpreadsheet, Briefcase, MapPin, ShieldCheck, ChevronRight, UserCheck } from "lucide-react";
-import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
+import { Badge, Button } from "@nusakerja/ui";
+import { Users, Search, UserPlus } from "lucide-react";
+import { getTerCategory } from "@nusakerja/config";
+import { trpcClient } from "../../../src/utils/trpc-client";
 import { useAuth } from "../../../src/context/auth-context";
 import { useI18n } from "../../../src/context/i18n-context";
-
-function uniqueEmployeeCode(used: string[]) {
-  const year = new Date().getFullYear();
-  const taken = new Set(used);
-  let n = 1;
-  let code = `NTM-${year}-${String(n).padStart(3, "0")}`;
-  while (taken.has(code)) {
-    n += 1;
-    code = `NTM-${year}-${String(n).padStart(3, "0")}`;
-  }
-  return code;
-}
 
 interface EmployeeItem {
   id: string;
@@ -25,7 +14,7 @@ interface EmployeeItem {
   name: string;
   designation: string;
   department: string;
-  roleCategory: "Admin" | "HR" | "Team Leader" | "Service Engineer";
+  roleCategory: string;
   category: string;
   ptkp: string;
   terCategory: string;
@@ -35,118 +24,104 @@ interface EmployeeItem {
   salary: number;
   location: string;
   supervisor: string;
-  status: "active" | "field_punch" | "expat";
+  status: "active";
+}
+
+const PTKP_OPTIONS = ["TK_0", "TK_1", "TK_2", "TK_3", "K_0", "K_1", "K_2", "K_3", "K_I_0", "K_I_1", "K_I_2", "K_I_3"] as const;
+
+function ptkpLabel(status: string) {
+  return status.replaceAll("_", "/");
+}
+
+function toRosterItem(
+  row: {
+    id: string;
+    employeeCode: string;
+    fullName: string;
+    workerCategory: string;
+    grade: number | null;
+    ptkpStatus: string;
+    basicSalaryIdr: string | number;
+    managerEmployeeId: string | null;
+  },
+  names: Map<string, string>
+): EmployeeItem {
+  const grade = row.grade ?? 1;
+  return {
+    id: row.id,
+    code: row.employeeCode,
+    name: row.fullName,
+    designation: `Grade ${grade}`,
+    department: row.workerCategory,
+    roleCategory: row.workerCategory,
+    category: row.workerCategory,
+    ptkp: ptkpLabel(row.ptkpStatus),
+    terCategory: getTerCategory(row.ptkpStatus),
+    npwp: "",
+    bpjsTk: "",
+    bpjsKs: "",
+    salary: Number(row.basicSalaryIdr),
+    location: "",
+    supervisor: row.managerEmployeeId ? (names.get(row.managerEmployeeId) ?? "—") : "—",
+    status: "active",
+  };
 }
 
 export default function EmployeesPage() {
-  const { isHrAdmin, isEmployee } = useAuth();
+  const { isHrAdmin, isEmployee, user } = useAuth();
   const { tx } = useI18n();
   const canEditRoster = isHrAdmin && !isEmployee;
-  const [employeesList, setEmployeesList] = useState<EmployeeItem[]>([
-    {
-      id: "emp-001",
-      code: "NTM-2026-001",
-      name: "Ir. Aris Pratama, M.T.",
-      designation: "General Admin & Operational Director",
-      department: "Executive Administration",
-      roleCategory: "Admin",
-      category: "PKWTT",
-      ptkp: "K/2",
-      terCategory: "B",
-      npwp: "01.234.567.8-013.001",
-      bpjsTk: "10012345678",
-      bpjsKs: "0001234567890",
-      salary: 22000000,
-      location: "HQ Sudirman, Jakarta",
-      supervisor: "Board of Directors",
-      status: "active",
-    },
-    {
-      id: "emp-002",
-      code: "NTM-2026-002",
-      name: "Bambang Prasetyo, S.H.",
-      designation: "Head of HR & Industrial Relations",
-      department: "Human Resources",
-      roleCategory: "HR",
-      category: "PKWTT",
-      ptkp: "K/1",
-      terCategory: "B",
-      npwp: "01.234.567.8-013.002",
-      bpjsTk: "10012345679",
-      bpjsKs: "0001234567891",
-      salary: 18500000,
-      location: "HQ Sudirman, Jakarta",
-      supervisor: "Ir. Aris Pratama, M.T.",
-      status: "active",
-    },
-    {
-      id: "emp-003",
-      code: "NTM-2026-003",
-      name: "Hendra Wijaya",
-      designation: "Field Operations Team Leader",
-      department: "Field Engineering & Maintenance",
-      roleCategory: "Team Leader",
-      category: "PKWTT",
-      ptkp: "TK/1",
-      terCategory: "A",
-      npwp: "01.234.567.8-013.003",
-      bpjsTk: "10012345680",
-      bpjsKs: "0001234567892",
-      salary: 14000000,
-      location: "Surabaya Industrial Hub (Field Site A)",
-      supervisor: "Ir. Aris Pratama, M.T.",
-      status: "field_punch",
-    },
-    {
-      id: "emp-004",
-      code: "NTM-2026-004",
-      name: "Rian Kurniawan, S.T.",
-      designation: "Senior Field Service Engineer",
-      department: "Field Engineering & Maintenance",
-      roleCategory: "Service Engineer",
-      category: "PKWTT",
-      ptkp: "K/1",
-      terCategory: "B",
-      npwp: "01.234.567.8-013.004",
-      bpjsTk: "10012345681",
-      bpjsKs: "0001234567893",
-      salary: 9500000,
-      location: "Surabaya Industrial Hub (Field Site A)",
-      supervisor: "Hendra Wijaya (Team Leader)",
-      status: "field_punch",
-    },
-    {
-      id: "emp-005",
-      code: "NTM-2026-005",
-      name: "Budi Santoso",
-      designation: "Junior Field Service Technician",
-      department: "Field Engineering & Maintenance",
-      roleCategory: "Service Engineer",
-      category: "PKWTT",
-      ptkp: "TK/0",
-      terCategory: "A",
-      npwp: "01.234.567.8-013.005",
-      bpjsTk: "10012345682",
-      bpjsKs: "0001234567894",
-      salary: 7200000,
-      location: "HQ Sudirman, Jakarta",
-      supervisor: "Hendra Wijaya (Team Leader)",
-      status: "active",
-    },
-  ]);
+  const [employeesList, setEmployeesList] = useState<EmployeeItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
 
-  // New Employee Form State
   const [newCode, setNewCode] = useState("");
   const [newName, setNewName] = useState("");
-  const [newDesignation, setNewDesignation] = useState("Service Engineer");
-  const [newDept, setNewDept] = useState("Field Engineering & Maintenance");
-  const [newRoleCat, setNewRoleCat] = useState<"Admin" | "HR" | "Team Leader" | "Service Engineer">("Service Engineer");
-  const [newPtkp, setNewPtkp] = useState("TK/0");
+  const [newNik, setNewNik] = useState("");
+  const [newPtkp, setNewPtkp] = useState<(typeof PTKP_OPTIONS)[number]>("TK_0");
   const [newSalary, setNewSalary] = useState("");
-  const [newSupervisor, setNewSupervisor] = useState("Hendra Wijaya (Team Leader)");
+  const [newGrade, setNewGrade] = useState(1);
+  const [newManagerId, setNewManagerId] = useState("");
+
+  const loadRoster = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const rows = await trpcClient.employees.list.query();
+      const names = new Map(rows.map((row) => [row.id, row.fullName]));
+      setEmployeesList(rows.map((row) => toRosterItem(row, names)));
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : "Failed to load employees");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadRoster();
+  }, [loadRoster]);
+
+  const openAddModal = () => {
+    setNewName("");
+    setNewSalary("");
+    setNewNik("");
+    setNewGrade(1);
+    setNewManagerId("");
+    setFormError(null);
+    setNewCode("");
+    setShowAddModal(true);
+    void trpcClient.employees.nextCode
+      .query()
+      .then((next) => setNewCode(next.employeeCode))
+      .catch((err) => {
+        setFormError(err instanceof Error ? err.message : tx("Could not load the next employee code.", "Kode karyawan berikutnya gagal dimuat."));
+      });
+  };
 
   const filteredEmployees = employeesList.filter(
     (e) =>
@@ -155,36 +130,51 @@ export default function EmployeesPage() {
       e.code.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleAddEmployee = (e: React.FormEvent) => {
+  const handleAddEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     if (!newName) return;
     const salary = Number(newSalary);
     if (!newSalary || Number.isNaN(salary) || salary <= 0) return;
-
-    const newEmp: EmployeeItem = {
-      id: `emp-${Date.now()}`,
-      code: newCode,
-      name: newName,
-      designation: newDesignation,
-      department: newDept,
-      roleCategory: newRoleCat,
-      category: "PKWTT",
-      ptkp: newPtkp,
-      terCategory: newPtkp.startsWith("K/3") ? "C" : newPtkp.startsWith("K") ? "B" : "A",
-      npwp: `01.234.567.8-013.00${employeesList.length + 1}`,
-      bpjsTk: `1001234568${employeesList.length + 1}`,
-      bpjsKs: `000123456789${employeesList.length + 1}`,
-      salary,
-      location: "HQ Sudirman, Jakarta",
-      supervisor: newSupervisor,
-      status: "active",
-    };
-
-    setEmployeesList([newEmp, ...employeesList]);
-    setShowAddModal(false);
-    setNewName("");
-    setNewSalary("");
-    setNewCode(uniqueEmployeeCode([newEmp.code, ...employeesList.map((row) => row.code)]));
+    const code = newCode.trim();
+    if (!code) {
+      setFormError(tx("Employee code is still loading.", "Kode karyawan masih dimuat."));
+      return;
+    }
+    if (!/^\d{16}$/.test(newNik)) {
+      setFormError(tx("NIK / KTP must be 16 digits.", "NIK / KTP harus 16 digit."));
+      return;
+    }
+    setSaving(true);
+    try {
+      await trpcClient.employees.create.mutate({
+        employeeCode: code,
+        fullName: newName,
+        nikKtp: newNik,
+        ptkpStatus: newPtkp,
+        workerCategory: "PKWTT",
+        joinDate: new Date().toISOString().slice(0, 10),
+        basicSalaryIdr: salary,
+        grade: newGrade,
+        managerEmployeeId: newManagerId || null,
+      });
+      setShowAddModal(false);
+      setNewName("");
+      setNewNik("");
+      setNewSalary("");
+      setNewGrade(1);
+      setNewManagerId("");
+      await loadRoster();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : tx("Could not save the employee.", "Karyawan gagal disimpan.");
+      if (message.includes("Kode karyawan")) {
+        const next = await trpcClient.employees.nextCode.query().catch(() => null);
+        if (next) setNewCode(next.employeeCode);
+      }
+      setFormError(message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -194,23 +184,19 @@ export default function EmployeesPage() {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-bold mb-3 text-sky-300">
             <Users className="w-3.5 h-3.5" />
-            <span>{tx("Employee master data — PT Nusa Teknik Mandiri", "Master Data Karyawan PT Nusa Teknik Mandiri")}</span>
+            <span>{tx(`Employee master data — ${user.companyName}`, `Master data karyawan — ${user.companyName}`)}</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">{tx("Employee directory & company payroll", "Direktori Karyawan & Gaji Perusahaan")}</h1>
           <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
             {tx(
-              "Sample hierarchy of 5 employees: Admin, HR, Team Leader, and Service Engineer under Team Leader with PPh 21 TER PMK 168/2023 rates.",
-              "Struktur hirarki 5 Karyawan Sampel: Admin, HR, Team Leader, dan Service Engineer under Team Leader dengan tarif PPh 21 TER PMK 168/2023."
+              "Live roster for the signed-in company. Grade, manager, and PTKP come from the employee record.",
+              "Daftar karyawan perusahaan yang sedang masuk. Grade, atasan, dan PTKP diambil dari data karyawan."
             )}
           </p>
         </div>
         {canEditRoster && (
           <button
-            onClick={() => {
-              setNewCode(uniqueEmployeeCode(employeesList.map((row) => row.code)));
-              setNewSalary("");
-              setShowAddModal(true);
-            }}
+            onClick={openAddModal}
             className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center space-x-2 shadow-lg transition-all"
           >
             <UserPlus className="w-4 h-4" />
@@ -243,32 +229,34 @@ export default function EmployeesPage() {
             <thead>
               <tr className="bg-slate-50 text-slate-600 border-b border-slate-200 uppercase tracking-wider font-bold">
                 <th className="p-3.5">{tx("NIK & employee", "NIK & Karyawan")}</th>
-                <th className="p-3.5">{tx("Role category", "Kategori Peran")}</th>
-                <th className="p-3.5">{tx("Title & supervisor", "Jabatan & Atasan")}</th>
+                <th className="p-3.5">{tx("Contract", "Kontrak")}</th>
+                <th className="p-3.5">{tx("Grade & supervisor", "Grade & Atasan")}</th>
                 <th className="p-3.5">PTKP / TER</th>
                 <th className="p-3.5 text-right">{tx("Basic salary (IDR)", "Gaji Pokok (IDR)")}</th>
                 <th className="p-3.5 text-center">{tx("Attendance status", "Status Presensi")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
-              {filteredEmployees.map((emp) => (
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="p-6 text-slate-500">{tx("Loading roster...", "Memuat daftar...")}</td>
+                </tr>
+              ) : loadError ? (
+                <tr>
+                  <td colSpan={6} className="p-6 text-red-700">{loadError}</td>
+                </tr>
+              ) : filteredEmployees.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-6 text-slate-500">{tx("No employees on this roster yet.", "Belum ada karyawan di daftar ini.")}</td>
+                </tr>
+              ) : filteredEmployees.map((emp) => (
                 <tr key={emp.id} className="hover:bg-slate-50/80 transition-colors">
                   <td className="p-3.5">
                     <div className="font-bold text-slate-900">{emp.name}</div>
                     <div className="text-[11px] text-slate-400 font-mono">{emp.code}</div>
                   </td>
                   <td className="p-3.5">
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
-                        emp.roleCategory === "Admin"
-                          ? "bg-purple-100 text-purple-800"
-                          : emp.roleCategory === "HR"
-                          ? "bg-sky-100 text-sky-800"
-                          : emp.roleCategory === "Team Leader"
-                          ? "bg-amber-100 text-amber-900"
-                          : "bg-emerald-100 text-emerald-800"
-                      }`}
-                    >
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-slate-100 text-slate-800">
                       {emp.roleCategory}
                     </span>
                   </td>
@@ -284,9 +272,7 @@ export default function EmployeesPage() {
                     Rp {emp.salary.toLocaleString("id-ID")}
                   </td>
                   <td className="p-3.5 text-center">
-                    <Badge variant={emp.status === "field_punch" ? "warning" : "success"}>
-                      {emp.status === "field_punch" ? "📍 GPS Field Punch" : "✓ Active HQ"}
-                    </Badge>
+                    <Badge variant="success">{tx("On roster", "Di daftar")}</Badge>
                   </td>
                 </tr>
               ))}
@@ -302,7 +288,7 @@ export default function EmployeesPage() {
             <h3 className="text-lg font-extrabold text-slate-900">{tx("Add new employee", "Tambah Karyawan Baru")}</h3>
             <form onSubmit={handleAddEmployee} className="space-y-3 text-xs">
               <div>
-                <label className="font-bold text-slate-700">{tx("Employee NIK", "NIK Karyawan")}</label>
+                <label className="font-bold text-slate-700">{tx("Employee code", "Kode karyawan")}</label>
                 <input
                   type="text"
                   value={newCode}
@@ -317,55 +303,81 @@ export default function EmployeesPage() {
                   type="text"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  placeholder="e.g. Irfan Setiawan, S.T."
                   className="w-full mt-1 p-2.5 bg-slate-50 border rounded-xl"
+                  required
+                />
+              </div>
+              <div>
+                <label className="font-bold text-slate-700">{tx("NIK / KTP (16 digits)", "NIK / KTP (16 digit)")}</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={16}
+                  value={newNik}
+                  onChange={(e) => setNewNik(e.target.value.replace(/\D/g, "").slice(0, 16))}
+                  className="w-full mt-1 p-2.5 bg-slate-50 border rounded-xl font-mono"
                   required
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-slate-700">{tx("Role category", "Kategori Peran")}</label>
+                  <label className="font-bold text-slate-700">PTKP</label>
                   <select
-                    value={newRoleCat}
-                    onChange={(e) => setNewRoleCat(e.target.value as any)}
+                    value={newPtkp}
+                    onChange={(e) => setNewPtkp(e.target.value as (typeof PTKP_OPTIONS)[number])}
                     className="w-full mt-1 p-2.5 bg-slate-50 border rounded-xl"
                   >
-                    <option value="Admin">Admin</option>
-                    <option value="HR">HR</option>
-                    <option value="Team Leader">Team Leader</option>
-                    <option value="Service Engineer">Service Engineer</option>
+                    {PTKP_OPTIONS.map((option) => (
+                      <option key={option} value={option}>{ptkpLabel(option)}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label className="font-bold text-slate-700">{tx("Basic salary (Rp)", "Gaji Pokok (Rp)")}</label>
-                  <input
-                    type="number"
-                    value={newSalary}
-                    onChange={(e) => {
-                      const raw = e.target.value;
-                      setNewSalary(raw === "" ? "" : raw.replace(/^0+(?=\d)/, ""));
-                    }}
-                    className="w-full mt-1 p-2.5 bg-slate-50 border rounded-xl font-mono"
-                    required
-                  />
+                  <label className="font-bold text-slate-700">{tx("Grade", "Grade")}</label>
+                  <select
+                    value={newGrade}
+                    onChange={(e) => setNewGrade(Number(e.target.value))}
+                    className="w-full mt-1 p-2.5 bg-slate-50 border rounded-xl"
+                  >
+                    {[1, 2, 3, 4, 5].map((grade) => (
+                      <option key={grade} value={grade}>{grade}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div>
-                <label className="font-bold text-slate-700">{tx("Direct supervisor", "Atasan Langsung (Supervisor)")}</label>
+                <label className="font-bold text-slate-700">{tx("Basic salary (Rp)", "Gaji Pokok (Rp)")}</label>
                 <input
-                  type="text"
-                  value={newSupervisor}
-                  onChange={(e) => setNewSupervisor(e.target.value)}
-                  className="w-full mt-1 p-2.5 bg-slate-50 border rounded-xl"
+                  type="number"
+                  value={newSalary}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    setNewSalary(raw === "" ? "" : raw.replace(/^0+(?=\d)/, ""));
+                  }}
+                  className="w-full mt-1 p-2.5 bg-slate-50 border rounded-xl font-mono"
                   required
                 />
               </div>
+              <div>
+                <label className="font-bold text-slate-700">{tx("Direct supervisor", "Atasan Langsung")}</label>
+                <select
+                  value={newManagerId}
+                  onChange={(e) => setNewManagerId(e.target.value)}
+                  className="w-full mt-1 p-2.5 bg-slate-50 border rounded-xl"
+                >
+                  <option value="">{tx("No supervisor", "Tanpa atasan")}</option>
+                  {employeesList.map((row) => (
+                    <option key={row.id} value={row.id}>{row.name}</option>
+                  ))}
+                </select>
+              </div>
+              {formError && <p className="text-sm font-semibold text-red-700">{formError}</p>}
               <div className="flex gap-2 pt-2">
-                <Button type="button" variant="outline" className="w-1/2" onClick={() => setShowAddModal(false)}>
+                <Button type="button" variant="outline" className="w-1/2" onClick={() => setShowAddModal(false)} disabled={saving}>
                   {tx("Cancel", "Batal")}
                 </Button>
-                <Button type="submit" variant="primary" className="w-1/2 bg-red-600 hover:bg-red-700">
-                  {tx("Save employee", "Simpan Karyawan")}
+                <Button type="submit" variant="primary" className="w-1/2 bg-red-600 hover:bg-red-700" disabled={saving}>
+                  {saving ? tx("Saving...", "Menyimpan...") : tx("Save employee", "Simpan Karyawan")}
                 </Button>
               </div>
             </form>

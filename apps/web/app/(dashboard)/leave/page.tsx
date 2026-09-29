@@ -83,16 +83,17 @@ export default function LeavePage() {
     setBusy(true);
     setError(null);
     try {
-      await trpcClient.leave.requestLeave.mutate({
+      const created = (await trpcClient.leave.requestLeave.mutate({
         leaveType: leaveType as "CUTI_TAHUNAN",
         startDate,
         endDate,
         totalDays,
         reason: reason || undefined,
-      });
+      })) as LeaveRow;
+      setMine((prev) => [created, ...prev.filter((row) => row.id !== created.id)]);
       setShowForm(false);
       setReason("");
-      await load();
+      void load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Submit failed");
     } finally {

@@ -14,10 +14,7 @@ export default function SignOutPage() {
     localStorage.removeItem("nusakerja_session_role");
     localStorage.removeItem("nusakerja_shell_mode");
     document.cookie = "nk_role=; Path=/; Max-Age=0; SameSite=Lax";
-    const timer = setTimeout(() => {
-      setCleared(true);
-    }, 1000);
-    return () => clearTimeout(timer);
+    void fetch("/api/auth/logout", { method: "POST" }).finally(() => setCleared(true));
   }, []);
 
   return (

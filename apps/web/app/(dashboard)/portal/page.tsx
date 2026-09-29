@@ -2,6 +2,7 @@
 
 import { UserCheck, Calendar, Download, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { PunchClockPanel } from "../../../src/components/punch-clock-panel";
+import { triggerFileDownload } from "../../../src/utils/download";
 import { useI18n } from "../../../src/context/i18n-context";
 
 function escapePdfText(value: string) {
@@ -17,12 +18,11 @@ function downloadPayslipPdf(month: string) {
   objects.forEach((object, index) => { offsets.push(pdf.length); pdf += `${index + 1} 0 obj\n${object}\nendobj\n`; });
   const xref = pdf.length;
   pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${offsets.slice(1).map((offset) => `${String(offset).padStart(10, "0")} 00000 n \n`).join("")}trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
-  const url = URL.createObjectURL(new Blob([pdf], { type: "application/pdf" }));
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `payslip-${month.toLowerCase().replace(/\s+/g, "-")}.pdf`;
-  anchor.click();
-  URL.revokeObjectURL(url);
+  triggerFileDownload(
+    `payslip-${month.toLowerCase().replace(/\s+/g, "-")}.pdf`,
+    pdf,
+    "application/pdf"
+  );
 }
 
 export default function EmployeePortalPage() {

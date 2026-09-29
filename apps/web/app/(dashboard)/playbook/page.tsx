@@ -157,7 +157,7 @@ export default function PlaybookPage() {
           category: "PPh 21 TER",
           effectiveDate: "01 Januari 2026",
           summary: "Skema pemotongan PPh 21 TER Kategori A, B, C dan penyesuaian non-NPWP surcharge +20%.",
-          officialDocUrl: "https://jdih.kemenkeu.go.id/dok/pmk-168-tahun-2023",
+          officialDocUrl: "https://www.pajak.go.id/id/pmk-168-tahun-2023-pph-pasal-21-ter",
           isUrgent: true,
         },
         {

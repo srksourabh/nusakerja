@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { extractTenantSlugFromHost } from "./src/utils/tenant-url";
+import { ROLE_COOKIE, readSignedRole } from "./src/utils/signed-role-cookie";
 
 const TENANT_SLUG_COOKIE = "nk_tenant_slug";
 const TENANT_SLUG_HEADER = "x-tenant-slug";
@@ -8,14 +9,56 @@ const TENANT_SLUG_HEADER = "x-tenant-slug";
 function homeForRole(role: string | undefined): string {
   if (role === "super_admin") return "/super-admin";
   if (role === "reseller_admin") return "/ca";
+  if (role === "employee") return "/portal";
+  if (role === "client_admin") return "/team";
   return "/dashboard";
 }
 
-function roleGuard(request: NextRequest): NextResponse | null {
+const CA_ALLOWED = ["/ca", "/payroll", "/playbook"];
+const EMPLOYEE_ALLOWED = ["/portal", "/leave", "/expenses", "/attendance", "/inbox", "/playbook"];
+
+function pathAllowed(prefixes: string[], pathname: string): boolean {
+  return prefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
+
+const APP_PREFIXES = [
+  "/dashboard",
+  "/super-admin",
+  "/ca",
+  "/admin",
+  "/leave",
+  "/expenses",
+  "/attendance",
+  "/payroll",
+  "/employees",
+  "/onboarding",
+  "/policies",
+  "/playbook",
+  "/inbox",
+  "/portal",
+  "/team",
+  "/reports",
+  "/severance",
+  "/organogram",
+];
+
+function isAppPath(pathname: string): boolean {
+  return APP_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
+
+async function roleGuard(request: NextRequest): Promise<NextResponse | null> {
   const { pathname } = request.nextUrl;
-  if (pathname.startsWith("/api") || pathname.startsWith("/_next")) return null;
-  const role = request.cookies.get("nk_role")?.value;
-  if (!role) return null;
+  if (pathname.startsWith("/api") || pathname.startsWith("/_next") || !isAppPath(pathname)) return null;
+  const role = await readSignedRole(
+    request.cookies.get(ROLE_COOKIE)?.value,
+    request.cookies.get("nk_session")?.value
+  );
+  if (!role) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("next", pathname);
+    return NextResponse.redirect(url);
+  }
   const wantsSuper = pathname === "/super-admin" || pathname.startsWith("/super-admin/");
   const wantsCa = pathname === "/ca" || pathname.startsWith("/ca/");
   if (wantsSuper && role !== "super_admin") {
@@ -28,11 +71,18 @@ function roleGuard(request: NextRequest): NextResponse | null {
     url.pathname = homeForRole(role);
     return NextResponse.redirect(url);
   }
+  const limited =
+    role === "reseller_admin" ? CA_ALLOWED : role === "employee" ? EMPLOYEE_ALLOWED : null;
+  if (limited && !pathAllowed(limited, pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = homeForRole(role);
+    return NextResponse.redirect(url);
+  }
   return null;
 }
 
-export function middleware(request: NextRequest) {
-  const denied = roleGuard(request);
+export async function middleware(request: NextRequest) {
+  const denied = await roleGuard(request);
   if (denied) {
     applySecurityHeaders(denied);
     return denied;

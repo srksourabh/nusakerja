@@ -1,26 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, Button, Badge } from "@nusakerja/ui";
 import { UserPlus, CheckCircle2, ShieldCheck, FileSpreadsheet } from "lucide-react";
 import { getTerCategory } from "@nusakerja/config";
+import { trpcClient } from "../../../src/utils/trpc-client";
 import { useI18n } from "../../../src/context/i18n-context";
 
-function nextEmployeeCode(used: string[]) {
-  const year = new Date().getFullYear();
-  const taken = new Set(used);
-  let n = 1;
-  let code = `NK-${year}-${String(n).padStart(3, "0")}`;
-  while (taken.has(code)) {
-    n += 1;
-    code = `NK-${year}-${String(n).padStart(3, "0")}`;
-  }
-  return code;
-}
-
-function blankOnboarding(used: string[]) {
+function blankOnboarding(employeeCode = "") {
   return {
-    employeeCode: nextEmployeeCode(used),
+    employeeCode,
     fullName: "",
     nikKtp: "",
     npwp: "",
@@ -35,21 +24,69 @@ function blankOnboarding(used: string[]) {
 
 export default function OnboardingPage() {
   const { tx } = useI18n();
-  const [issuedCodes, setIssuedCodes] = useState<string[]>([]);
-  const [formData, setFormData] = useState(() => blankOnboarding([]));
-
+  const [formData, setFormData] = useState(() => blankOnboarding());
   const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void trpcClient.employees.nextCode
+      .query()
+      .then((next) => {
+        if (cancelled) return;
+        setFormData((prev) => (prev.employeeCode ? prev : { ...prev, employeeCode: next.employeeCode }));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const derivedTerCategory = getTerCategory(formData.ptkpStatus);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (issuedCodes.includes(formData.employeeCode)) {
-      window.alert(tx("Employee code is already used. Generate a new one.", "Kode karyawan sudah dipakai. Buat kode baru."));
+    setFormError(null);
+    if (!formData.employeeCode) {
+      setFormError(tx("Employee code is still loading.", "Kode karyawan masih dimuat."));
       return;
     }
-    setIssuedCodes((prev) => [...prev, formData.employeeCode]);
-    setSubmitted(true);
+    if (!/^\d{16}$/.test(formData.nikKtp)) {
+      setFormError(tx("NIK / KTP must be 16 digits.", "NIK / KTP harus 16 digit."));
+      return;
+    }
+    const salary = Number(formData.basicSalaryIdr);
+    if (!Number.isFinite(salary) || salary <= 0) {
+      setFormError(tx("Enter a monthly basic salary.", "Isi gaji pokok bulanan."));
+      return;
+    }
+    setSaving(true);
+    try {
+      await trpcClient.employees.create.mutate({
+        employeeCode: formData.employeeCode,
+        fullName: formData.fullName,
+        nikKtp: formData.nikKtp,
+        npwp: formData.npwp || undefined,
+        bpjsKetenagakerjaanNo: formData.bpjsKetenagakerjaanNo || undefined,
+        bpjsKesehatanNo: formData.bpjsKesehatanNo || undefined,
+        ptkpStatus: formData.ptkpStatus as "TK_0",
+        workerCategory: formData.workerCategory as "PKWTT",
+        joinDate: new Date().toISOString().slice(0, 10),
+        basicSalaryIdr: salary,
+        grade: 1,
+      });
+      setSubmitted(true);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : tx("Could not save the employee.", "Karyawan gagal disimpan.");
+      if (message.includes("Kode karyawan")) {
+        const next = await trpcClient.employees.nextCode.query().catch(() => null);
+        if (next) setFormData((prev) => ({ ...prev, employeeCode: next.employeeCode }));
+      }
+      setFormError(message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -85,8 +122,11 @@ export default function OnboardingPage() {
           <Button
             variant="primary"
             onClick={() => {
-              setFormData(blankOnboarding([...issuedCodes, formData.employeeCode]));
               setSubmitted(false);
+              setFormData(blankOnboarding());
+              void trpcClient.employees.nextCode.query().then((next) => {
+                setFormData(blankOnboarding(next.employeeCode));
+              });
             }}
           >
             {tx("Add another employee", "Tambah Karyawan Lain")}
@@ -228,12 +268,15 @@ export default function OnboardingPage() {
               </div>
             </div>
 
+            {formError && <p className="text-sm font-semibold text-red-700">{formError}</p>}
             <div className="pt-4 border-t border-slate-200 flex justify-between items-center">
               <span className="text-xs text-slate-500">
-                {tx("Data will be verified against DJP Coretax and BPJS SIPP formats.", "Data akan diverifikasi dengan format DJP Coretax & BPJS SIPP.")}
+                {tx("Saved to this company's employee roster.", "Disimpan ke daftar karyawan perusahaan ini.")}
               </span>
-              <Button variant="primary" type="submit">
-                {tx("Save & register employee", "Simpan & Daftarkan Karyawan")}
+              <Button variant="primary" type="submit" disabled={saving}>
+                {saving
+                  ? tx("Saving...", "Menyimpan...")
+                  : tx("Save & register employee", "Simpan & Daftarkan Karyawan")}
               </Button>
             </div>
           </form>

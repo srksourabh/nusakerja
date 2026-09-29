@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import { ROLE_DISPLAY_NAME } from "@nusakerja/auth";
 
 export type UserRole =
@@ -8,6 +8,7 @@ export type UserRole =
   | "manager"
   | "hr_admin"
   | "client_admin"
+  | "payroll_admin"
   | "reseller_admin"
   | "super_admin";
 
@@ -43,8 +44,9 @@ interface AuthContextType {
   isSuperAdmin: boolean;
   isCa: boolean;
   roleLabel: string;
-  /** False until the saved session role has been read. Route guards wait on this. */
+  /** False until the server session has been read. Route guards wait on this. */
   sessionReady: boolean;
+  authenticated: boolean;
   mustChangePassword: boolean;
   completeFirstTimePasswordChange: (newPassword: string) => Promise<boolean>;
   sendPasswordResetEmail: (email: string) => Promise<{ success: boolean; message: string }>;
@@ -95,6 +97,17 @@ const defaultProfiles: Record<UserRole, UserProfile> = {
     avatarText: "CA",
     isFirstLogin: false,
   },
+  payroll_admin: {
+    id: "usr-pay",
+    name: "Payroll Admin",
+    email: "payroll@nusantara.co.id",
+    role: "payroll_admin",
+    designation: "Payroll Admin",
+    department: "Finance",
+    companyName: "PT Nusantara Utama",
+    avatarText: "PA",
+    isFirstLogin: false,
+  },
   reseller_admin: {
     id: "usr-ca",
     name: "CA Demo Operator",
@@ -124,16 +137,13 @@ const ALL_ROLES: UserRole[] = [
   "manager",
   "hr_admin",
   "client_admin",
+  "payroll_admin",
   "reseller_admin",
   "super_admin",
 ];
 
 function canUseManagePortal(role: UserRole): boolean {
-  return role === "client_admin" || role === "hr_admin" || role === "manager";
-}
-
-function writeRoleCookie(role: UserRole) {
-  document.cookie = `nk_role=${role}; Path=/; Max-Age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+  return role === "client_admin" || role === "hr_admin" || role === "payroll_admin" || role === "manager";
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -151,6 +161,7 @@ const AuthContext = createContext<AuthContextType>({
   isCa: false,
   roleLabel: "Employee",
   sessionReady: false,
+  authenticated: false,
   mustChangePassword: false,
   completeFirstTimePasswordChange: async () => true,
   sendPasswordResetEmail: async () => ({ success: true, message: "" }),
@@ -159,46 +170,69 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRoleState] = useState<UserRole>("employee");
   const [sessionReady, setSessionReady] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
   const [shellMode, setShellModeState] = useState<ShellMode>("my_work");
   const [mustChangePassword, setMustChangePassword] = useState<boolean>(false);
   const [activeProfile, setActiveProfile] = useState<UserProfile>(defaultProfiles.employee);
+  const sessionEpoch = useRef(0);
 
-  useEffect(() => {
-    localStorage.removeItem("nusakerja_user_role");
-
-    const savedRole = localStorage.getItem("nusakerja_session_role") as UserRole | null;
-    if (savedRole && ALL_ROLES.includes(savedRole)) {
-      setRoleState(savedRole);
-      setActiveProfile(defaultProfiles[savedRole]);
-      const savedMode = localStorage.getItem("nusakerja_shell_mode") as ShellMode | null;
-      if (canUseManagePortal(savedRole) && (savedMode === "my_work" || savedMode === "manage")) {
-        setShellModeState(savedMode);
-      } else {
-        setShellModeState(canUseManagePortal(savedRole) ? "manage" : "my_work");
-      }
-    }
-
-    if (localStorage.getItem("nusakerja_first_login") === "true") {
-      setMustChangePassword(true);
-    }
-    if (savedRole && ALL_ROLES.includes(savedRole)) {
-      writeRoleCookie(savedRole);
-    }
-    setSessionReady(true);
-  }, []);
-
-  const loginAs = (newRole: UserRole, email?: string) => {
+  const applyRole = (newRole: UserRole, email?: string, name?: string, id?: string) => {
     setRoleState(newRole);
-    localStorage.setItem("nusakerja_session_role", newRole);
-    writeRoleCookie(newRole);
     setActiveProfile({
       ...defaultProfiles[newRole],
+      id: id || defaultProfiles[newRole].id,
+      name: name || defaultProfiles[newRole].name,
       email: email || defaultProfiles[newRole].email,
       role: newRole,
     });
-    const nextMode: ShellMode = canUseManagePortal(newRole) ? "manage" : "my_work";
+    const savedMode = localStorage.getItem("nusakerja_shell_mode") as ShellMode | null;
+    const nextMode: ShellMode =
+      canUseManagePortal(newRole) && (savedMode === "my_work" || savedMode === "manage")
+        ? savedMode
+        : canUseManagePortal(newRole)
+          ? "manage"
+          : "my_work";
     setShellModeState(nextMode);
     localStorage.setItem("nusakerja_shell_mode", nextMode);
+  };
+
+  useEffect(() => {
+    localStorage.removeItem("nusakerja_user_role");
+    localStorage.removeItem("nusakerja_session_role");
+    if (localStorage.getItem("nusakerja_first_login") === "true") {
+      setMustChangePassword(true);
+    }
+    const mine = ++sessionEpoch.current;
+    void fetch("/api/auth/session")
+      .then(async (res) => {
+        if (sessionEpoch.current !== mine) return;
+        if (!res.ok) {
+          setAuthenticated(false);
+          setSessionReady(true);
+          return;
+        }
+        const data = (await res.json()) as { role?: UserRole; email?: string; name?: string; id?: string };
+        if (!data.role || !ALL_ROLES.includes(data.role)) {
+          setAuthenticated(false);
+          setSessionReady(true);
+          return;
+        }
+        applyRole(data.role, data.email, data.name, data.id);
+        setAuthenticated(true);
+        setSessionReady(true);
+      })
+      .catch(() => {
+        if (sessionEpoch.current !== mine) return;
+        setAuthenticated(false);
+        setSessionReady(true);
+      });
+  }, []);
+
+  const loginAs = (newRole: UserRole, email?: string) => {
+    sessionEpoch.current += 1;
+    applyRole(newRole, email);
+    setAuthenticated(true);
+    setSessionReady(true);
   };
 
   const setShellMode = (mode: ShellMode) => {
@@ -222,7 +256,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const canManage = canUseManagePortal(role);
   const isEmployee = role === "employee" || (canManage && shellMode === "my_work");
   const isManager = role === "manager";
-  const isHrAdmin = role === "hr_admin" || role === "client_admin";
+  const isHrAdmin = role === "hr_admin" || role === "client_admin" || role === "payroll_admin";
   const isCompanyAdmin = role === "client_admin";
   const isSuperAdmin = role === "super_admin";
   const isCa = role === "reseller_admin";
@@ -245,6 +279,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isCa,
         roleLabel,
         sessionReady,
+        authenticated,
         mustChangePassword,
         completeFirstTimePasswordChange,
         sendPasswordResetEmail,

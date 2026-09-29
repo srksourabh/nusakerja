@@ -132,12 +132,7 @@ export default function LoginPage() {
       setLogged(true);
       setTimeout(() => router.push(home), 600);
     } catch (err) {
-      const home = homeForRole(role);
-      loginAs(role, email);
-      setResolvedHome(home);
-      setLogged(true);
-      setError(err instanceof Error ? err.message : "Login API gagal; memakai mode demo lokal.");
-      setTimeout(() => router.push(home), 800);
+      setError(err instanceof Error ? err.message : "Login gagal");
     } finally {
       setLoading(false);
     }
@@ -169,11 +164,7 @@ export default function LoginPage() {
       setLogged(true);
       setTimeout(() => router.push(home), 500);
     } catch (err) {
-      loginAs(p.key, p.email);
-      setResolvedHome(p.home);
-      setLogged(true);
-      setError(err instanceof Error ? err.message : "Mode demo lokal aktif.");
-      setTimeout(() => router.push(p.home), 700);
+      setError(err instanceof Error ? err.message : "Login gagal");
     } finally {
       setLoading(false);
     }

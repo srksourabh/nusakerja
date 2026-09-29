@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { eq, and, desc, isNull, inArray } from "drizzle-orm";
+import { eq, and, desc, isNull, inArray, or } from "drizzle-orm";
 import { can } from "@nusakerja/auth";
 import {
   db,
@@ -300,26 +300,29 @@ export const leaveRouter = router({
         })
         .returning();
 
-      const bossUserId = await userIdForEmployee(approverEmployeeId);
-      const adminIds = await adminAndHrUserIds(ctx.tenantId);
-      await notifyActors({
-        tenantId: ctx.tenantId,
-        userIds: [bossUserId, ...adminIds],
-        type: "LEAVE_SUBMITTED",
-        title: "Leave request pending",
-        body: `${self.fullName} submitted ${input.leaveType} (${input.totalDays} day(s)).`,
-        resource: "leave_request",
-        resourceId: newRequest.id,
-      });
-
-      await writeAudit({
-        userId: ctx.user.id,
-        tenantId: ctx.tenantId,
-        action: "leave.submit",
-        resource: "leave_request",
-        resourceId: newRequest.id,
-        details: { approverEmployeeId },
-      });
+      const [bossUserId, adminIds] = await Promise.all([
+        userIdForEmployee(approverEmployeeId),
+        adminAndHrUserIds(ctx.tenantId),
+      ]);
+      await Promise.all([
+        notifyActors({
+          tenantId: ctx.tenantId,
+          userIds: [bossUserId, ...adminIds],
+          type: "LEAVE_SUBMITTED",
+          title: "Leave request pending",
+          body: `${self.fullName} submitted ${input.leaveType} (${input.totalDays} day(s)).`,
+          resource: "leave_request",
+          resourceId: newRequest.id,
+        }),
+        writeAudit({
+          userId: ctx.user.id,
+          tenantId: ctx.tenantId,
+          action: "leave.submit",
+          resource: "leave_request",
+          resourceId: newRequest.id,
+          details: { approverEmployeeId },
+        }),
+      ]);
 
       return newRequest;
     }),
@@ -465,16 +468,18 @@ export const expensesRouter = router({
         .orderBy(desc(expenseClaims.createdAt));
     }
     if (!self) return [];
+    const reports = await db
+      .select({ id: employees.id })
+      .from(employees)
+      .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.managerEmployeeId, self.id)));
+    const reportIds = reports.map((row) => row.id);
+    const mineOrTeam = reportIds.length
+      ? or(eq(expenseClaims.approverEmployeeId, self.id), inArray(expenseClaims.employeeId, reportIds))
+      : eq(expenseClaims.approverEmployeeId, self.id);
     return db
       .select()
       .from(expenseClaims)
-      .where(
-        and(
-          eq(expenseClaims.tenantId, ctx.tenantId),
-          eq(expenseClaims.status, "PENDING"),
-          eq(expenseClaims.approverEmployeeId, self.id)
-        )
-      )
+      .where(and(eq(expenseClaims.tenantId, ctx.tenantId), eq(expenseClaims.status, "PENDING"), mineOrTeam))
       .orderBy(desc(expenseClaims.createdAt));
   }),
 
@@ -522,26 +527,29 @@ export const expensesRouter = router({
         })
         .returning();
 
-      const bossUserId = await userIdForEmployee(approverEmployeeId);
-      const adminIds = await adminAndHrUserIds(ctx.tenantId);
-      await notifyActors({
-        tenantId: ctx.tenantId,
-        userIds: [bossUserId, ...adminIds],
-        type: "EXPENSE_SUBMITTED",
-        title: "Expense claim pending",
-        body: `${self.fullName}: ${input.category} Rp ${input.amountIdr.toLocaleString("id-ID")}`,
-        resource: "expense_claim",
-        resourceId: claim.id,
-      });
-
-      await writeAudit({
-        userId: ctx.user.id,
-        tenantId: ctx.tenantId,
-        action: "expense.submit",
-        resource: "expense_claim",
-        resourceId: claim.id,
-        details: { approverEmployeeId, category: input.category },
-      });
+      const [bossUserId, adminIds] = await Promise.all([
+        userIdForEmployee(approverEmployeeId),
+        adminAndHrUserIds(ctx.tenantId),
+      ]);
+      await Promise.all([
+        notifyActors({
+          tenantId: ctx.tenantId,
+          userIds: [bossUserId, ...adminIds],
+          type: "EXPENSE_SUBMITTED",
+          title: "Expense claim pending",
+          body: `${self.fullName}: ${input.category} Rp ${input.amountIdr.toLocaleString("id-ID")}`,
+          resource: "expense_claim",
+          resourceId: claim.id,
+        }),
+        writeAudit({
+          userId: ctx.user.id,
+          tenantId: ctx.tenantId,
+          action: "expense.submit",
+          resource: "expense_claim",
+          resourceId: claim.id,
+          details: { approverEmployeeId, category: input.category },
+        }),
+      ]);
 
       return claim;
     }),
