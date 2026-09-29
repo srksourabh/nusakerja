@@ -12,8 +12,20 @@ import {
 } from "@nusakerja/db";
 import { eq, and } from "drizzle-orm";
 import { getTerCategory } from "@nusakerja/config";
+import { nextEmployeeCode } from "@nusakerja/db";
 
 const gradeSchema = z.number().int().min(1).max(5);
+
+function isUniqueViolation(err: unknown): boolean {
+  const seen = new Set<unknown>();
+  let current: unknown = err;
+  while (current && typeof current === "object" && !seen.has(current)) {
+    seen.add(current);
+    if ((current as { code?: string }).code === "23505") return true;
+    current = (current as { cause?: unknown }).cause;
+  }
+  return false;
+}
 
 async function loadTenantEmployees(tenantId: string) {
   return db.select().from(employees).where(eq(employees.tenantId, tenantId));
@@ -43,6 +55,17 @@ export const employeesRouter = router({
       return rows.filter((r) => r.userId === ctx.user.id);
     }
     return rows;
+  }),
+
+  nextCode: adminProcedure.query(async ({ ctx }) => {
+    if (!ctx.tenantId) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "No company context." });
+    }
+    const rows = await db
+      .select({ employeeCode: employees.employeeCode })
+      .from(employees)
+      .where(eq(employees.tenantId, ctx.tenantId));
+    return { employeeCode: nextEmployeeCode(rows.map((row) => row.employeeCode)) };
   }),
 
   getById: protectedProcedure
@@ -191,26 +214,39 @@ export const employeesRouter = router({
         }
       }
 
-      const [newEmployee] = await db
-        .insert(employees)
-        .values({
-          tenantId: ctx.tenantId || "00000000-0000-0000-0000-000000000000",
-          employeeCode: input.employeeCode,
-          fullName: input.fullName,
-          nikKtp: input.nikKtp,
-          npwp: input.npwp || null,
-          bpjsKetenagakerjaanNo: input.bpjsKetenagakerjaanNo || null,
-          bpjsKesehatanNo: input.bpjsKesehatanNo || null,
-          ptkpStatus: input.ptkpStatus,
-          workerCategory: input.workerCategory,
-          joinDate: input.joinDate,
-          basicSalaryIdr: input.basicSalaryIdr.toString(),
-          grade: input.grade,
-          managerEmployeeId: input.managerEmployeeId ?? null,
-          kitasExpiryDate: input.kitasExpiryDate || null,
-          rptkaRef: input.rptkaRef || null,
-        })
-        .returning();
+      let newEmployee: typeof employees.$inferSelect;
+      try {
+        const [inserted] = await db
+          .insert(employees)
+          .values({
+            tenantId: ctx.tenantId || "00000000-0000-0000-0000-000000000000",
+            employeeCode: input.employeeCode,
+            fullName: input.fullName,
+            nikKtp: input.nikKtp,
+            npwp: input.npwp || null,
+            bpjsKetenagakerjaanNo: input.bpjsKetenagakerjaanNo || null,
+            bpjsKesehatanNo: input.bpjsKesehatanNo || null,
+            ptkpStatus: input.ptkpStatus,
+            workerCategory: input.workerCategory,
+            joinDate: input.joinDate,
+            basicSalaryIdr: input.basicSalaryIdr.toString(),
+            grade: input.grade,
+            managerEmployeeId: input.managerEmployeeId ?? null,
+            kitasExpiryDate: input.kitasExpiryDate || null,
+            rptkaRef: input.rptkaRef || null,
+          })
+          .returning();
+        if (!inserted) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Karyawan gagal disimpan." });
+        }
+        newEmployee = inserted;
+      } catch (err) {
+        if (err instanceof TRPCError) throw err;
+        if (isUniqueViolation(err)) {
+          throw new TRPCError({ code: "CONFLICT", message: "Kode karyawan sudah digunakan." });
+        }
+        throw err;
+      }
 
       return {
         employee: newEmployee,

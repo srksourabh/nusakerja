@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { extractTenantSlugFromHost } from "./src/utils/tenant-url";
+import { ROLE_COOKIE, readSignedRole } from "./src/utils/signed-role-cookie";
 
 const TENANT_SLUG_COOKIE = "nk_tenant_slug";
 const TENANT_SLUG_HEADER = "x-tenant-slug";
@@ -45,10 +46,13 @@ function isAppPath(pathname: string): boolean {
   return APP_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
-function roleGuard(request: NextRequest): NextResponse | null {
+async function roleGuard(request: NextRequest): Promise<NextResponse | null> {
   const { pathname } = request.nextUrl;
   if (pathname.startsWith("/api") || pathname.startsWith("/_next") || !isAppPath(pathname)) return null;
-  const role = request.cookies.get("nk_role")?.value;
+  const role = await readSignedRole(
+    request.cookies.get(ROLE_COOKIE)?.value,
+    request.cookies.get("nk_session")?.value
+  );
   if (!role) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
@@ -77,8 +81,8 @@ function roleGuard(request: NextRequest): NextResponse | null {
   return null;
 }
 
-export function middleware(request: NextRequest) {
-  const denied = roleGuard(request);
+export async function middleware(request: NextRequest) {
+  const denied = await roleGuard(request);
   if (denied) {
     applySecurityHeaders(denied);
     return denied;

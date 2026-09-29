@@ -98,9 +98,20 @@ export function PunchClockPanel({ compact = false }: { compact?: boolean }) {
     );
   }, [tick, status?.openSince, status?.state]);
 
+  const eventsFromStatus = (current: TodayStatus | null): PunchEvent[] => {
+    if (!current) return [];
+    const events: PunchEvent[] = [];
+    for (const segment of current.segments) {
+      events.push({ punchType: "IN", punchTime: toDate(segment.inAt) ?? new Date() });
+      if (segment.outAt) events.push({ punchType: "OUT", punchTime: toDate(segment.outAt) ?? new Date() });
+    }
+    return events;
+  };
+
   const doPunch = async (punchType: "IN" | "OUT") => {
     setBusy(true);
     setError(null);
+    const previous = status;
     try {
       if (demoMode) {
         assertNextPunchAllowed(demoPunches, punchType);
@@ -109,6 +120,8 @@ export function PunchClockPanel({ compact = false }: { compact?: boolean }) {
         applyLocalDemo(next);
         return;
       }
+      const optimistic = [...eventsFromStatus(status), { punchType, punchTime: new Date() }];
+      applyLocalDemo(optimistic);
       const result = (await trpcClient.attendance.punch.mutate({
         punchType,
         locationName: "Office",
@@ -142,6 +155,7 @@ export function PunchClockPanel({ compact = false }: { compact?: boolean }) {
         await load();
       }
     } catch (e) {
+      setStatus(previous);
       setError(e instanceof Error ? e.message : "Punch failed");
     } finally {
       setBusy(false);

@@ -23,7 +23,7 @@ export default function ExpensesPage() {
   const [pending, setPending] = useState<Claim[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [amount, setAmount] = useState(150000);
+  const [amount, setAmount] = useState("150000");
   const [category, setCategory] = useState<"TRAVEL" | "MEAL" | "MEDICAL" | "OTHER">("TRAVEL");
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
@@ -53,11 +53,16 @@ export default function ExpensesPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const parsedAmount = Number(amount);
+    if (!amount.trim() || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      setError(tx("Enter an amount greater than 0.", "Isi jumlah lebih dari 0."));
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
       const created = (await trpcClient.expenses.submit.mutate({
-        amountIdr: amount,
+        amountIdr: parsedAmount,
         category,
         description: description || `${category} claim`,
       })) as Claim;
@@ -149,7 +154,7 @@ export default function ExpensesPage() {
                 type="number"
                 min={1}
                 value={amount}
-                onChange={(e) => setAmount(Number(e.target.value) || 0)}
+                onChange={(e) => setAmount(e.target.value)}
                 style={{ display: "block", width: "100%", marginTop: 4, padding: 8, borderRadius: 8, border: "1px solid #CBD5E1" }}
               />
             </label>

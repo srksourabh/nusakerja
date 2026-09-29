@@ -15,3 +15,4 @@ export * from "./punch-hours";
 export * from "./map-pins";
 export * from "./resolve-policy";
 export * from "./approval-routing";
+export * from "./employee-code";

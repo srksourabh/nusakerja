@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Users,
@@ -24,6 +24,35 @@ import {
 import { useI18n } from "../../src/context/i18n-context";
 import { useAuth } from "../../src/context/auth-context";
 import { LanguageToggle } from "../../src/components/language-toggle";
+import { trpcClient } from "../../src/utils/trpc-client";
+
+function InboxLink({ label, count }: { label: string; count: number }) {
+  return (
+    <Link href="/inbox" className="nav-pill" style={{ marginBottom: 2 }}>
+      <Bell style={{ width: 16, height: 16, color: "#F59E0B", flexShrink: 0 }} />
+      <span style={{ flex: 1 }}>{label}</span>
+      {count > 0 ? (
+        <span
+          style={{
+            minWidth: 18,
+            height: 18,
+            borderRadius: 999,
+            background: "#F59E0B",
+            color: "#1C1917",
+            fontSize: 10,
+            fontWeight: 800,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "0 5px",
+          }}
+        >
+          {count > 9 ? "9+" : count}
+        </span>
+      ) : null}
+    </Link>
+  );
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
@@ -41,22 +70,51 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     roleLabel,
     role,
     sessionReady,
+    authenticated,
   } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const [unread, setUnread] = useState(0);
 
   useEffect(() => {
     if (!sessionReady) return;
+    if (!authenticated) {
+      router.replace("/login");
+      return;
+    }
     const home = role === "super_admin" ? "/super-admin" : role === "reseller_admin" ? "/ca" : "/dashboard";
     const wantsSuper = pathname === "/super-admin" || pathname.startsWith("/super-admin/");
     const wantsCa = pathname === "/ca" || pathname.startsWith("/ca/");
     if (wantsSuper && role !== "super_admin") router.replace(home);
     else if (wantsCa && role !== "reseller_admin") router.replace(home);
-  }, [sessionReady, role, pathname, router]);
+  }, [sessionReady, authenticated, role, pathname, router]);
+
+  useEffect(() => {
+    if (!sessionReady || !authenticated) return;
+    let stop = false;
+    const pull = async () => {
+      try {
+        const rows = (await trpcClient.notifications.list.query({ unreadOnly: true })) as unknown[];
+        if (!stop) setUnread(Array.isArray(rows) ? rows.length : 0);
+      } catch {
+        if (!stop) setUnread(0);
+      }
+    };
+    void pull();
+    const id = window.setInterval(() => void pull(), 20000);
+    return () => {
+      stop = true;
+      window.clearInterval(id);
+    };
+  }, [sessionReady, authenticated]);
 
   const companyUser = !isSuperAdmin && !isCa;
   const showManageNav = canManage && shellMode === "manage";
   const showMyWorkNav = companyUser && (!canManage || shellMode === "my_work");
+
+  if (!sessionReady || !authenticated) {
+    return <div style={{ minHeight: "100vh", background: "#0F172A" }} />;
+  }
 
   return (
     <div className="sidebar-layout">
@@ -214,10 +272,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Briefcase style={{ width: 16, height: 16, color: "#0EA5E9", flexShrink: 0 }} />
                 <span>{t("nav.expenses")}</span>
               </Link>
-              <Link href="/inbox" className="nav-pill" style={{ marginBottom: 2 }}>
-                <Bell style={{ width: 16, height: 16, color: "#F59E0B", flexShrink: 0 }} />
-                <span>{t("nav.inbox")}</span>
-              </Link>
+              <InboxLink label={t("nav.inbox")} count={unread} />
               <Link href="/portal" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Briefcase style={{ width: 16, height: 16, color: "#38BDF8", flexShrink: 0 }} />
                 <span>{t("nav.payslip")}</span>
@@ -245,10 +300,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Briefcase style={{ width: 16, height: 16, color: "#0EA5E9", flexShrink: 0 }} />
                 <span>{t("nav.teamExpenses")}</span>
               </Link>
-              <Link href="/inbox" className="nav-pill" style={{ marginBottom: 2 }}>
-                <Bell style={{ width: 16, height: 16, color: "#F59E0B", flexShrink: 0 }} />
-                <span>{t("nav.inbox")}</span>
-              </Link>
+              <InboxLink label={t("nav.inbox")} count={unread} />
               <Link href="/attendance" className="nav-pill" style={{ marginBottom: 2 }}>
                 <Clock style={{ width: 16, height: 16, color: "#FBBF24", flexShrink: 0 }} />
                 <span>{t("nav.teamAttendance")}</span>
@@ -303,10 +355,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Briefcase style={{ width: 16, height: 16, color: "#0EA5E9", flexShrink: 0 }} />
                 <span>{t("nav.expenses")}</span>
               </Link>
-              <Link href="/inbox" className="nav-pill" style={{ marginBottom: 2 }}>
-                <Bell style={{ width: 16, height: 16, color: "#F59E0B", flexShrink: 0 }} />
-                <span>{t("nav.inbox")}</span>
-              </Link>
+              <InboxLink label={t("nav.inbox")} count={unread} />
               <Link href="/payroll" className="nav-pill" style={{ marginBottom: 2 }}>
                 <DollarSign style={{ width: 16, height: 16, color: "#34D399", flexShrink: 0 }} />
                 <span>{t("nav.payroll")}</span>

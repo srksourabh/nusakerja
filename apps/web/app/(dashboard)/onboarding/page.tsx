@@ -7,37 +7,9 @@ import { getTerCategory } from "@nusakerja/config";
 import { trpcClient } from "../../../src/utils/trpc-client";
 import { useI18n } from "../../../src/context/i18n-context";
 
-function nextEmployeeCode(used: string[]) {
-  const year = new Date().getFullYear();
-  const taken = new Set(used);
-  let n = 1;
-  let code = `NK-${year}-${String(n).padStart(3, "0")}`;
-  while (taken.has(code)) {
-    n += 1;
-    code = `NK-${year}-${String(n).padStart(3, "0")}`;
-  }
-  return code;
-}
-
-const ISSUED_CODES_KEY = "nusakerja_onboarding_codes";
-
-function readIssuedCodes(): string[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const parsed = JSON.parse(localStorage.getItem(ISSUED_CODES_KEY) || "[]");
-    return Array.isArray(parsed) ? parsed.filter((code) => typeof code === "string") : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeIssuedCodes(codes: string[]) {
-  localStorage.setItem(ISSUED_CODES_KEY, JSON.stringify([...new Set(codes)]));
-}
-
-function blankOnboarding(used: string[]) {
+function blankOnboarding(employeeCode = "") {
   return {
-    employeeCode: nextEmployeeCode(used),
+    employeeCode,
     fullName: "",
     nikKtp: "",
     npwp: "",
@@ -52,26 +24,18 @@ function blankOnboarding(used: string[]) {
 
 export default function OnboardingPage() {
   const { tx } = useI18n();
-  const [issuedCodes, setIssuedCodes] = useState<string[]>([]);
-  const [formData, setFormData] = useState(() => blankOnboarding([]));
+  const [formData, setFormData] = useState(() => blankOnboarding());
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    const local = readIssuedCodes();
-    setIssuedCodes(local);
-    setFormData(blankOnboarding(local));
-    setSubmitted(false);
-    void trpcClient.employees.list
+    void trpcClient.employees.nextCode
       .query()
-      .then((rows) => {
+      .then((next) => {
         if (cancelled) return;
-        const used = [...new Set([...readIssuedCodes(), ...rows.map((row) => row.employeeCode)])];
-        writeIssuedCodes(used);
-        setIssuedCodes(used);
-        setFormData(blankOnboarding(used));
+        setFormData((prev) => (prev.employeeCode ? prev : { ...prev, employeeCode: next.employeeCode }));
       })
       .catch(() => {});
     return () => {
@@ -84,16 +48,8 @@ export default function OnboardingPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
-    const used = [...new Set([...issuedCodes, ...readIssuedCodes()])];
-    if (used.includes(formData.employeeCode)) {
-      const next = blankOnboarding(used);
-      setFormData(next);
-      window.alert(
-        tx(
-          `Employee code ${formData.employeeCode} is already used. The next code is ${next.employeeCode}.`,
-          `Kode karyawan ${formData.employeeCode} sudah dipakai. Kode berikutnya ${next.employeeCode}.`
-        )
-      );
+    if (!formData.employeeCode) {
+      setFormError(tx("Employee code is still loading.", "Kode karyawan masih dimuat."));
       return;
     }
     if (!/^\d{16}$/.test(formData.nikKtp)) {
@@ -120,12 +76,14 @@ export default function OnboardingPage() {
         basicSalaryIdr: salary,
         grade: 1,
       });
-      const nextIssued = [...used, formData.employeeCode];
-      writeIssuedCodes(nextIssued);
-      setIssuedCodes(nextIssued);
       setSubmitted(true);
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : tx("Could not save the employee.", "Karyawan gagal disimpan."));
+      const message = err instanceof Error ? err.message : tx("Could not save the employee.", "Karyawan gagal disimpan.");
+      if (message.includes("Kode karyawan")) {
+        const next = await trpcClient.employees.nextCode.query().catch(() => null);
+        if (next) setFormData((prev) => ({ ...prev, employeeCode: next.employeeCode }));
+      }
+      setFormError(message);
     } finally {
       setSaving(false);
     }
@@ -164,11 +122,11 @@ export default function OnboardingPage() {
           <Button
             variant="primary"
             onClick={() => {
-              const used = [...new Set([...issuedCodes, formData.employeeCode, ...readIssuedCodes()])];
-              writeIssuedCodes(used);
-              setIssuedCodes(used);
-              setFormData(blankOnboarding(used));
               setSubmitted(false);
+              setFormData(blankOnboarding());
+              void trpcClient.employees.nextCode.query().then((next) => {
+                setFormData(blankOnboarding(next.employeeCode));
+              });
             }}
           >
             {tx("Add another employee", "Tambah Karyawan Lain")}

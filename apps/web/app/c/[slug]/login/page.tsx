@@ -59,10 +59,6 @@ export default function CompanyLoginPage() {
       setTimeout(() => router.push(homeForRole(role)), 500);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login gagal");
-      // Demo fallback for preview without DB
-      loginAs("client_admin", email || `admin@${slug}.co.id`);
-      setLogged(true);
-      setTimeout(() => router.push("/team"), 700);
     } finally {
       setLoading(false);
     }

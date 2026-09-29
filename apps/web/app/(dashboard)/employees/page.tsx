@@ -8,35 +8,6 @@ import { trpcClient } from "../../../src/utils/trpc-client";
 import { useAuth } from "../../../src/context/auth-context";
 import { useI18n } from "../../../src/context/i18n-context";
 
-const ISSUED_NIK_KEY = "nusakerja_employee_niks";
-
-function readIssuedNiks(): string[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const parsed = JSON.parse(localStorage.getItem(ISSUED_NIK_KEY) || "[]");
-    return Array.isArray(parsed) ? parsed.filter((code) => typeof code === "string") : [];
-  } catch {
-    return [];
-  }
-}
-
-function rememberNik(code: string) {
-  const next = [...new Set([...readIssuedNiks(), code])];
-  localStorage.setItem(ISSUED_NIK_KEY, JSON.stringify(next));
-}
-
-function uniqueEmployeeCode(used: string[]) {
-  const year = new Date().getFullYear();
-  const taken = new Set(used);
-  let n = 1;
-  let code = `NK-${year}-${String(n).padStart(3, "0")}`;
-  while (taken.has(code)) {
-    n += 1;
-    code = `NK-${year}-${String(n).padStart(3, "0")}`;
-  }
-  return code;
-}
-
 interface EmployeeItem {
   id: string;
   code: string;
@@ -135,14 +106,29 @@ export default function EmployeesPage() {
     void loadRoster();
   }, [loadRoster]);
 
+  const openAddModal = () => {
+    setNewName("");
+    setNewSalary("");
+    setNewNik("");
+    setNewGrade(1);
+    setNewManagerId("");
+    setFormError(null);
+    setNewCode("");
+    setShowAddModal(true);
+    void trpcClient.employees.nextCode
+      .query()
+      .then((next) => setNewCode(next.employeeCode))
+      .catch((err) => {
+        setFormError(err instanceof Error ? err.message : tx("Could not load the next employee code.", "Kode karyawan berikutnya gagal dimuat."));
+      });
+  };
+
   const filteredEmployees = employeesList.filter(
     (e) =>
       e.name.toLowerCase().includes(search.toLowerCase()) ||
       e.designation.toLowerCase().includes(search.toLowerCase()) ||
       e.code.toLowerCase().includes(search.toLowerCase())
   );
-
-  const takenCodes = () => [...employeesList.map((row) => row.code), ...readIssuedNiks()];
 
   const handleAddEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,16 +137,8 @@ export default function EmployeesPage() {
     const salary = Number(newSalary);
     if (!newSalary || Number.isNaN(salary) || salary <= 0) return;
     const code = newCode.trim();
-    const used = takenCodes();
-    if (!code || used.includes(code)) {
-      const next = uniqueEmployeeCode(used);
-      setNewCode(next);
-      window.alert(
-        tx(
-          `Employee code ${code || "(empty)"} is already used. The next code is ${next}.`,
-          `Kode karyawan ${code || "(kosong)"} sudah dipakai. Kode berikutnya ${next}.`
-        )
-      );
+    if (!code) {
+      setFormError(tx("Employee code is still loading.", "Kode karyawan masih dimuat."));
       return;
     }
     if (!/^\d{16}$/.test(newNik)) {
@@ -180,7 +158,6 @@ export default function EmployeesPage() {
         grade: newGrade,
         managerEmployeeId: newManagerId || null,
       });
-      rememberNik(code);
       setShowAddModal(false);
       setNewName("");
       setNewNik("");
@@ -189,7 +166,12 @@ export default function EmployeesPage() {
       setNewManagerId("");
       await loadRoster();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : tx("Could not save the employee.", "Karyawan gagal disimpan."));
+      const message = err instanceof Error ? err.message : tx("Could not save the employee.", "Karyawan gagal disimpan.");
+      if (message.includes("Kode karyawan")) {
+        const next = await trpcClient.employees.nextCode.query().catch(() => null);
+        if (next) setNewCode(next.employeeCode);
+      }
+      setFormError(message);
     } finally {
       setSaving(false);
     }
@@ -214,12 +196,7 @@ export default function EmployeesPage() {
         </div>
         {canEditRoster && (
           <button
-            onClick={() => {
-              setNewCode(uniqueEmployeeCode(takenCodes()));
-              setNewName("");
-              setNewSalary("");
-              setShowAddModal(true);
-            }}
+            onClick={openAddModal}
             className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center space-x-2 shadow-lg transition-all"
           >
             <UserPlus className="w-4 h-4" />

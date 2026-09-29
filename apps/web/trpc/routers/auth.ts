@@ -9,6 +9,7 @@ import {
 } from "@nusakerja/auth";
 import { db, users, sessions, auditLogs } from "@nusakerja/db";
 import { publicProcedure, protectedProcedure, router } from "../trpc";
+import { ROLE_COOKIE, roleCookieOptions, signRole } from "../../src/utils/signed-role-cookie";
 
 const DEMO_ENABLED =
   process.env.ENABLE_DEMO_LOGIN === "true" || process.env.NODE_ENV !== "production";
@@ -63,12 +64,8 @@ export const authRouter = router({
         path: "/",
         expires: expiresAt,
       });
-      cookies().set("nk_role", user.role, {
-        httpOnly: false,
-        sameSite: "lax",
-        path: "/",
-        expires: expiresAt,
-      });
+      cookies().set(ROLE_COOKIE, await signRole(user.role, token), roleCookieOptions(expiresAt));
+      cookies().delete("nk_role");
 
       await writeAudit({
         userId: user.id,
@@ -93,6 +90,7 @@ export const authRouter = router({
       await db.delete(sessions).where(eq(sessions.token, token));
     }
     cookies().delete(SESSION_COOKIE);
+    cookies().delete(ROLE_COOKIE);
     cookies().delete("nk_role");
     cookies().delete("nk_active_tenant");
     await writeAudit({

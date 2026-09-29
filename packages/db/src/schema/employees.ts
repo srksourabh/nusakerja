@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, date, pgEnum, decimal, integer, type AnyPgColumn } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, date, pgEnum, decimal, integer, uniqueIndex, type AnyPgColumn } from "drizzle-orm/pg-core";
 import { tenants } from "./tenants";
 import { users } from "./users";
 
@@ -35,4 +35,9 @@ export const employees = pgTable("employees", {
   rptkaRef: text("rptka_ref"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  tenantEmployeeCodeUidx: uniqueIndex("employees_tenant_employee_code_uidx").on(
+    table.tenantId,
+    table.employeeCode
+  ),
+}));

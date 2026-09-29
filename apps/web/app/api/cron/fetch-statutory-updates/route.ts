@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { SESSION_COOKIE } from "@nusakerja/auth";
 
-const PMK_168_URL = "https://jdih.kemenkeu.go.id/dok/pmk-168-tahun-2023";
+const PMK_168_URL = "https://www.pajak.go.id/id/pmk-168-tahun-2023-pph-pasal-21-ter";
 
 export interface StatutoryUpdateItem {
   id: string;
@@ -19,8 +19,7 @@ export interface StatutoryUpdateItem {
 export async function GET() {
   const jar = cookies();
   const token = jar.get(SESSION_COOKIE)?.value;
-  const role = jar.get("nk_role")?.value;
-  if (!token && !role) {
+  if (!token) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 

@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { SESSION_COOKIE, newSessionToken, verifyPassword } from "@nusakerja/auth";
 import { db, users, sessions, auditLogs, tenants } from "@nusakerja/db";
+import { ROLE_COOKIE, roleCookieOptions, signRole } from "../../../../src/utils/signed-role-cookie";
 
 export async function POST(req: Request) {
   try {
@@ -47,12 +48,8 @@ export async function POST(req: Request) {
       path: "/",
       expires: expiresAt,
     });
-    cookies().set("nk_role", user.role, {
-      httpOnly: false,
-      sameSite: "lax",
-      path: "/",
-      expires: expiresAt,
-    });
+    cookies().set(ROLE_COOKIE, await signRole(user.role, token), roleCookieOptions(expiresAt));
+    cookies().delete("nk_role");
     await db.insert(auditLogs).values({
       userId: user.id,
       tenantId: resolvedTenantId,
